@@ -1,1 +1,13 @@
+# macOS
 .DS_Store
+
+# Segredos — ver regra 2 do CLAUDE.md
+.env
+.env.*
+!.env.example
+
+# Dependências e build
+node_modules/
+.next/
+out/
+.vercel/
