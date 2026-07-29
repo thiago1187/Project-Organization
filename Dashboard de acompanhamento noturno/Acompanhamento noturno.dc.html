@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0d0e10; }
+  body { font-family: "Helvetica Neue", Helvetica, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: #e6e8ea; text-decoration: none; }
+  a:hover { color: #ffffff; }
+  ::selection { background: #2a2e35; }
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0d0e10; color: #e6e8ea; font-size: 14px; line-height: 1.45;">
+
+  <div style="display: flex; align-items: baseline; gap: 24px; padding: 18px 32px; border-bottom: 1px solid #23262c; position: sticky; top: 0; background: #0d0e10; z-index: 5;">
+    <div style="font-size: 15px; font-weight: 500; letter-spacing: -0.01em;">Acompanhamento noturno</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8b9096;">{{ agora }}</div>
+    <div style="flex: 1;"></div>
+    <div style="display: flex; gap: 4px;">
+      <div onClick="{{ irHome }}" style="padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; color: #8b9096;" style-hover="background: #16181c; color: #e6e8ea;">Visão geral</div>
+      <div onClick="{{ irConfig }}" style="padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; color: #8b9096;" style-hover="background: #16181c; color: #e6e8ea;">Configuração</div>
+    </div>
+  </div>
+
+  <sc-if value="{{ ehHome }}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 28px 32px 56px;">
+
+      <sc-if value="{{ mostrarTotais }}" hint-placeholder-val="{{ true }}">
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: #23262c; border: 1px solid #23262c; border-radius: 6px; overflow: hidden; margin-bottom: 24px;">
+          <div style="background: #14161a; padding: 14px 18px;">
+            <div style="font-size: 11px; color: #8b9096; margin-bottom: 6px;">Projetos monitorados</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 22px;">{{ totalAtivos }}</div>
+          </div>
+          <div style="background: #14161a; padding: 14px 18px;">
+            <div style="font-size: 11px; color: #8b9096; margin-bottom: 6px;">Rodadas concluídas</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 22px;">{{ totalRodadas }}</div>
+          </div>
+          <div style="background: #14161a; padding: 14px 18px;">
+            <div style="font-size: 11px; color: #8b9096; margin-bottom: 6px;">PRs aguardando revisão</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #d9a83a;">{{ totalPrs }}</div>
+          </div>
+          <div style="background: #14161a; padding: 14px 18px;">
+            <div style="font-size: 11px; color: #8b9096; margin-bottom: 6px;">Com falha</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #c9614f;">{{ totalFalhas }}</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 12px;">
+        <div style="font-size: 12px; color: #8b9096;">Última madrugada · {{ noite }}</div>
+        <div style="flex: 1; height: 1px; background: #1c1f24;"></div>
+        <div style="display: flex; gap: 14px; font-size: 11px; color: #8b9096;">
+          <span>Ordenar por</span>
+          <span onClick="{{ ordNome }}" style="cursor: pointer; color: {{ corNome }};">nome</span>
+          <span onClick="{{ ordStatus }}" style="cursor: pointer; color: {{ corStatus }};">status</span>
+          <span onClick="{{ ordHora }}" style="cursor: pointer; color: {{ corHora }};">horário</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
+        <sc-for list="{{ projetos }}" as="p" hint-placeholder-count="6">
+          <div onClick="{{ p.abrir }}" style="background: #14161a; border: 1px solid #23262c; border-radius: 6px; padding: 16px 18px; cursor: pointer; display: flex; flex-direction: column; gap: 12px;" style-hover="border-color: #363b44; background: #16181d;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 7px; height: 7px; border-radius: 50%; background: {{ p.cor }}; flex: none;"></div>
+              <div style="font-size: 14px; font-weight: 500;">{{ p.nome }}</div>
+              <div style="flex: 1;"></div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: {{ p.cor }};">{{ p.statusLabel }}</div>
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c;">{{ p.repo }}</div>
+            <div style="color: #b6bbc1; font-size: 13px; text-wrap: pretty;">{{ p.resumo }}</div>
+            <div style="display: flex; align-items: center; gap: 10px; border-top: 1px solid #1c1f24; padding-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c;">
+              <span>{{ p.ultimaRodada }}</span>
+              <span>·</span>
+              <span>{{ p.testesLabel }}</span>
+              <div style="flex: 1;"></div>
+              <span style="color: #8b9096;">detalhe →</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ temPausados }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top: 28px; font-size: 12px; color: #6f757c;">{{ textoPausados }}</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ ehDetalhe }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 24px 32px 64px; max-width: 1100px;">
+      <div onClick="{{ irHome }}" style="font-size: 12px; color: #8b9096; cursor: pointer; margin-bottom: 18px;" style-hover="color: #e6e8ea;">← Visão geral</div>
+
+      <div style="display: flex; align-items: flex-start; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid #23262c;">
+        <div style="width: 8px; height: 8px; border-radius: 50%; background: {{ atual.cor }}; margin-top: 8px; flex: none;"></div>
+        <div>
+          <div style="font-size: 20px; font-weight: 500; letter-spacing: -0.01em;">{{ atual.nome }}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c; margin-top: 4px;">{{ atual.repo }} · última rodada {{ atual.ultimaRodada }}</div>
+        </div>
+        <div style="flex: 1;"></div>
+        <sc-if value="{{ atual.temPr }}" hint-placeholder-val="{{ true }}">
+          <a href="{{ atual.prUrl }}" target="_blank" rel="noreferrer" style="border: 1px solid #3a3f48; border-radius: 4px; padding: 8px 14px; font-size: 13px; color: #e6e8ea;" style-hover="border-color: #5a616c; background: #16181d;">Abrir PR no GitHub ↗</a>
+        </sc-if>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 32px; margin-top: 24px; align-items: start;">
+
+        <div>
+          <div style="font-size: 12px; color: #8b9096; margin-bottom: 12px;">Rodadas noturnas</div>
+          <sc-for list="{{ atual.rodadas }}" as="r" hint-placeholder-count="3">
+            <div style="border: 1px solid #23262c; border-radius: 6px; background: #14161a; margin-bottom: 10px; overflow: hidden;">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #1c1f24;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">{{ r.data }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c;">{{ r.janela }}</div>
+                <div style="flex: 1;"></div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: {{ r.cor }};">{{ r.testes }}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 1px; background: #1c1f24;">
+                <sc-for list="{{ r.agentes }}" as="a" hint-placeholder-count="6">
+                  <div style="background: #14161a; padding: 9px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: {{ a.corNome }};">{{ a.nome }}</div>
+                  <div style="background: #14161a; padding: 9px 16px; font-size: 13px; color: #b6bbc1; text-wrap: pretty;">{{ a.acao }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+
+          <div>
+            <div style="font-size: 12px; color: #8b9096; margin-bottom: 10px;">Documentos do projeto</div>
+            <div style="border: 1px solid #23262c; border-radius: 6px; background: #14161a;">
+              <sc-for list="{{ atual.docs }}" as="d" hint-placeholder-count="3">
+                <a href="{{ d.url }}" target="_blank" rel="noreferrer" style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #1c1f24;" style-hover="background: #17191e;">
+                  <span style="font-size: 13px; min-width: 0; overflow-wrap: anywhere;">{{ d.nome }}</span>
+                  <span style="flex: 1;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c; white-space: nowrap; flex: none;">{{ d.local }} ↗</span>
+                </a>
+              </sc-for>
+            </div>
+            <div style="font-size: 11px; color: #6f757c; margin-top: 8px;">Somente links — o app não guarda nem recebe arquivos.</div>
+          </div>
+
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px;">
+              <div style="font-size: 12px; color: #8b9096; white-space: nowrap; flex: none;">Acessos do projeto</div>
+              <div onClick="{{ sessaoToggle }}" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <div style="width: 5px; height: 5px; border-radius: 50%; background: {{ sessaoCor }}; flex: none;"></div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: {{ sessaoCor }}; white-space: nowrap;">{{ sessaoLabelCurto }}</div>
+              </div>
+            </div>
+            <div style="font-size: 10px; color: #6f757c; margin-bottom: 10px;">{{ sessaoDica }}</div>
+            <div style="border: 1px solid #23262c; border-radius: 6px; background: #14161a;">
+              <sc-for list="{{ atual.acessos }}" as="c" hint-placeholder-count="3">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #1c1f24;">
+                  <div style="min-width: 0;">
+                    <div style="font-size: 13px; overflow-wrap: anywhere;">{{ c.rotulo }}</div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: {{ c.valorCor }}; margin-top: 2px;">{{ c.valorExibido }}</div>
+                  </div>
+                  <div style="flex: 1;"></div>
+                  <sc-if value="{{ c.podeRevelar }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ c.revelar }}" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8b9096; white-space: nowrap; flex: none; cursor: pointer; border: 1px solid #3a3f48; border-radius: 4px; padding: 4px 8px;" style-hover="color: #e6e8ea; border-color: #5a616c;">{{ c.revelarLabel }}</div>
+                  </sc-if>
+                  <a href="{{ c.url }}" target="_blank" rel="noreferrer" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8b9096; white-space: nowrap; flex: none;" style-hover="color: #e6e8ea;">{{ c.gerido }} ↗</a>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ mostrarNotaSeguranca }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top: 8px; border-left: 2px solid #3a3f48; padding: 2px 0 2px 10px; font-size: 11px; color: #8b9096; text-wrap: pretty;">Valores ficam como variáveis de ambiente no Vercel e só são lidos por uma rota de servidor, depois de validar a sessão do Vercel Authentication — nunca enviados ao navegador antes disso. Este protótipo simula a sessão; a leitura real acontece fora do bundle do cliente.</div>
+            </sc-if>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ ehConfig }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 28px 32px 64px; max-width: 860px;">
+      <div style="font-size: 16px; font-weight: 500; margin-bottom: 6px;">Configuração</div>
+      <div style="font-size: 13px; color: #8b9096; margin-bottom: 24px; text-wrap: pretty;">O toggle abaixo controla apenas o que aparece neste painel. A execução dos agentes acontece na Routine do Claude Code Desktop, fora do app — pausar aqui não interrompe a rodada da madrugada.</div>
+
+      <div style="border: 1px solid #23262c; border-radius: 6px; background: #14161a; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #23262c; font-size: 11px; color: #6f757c;">
+          <span style="flex: 1;">Projeto</span>
+          <span style="width: 150px;">Última rodada</span>
+          <span style="width: 96px; text-align: right;">Acompanhar</span>
+        </div>
+        <sc-for list="{{ todos }}" as="p" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #1c1f24;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 13px; color: {{ p.corTexto }};">{{ p.nome }}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c; margin-top: 2px;">{{ p.repo }}</div>
+            </div>
+            <div style="width: 150px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6f757c;">{{ p.ultimaRodada }}</div>
+            <div style="width: 96px; display: flex; justify-content: flex-end;">
+              <div onClick="{{ p.toggle }}" style="width: 38px; height: 20px; border-radius: 10px; background: {{ p.trilha }}; border: 1px solid {{ p.trilhaBorda }}; cursor: pointer; display: flex; align-items: center; padding: 2px; justify-content: {{ p.knobPos }};">
+                <div style="width: 14px; height: 14px; border-radius: 50%; background: {{ p.knob }};"></div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="margin-top: 20px; font-size: 12px; color: #6f757c; text-wrap: pretty;">Fora de escopo: guarda de credenciais reais, múltiplos usuários e disparo de rodada pelo app.</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mostrarTotais&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Painel&quot;},&quot;mostrarNotaSeguranca&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Painel&quot;}}">
+const OK = "#4fbf7f", ATN = "#d9a83a", FAL = "#c9614f";
+
+const AGENTES = ["arquiteto-chefe", "dev-backend", "dev-frontend", "engenheiro-banco", "revisor-seguranca", "revisor-codigo", "qa-testes", "devops-deploy"];
+
+const DADOS = [
+  {
+    id: "cofre", nome: "Cofre de rotinas", repo: "gravidade/cofre-rotinas", ativo: true,
+    status: "atencao", ultimaRodada: "03:12", testes: "testes ok",
+    resumo: "2 bugs corrigidos, 1 PR aberto aguardando revisão.",
+    prUrl: "https://github.com/gravidade/cofre-rotinas/pull/184",
+    docs: [
+      { nome: "Especificação do produto", local: "Notion", url: "https://www.notion.so/" },
+      { nome: "Diagrama de dados", local: "Google Drive", url: "https://drive.google.com/" },
+      { nome: "Runbook de incidentes", local: "Notion", url: "https://www.notion.so/" }
+    ],
+    acessos: [
+      { id: "neon-cofre", rotulo: "Neon — banco de produção", gerido: "GitHub Secrets", url: "https://github.com/", valor: "postgres://prod:••••@ep-cofre.neon.tech/db" },
+      { id: "vercel-cofre", rotulo: "Vercel — deploy", gerido: "GitHub Secrets", url: "https://github.com/", valor: "vercel_token_7f2a…c91" },
+      { id: "auth-cofre", rotulo: "Auth.js — secret", gerido: "cofre da empresa", url: "https://github.com/", valor: "authjs_secret_9be1…4d0" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:40 – 03:12", testes: "testes ok", ok: true, agentes: [
+        ["arquiteto-chefe", "Mapeou 3 pontos de dívida técnica no módulo de agendamento; abriu 1 tarefa mínima."],
+        ["revisor-seguranca", "Nenhuma dependência com CVE aberta. Confirmou que nenhum segredo aparece no repositório."],
+        ["revisor-codigo", "Sinalizou duplicação em lib/schedule.ts — deixou comentário, sem alterar."],
+        ["dev-backend", "Corrigiu erro de fuso na leitura de cron (madrugada rodava 1h adiantada)."],
+        ["dev-frontend", "Ajustou estado vazio da lista de rodadas."],
+        ["qa-testes", "142 testes, todos passando. Cobertura 74% (+1)."],
+        ["devops-deploy", "Preview publicado. Deploy em produção aguarda merge do PR #184."]
+      ] },
+      { data: "28 jul", janela: "02:38 – 03:05", testes: "testes ok", ok: true, agentes: [
+        ["arquiteto-chefe", "Sem mudanças estruturais propostas."],
+        ["engenheiro-banco", "Índice adicionado em runs(project_id, started_at)."],
+        ["qa-testes", "140 testes, todos passando."],
+        ["devops-deploy", "Merge automático do PR #181 após checagem verde."]
+      ] },
+      { data: "27 jul", janela: "02:41 – 03:19", testes: "1 teste quebrado", ok: false, agentes: [
+        ["dev-backend", "Tentou melhoria mínima na fila de rodadas; reverteu após falha."],
+        ["qa-testes", "139 testes, 1 falha em queue.spec.ts (timeout)."],
+        ["devops-deploy", "Deploy bloqueado. Falha reportada na rodada seguinte."]
+      ] }
+    ]
+  },
+  {
+    id: "medidor", nome: "Medidor de consumo", repo: "gravidade/medidor", ativo: true,
+    status: "ok", ultimaRodada: "03:04", testes: "testes ok",
+    resumo: "Nenhum bug encontrado, 1 melhoria mínima aplicada.",
+    prUrl: "", docs: [
+      { nome: "Brief inicial", local: "Google Drive", url: "https://drive.google.com/" },
+      { nome: "Métricas de API", local: "Notion", url: "https://www.notion.so/" }
+    ],
+    acessos: [
+      { rotulo: "Supabase — banco de produção", gerido: "GitHub Secrets", url: "https://github.com/" },
+      { rotulo: "Resend — envio de e-mail", gerido: "cofre da empresa", url: "https://github.com/" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:44 – 03:04", testes: "testes ok", ok: true, agentes: [
+        ["revisor-seguranca", "Sem achados. Headers de segurança conferidos."],
+        ["revisor-codigo", "Nenhum bloqueio."],
+        ["dev-frontend", "Melhoria mínima: foco visível nos botões da tabela."],
+        ["qa-testes", "88 testes, todos passando."]
+      ] },
+      { data: "28 jul", janela: "02:45 – 03:01", testes: "testes ok", ok: true, agentes: [
+        ["arquiteto-chefe", "Sugeriu extrair cliente de API — fora do escopo mínimo, virou tarefa."],
+        ["qa-testes", "88 testes, todos passando."]
+      ] }
+    ]
+  },
+  {
+    id: "atlas", nome: "Atlas interno", repo: "gravidade/atlas", ativo: true,
+    status: "falha", ultimaRodada: "03:27", testes: "2 testes quebrados",
+    resumo: "Rodada interrompida: migração pendente quebrou 2 testes.",
+    prUrl: "https://github.com/gravidade/atlas/pull/57",
+    docs: [
+      { nome: "Modelo de dados geográficos", local: "Notion", url: "https://www.notion.so/" },
+      { nome: "Contrato com fornecedor de tiles", local: "Google Drive", url: "https://drive.google.com/" }
+    ],
+    acessos: [
+      { rotulo: "PostGIS — banco de produção", gerido: "cofre da empresa", url: "https://github.com/" },
+      { rotulo: "Mapbox — tiles", gerido: "GitHub Secrets", url: "https://github.com/" },
+      { rotulo: "Fly.io — deploy", gerido: "GitHub Secrets", url: "https://github.com/" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:52 – 03:27", testes: "2 testes quebrados", ok: false, agentes: [
+        ["engenheiro-banco", "Migração 0042 aplicada em ambiente de teste; coluna renomeada sem backfill."],
+        ["dev-backend", "Corrigiu 1 chamada quebrada; 2 restantes precisam de decisão humana."],
+        ["qa-testes", "211 testes, 2 falhas em regions.spec.ts."],
+        ["devops-deploy", "Deploy bloqueado. PR #57 aberto com o diagnóstico."]
+      ] },
+      { data: "28 jul", janela: "02:50 – 03:11", testes: "testes ok", ok: true, agentes: [
+        ["revisor-codigo", "Nenhum bloqueio."],
+        ["qa-testes", "211 testes, todos passando."]
+      ] }
+    ]
+  },
+  {
+    id: "pauta", nome: "Pauta editorial", repo: "gravidade/pauta", ativo: true,
+    status: "atencao", ultimaRodada: "02:58", testes: "testes ok",
+    resumo: "1 bug corrigido, 2 PRs aguardando revisão.",
+    prUrl: "https://github.com/gravidade/pauta/pull/93",
+    docs: [{ nome: "Calendário de conteúdo", local: "Google Drive", url: "https://drive.google.com/" }],
+    acessos: [
+      { rotulo: "Neon — banco de produção", gerido: "GitHub Secrets", url: "https://github.com/" },
+      { rotulo: "Cloudinary — mídia", gerido: "cofre da empresa", url: "https://github.com/" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:36 – 02:58", testes: "testes ok", ok: true, agentes: [
+        ["revisor-seguranca", "Sem achados."],
+        ["dev-frontend", "Corrigiu recorte de título longo no card de pauta."],
+        ["qa-testes", "64 testes, todos passando."],
+        ["devops-deploy", "Preview publicado. 2 PRs na fila de revisão."]
+      ] }
+    ]
+  },
+  {
+    id: "ponte", nome: "Ponte de integrações", repo: "gravidade/ponte", ativo: true,
+    status: "ok", ultimaRodada: "03:09", testes: "testes ok",
+    resumo: "Checagens limpas, nenhuma alteração necessária.",
+    prUrl: "",
+    docs: [{ nome: "Mapa de webhooks", local: "Notion", url: "https://www.notion.so/" }],
+    acessos: [{ rotulo: "Railway — deploy", gerido: "GitHub Secrets", url: "https://github.com/" }],
+    rodadas: [
+      { data: "29 jul", janela: "03:00 – 03:09", testes: "testes ok", ok: true, agentes: [
+        ["arquiteto-chefe", "Nada a propor nesta rodada."],
+        ["revisor-seguranca", "Sem achados."],
+        ["qa-testes", "37 testes, todos passando."]
+      ] }
+    ]
+  },
+  {
+    id: "arquivo", nome: "Arquivo morto", repo: "gravidade/arquivo", ativo: false,
+    status: "ok", ultimaRodada: "12 jul, 03:02", testes: "testes ok",
+    resumo: "Acompanhamento pausado.",
+    prUrl: "",
+    docs: [{ nome: "Histórico de decisões", local: "Notion", url: "https://www.notion.so/" }],
+    acessos: [{ rotulo: "S3 — arquivos", gerido: "cofre da empresa", url: "https://github.com/" }],
+    rodadas: [
+      { data: "12 jul", janela: "02:55 – 03:02", testes: "testes ok", ok: true, agentes: [
+        ["qa-testes", "19 testes, todos passando."]
+      ] }
+    ]
+  }
+];
+
+const COR = { ok: OK, atencao: ATN, falha: FAL };
+const LABEL = { ok: "ok", atencao: "PR aberto", falha: "falha" };
+const PESO = { falha: 0, atencao: 1, ok: 2 };
+
+class Component extends DCLogic {
+  state = { tela: "home", projetoId: null, ordem: "status", ativos: {}, sessao: false, revelados: {} };
+
+  ativo(p) {
+    const o = this.state.ativos[p.id];
+    return o === undefined ? p.ativo : o;
+  }
+
+  renderVals() {
+    const ordem = this.state.ordem;
+    const destacaNome = AGENTES.indexOf.bind(AGENTES);
+
+    const sessao = this.state.sessao;
+    const revelados = this.state.revelados;
+
+    const decorar = (p) => ({
+      ...p,
+      cor: COR[p.status],
+      acessos: p.acessos.map((c) => {
+        const revelado = !!revelados[c.id];
+        const valor = c.valor || "valor-simulado-••••";
+        let valorExibido = "acesso restrito — faça login";
+        let valorCor = "#5a616c";
+        if (sessao) { valorExibido = revelado ? valor : "valor oculto"; valorCor = revelado ? "#b6bbc1" : "#6f757c"; }
+        return {
+          ...c, valorExibido, valorCor,
+          podeRevelar: sessao,
+          revelarLabel: revelado ? "ocultar" : "revelar",
+          revelar: () => this.setState((s) => ({ revelados: { ...s.revelados, [c.id]: !s.revelados[c.id] } }))
+        };
+      }),
+      statusLabel: LABEL[p.status],
+      testesLabel: p.testes,
+      temPr: !!p.prUrl,
+      abrir: () => this.setState({ tela: "detalhe", projetoId: p.id }),
+      rodadas: p.rodadas.map((r) => ({
+        ...r,
+        cor: r.ok ? OK : FAL,
+        agentes: r.agentes.map(([nome, acao]) => ({
+          nome, acao,
+          corNome: destacaNome(nome) >= 0 ? "#9aa1a9" : "#6f757c"
+        }))
+      }))
+    });
+
+    let visiveis = DADOS.filter((p) => this.ativo(p)).map(decorar);
+    if (ordem === "nome") visiveis.sort((a, b) => a.nome.localeCompare(b.nome));
+    else if (ordem === "hora") visiveis.sort((a, b) => a.ultimaRodada.localeCompare(b.ultimaRodada));
+    else visiveis.sort((a, b) => PESO[a.status] - PESO[b.status]);
+
+    const pausados = DADOS.filter((p) => !this.ativo(p));
+    const atualBruto = DADOS.find((p) => p.id === this.state.projetoId);
+
+    const todos = DADOS.map((p) => {
+      const on = this.ativo(p);
+      return {
+        ...p,
+        corTexto: on ? "#e6e8ea" : "#6f757c",
+        trilha: on ? "#1e2e26" : "#191b1f",
+        trilhaBorda: on ? "#2f5544" : "#2a2e35",
+        knob: on ? OK : "#5a616c",
+        knobPos: on ? "flex-end" : "flex-start",
+        toggle: () => this.setState((s) => ({ ativos: { ...s.ativos, [p.id]: !on } }))
+      };
+    });
+
+    const cor = (k) => (ordem === k ? "#e6e8ea" : "#6f757c");
+
+    return {
+      agora: "29 jul 2026 · 07:40",
+      noite: "28 → 29 jul",
+      ehHome: this.state.tela === "home",
+      ehDetalhe: this.state.tela === "detalhe" && !!atualBruto,
+      ehConfig: this.state.tela === "config",
+      irHome: () => this.setState({ tela: "home" }),
+      irConfig: () => this.setState({ tela: "config" }),
+      projetos: visiveis,
+      atual: atualBruto ? decorar(atualBruto) : {},
+      todos,
+      totalAtivos: visiveis.length,
+      totalRodadas: visiveis.reduce((n, p) => n + p.rodadas.length, 0),
+      totalPrs: visiveis.filter((p) => p.status === "atencao").length,
+      totalFalhas: visiveis.filter((p) => p.status === "falha").length,
+      temPausados: pausados.length > 0,
+      textoPausados: pausados.length + (pausados.length === 1 ? " projeto pausado" : " projetos pausados") + ": " + pausados.map((p) => p.nome).join(", ") + ".",
+      sessaoLabelCurto: sessao ? "sessão ativa" : "sem sessão",
+      sessaoDica: sessao ? "clique para encerrar a sessão simulada" : "clique para simular login com Vercel Authentication",
+      sessaoCor: sessao ? OK : "#6f757c",
+      sessaoToggle: () => this.setState((s) => ({ sessao: !s.sessao, revelados: {} })),
+      mostrarTotais: this.props.mostrarTotais ?? true,
+      mostrarNotaSeguranca: this.props.mostrarNotaSeguranca ?? true,
+      ordNome: () => this.setState({ ordem: "nome" }),
+      ordStatus: () => this.setState({ ordem: "status" }),
+      ordHora: () => this.setState({ ordem: "hora" }),
+      corNome: cor("nome"), corStatus: cor("status"), corHora: cor("hora")
+    };
+  }
+}
+</script>
+</body>
+</html>

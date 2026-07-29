@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0a0b0d; }
+  body { font-family: "Helvetica Neue", Helvetica, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  [contenteditable]:focus { outline: none; box-shadow: inset 0 -1px 0 var(--acento, #58c98a); }
+  ::selection { background: #23272e; }
+</style>
+</helmet>
+<div style="{{ temaVars }}">
+<div style="min-height: 100vh; background: var(--bg, #0a0b0d); color: var(--txt, #eceef0); font-size: 14px; line-height: 1.45;">
+
+  <div style="display: flex; align-items: center; gap: 20px; padding: 16px 36px; border-bottom: 1px solid var(--linha, #1a1d22); position: sticky; top: 0; background: var(--bg, #0a0b0d); z-index: 5;">
+    <div onClick="{{ irHome }}" style="font-family: 'Instrument Serif', Georgia, serif; font-size: 20px; letter-spacing: -0.01em; cursor: pointer;">Acompanhamento noturno</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--mut2, #7d848c);">{{ agora }}</div>
+    <div style="flex: 1;"></div>
+    <div onClick="{{ temaToggle }}" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut2, #7d848c); border: 1px solid var(--borda, #1e2126); border-radius: 4px; padding: 5px 10px; cursor: pointer;" style-hover="color: var(--txt, #eceef0);">{{ temaLabel }}</div>
+    <div style="display: flex; gap: 2px;">
+      <div onClick="{{ irHome }}" style="padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; color: {{ corNavHome }};" style-hover="background: var(--hover, #14171b);">Projetos</div>
+      <div onClick="{{ irConfig }}" style="padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; color: {{ corNavConfig }};" style-hover="background: var(--hover, #14171b);">Configuração</div>
+    </div>
+  </div>
+
+  <sc-if value="{{ ehHome }}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 30px 36px 64px;">
+
+      <div style="display: flex; align-items: flex-end; gap: 28px; margin-bottom: 26px;">
+        <div>
+          <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 34px; line-height: 1.1; letter-spacing: -0.015em;">{{ saudacao }}</div>
+          <div style="color: var(--mut2, #7d848c); margin-top: 6px; font-size: 13px;">{{ resumoNoite }}</div>
+        </div>
+        <div style="flex: 1;"></div>
+        <sc-if value="{{ mostrarTotais }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; gap: 28px; padding-bottom: 4px;">
+            <div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; line-height: 1;">{{ totalAtivos }}</div>
+              <div style="font-size: 11px; color: var(--mut2, #7d848c); margin-top: 6px;">em acompanhamento</div>
+            </div>
+            <div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; line-height: 1; color: {{ corAtn }};">{{ totalPrs }}</div>
+              <div style="font-size: 11px; color: var(--mut2, #7d848c); margin-top: 6px;">PRs na fila</div>
+            </div>
+            <div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; line-height: 1; color: {{ corFal }};">{{ totalFalhas }}</div>
+              <div style="font-size: 11px; color: var(--mut2, #7d848c); margin-top: 6px;">com falha</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">arraste um card para mudar com que frequência os agentes visitam o projeto</div>
+        <div style="flex: 1; height: 1px; background: var(--linha2, #16191d);"></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start;">
+        <sc-for list="{{ faixas }}" as="f" hint-placeholder-count="4">
+          <div onDragOver="{{ f.sobre }}" onDragLeave="{{ f.sai }}" onDrop="{{ f.solta }}" style="border: 1px {{ f.tipoBorda }} {{ f.borda }}; border-radius: 10px; background: {{ f.fundo }}; padding: 12px; min-height: 220px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: baseline; gap: 8px; padding: 2px 4px 8px; border-bottom: 1px solid var(--linha2, #16191d);">
+              <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 18px; line-height: 1.2;">{{ f.titulo }}</div>
+              <div style="flex: 1;"></div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">{{ f.qtd }}</div>
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); padding: 0 4px;">{{ f.nota }}</div>
+
+            <sc-for list="{{ f.projetos }}" as="p" hint-placeholder-count="2">
+              <div draggable="true" onDragStart="{{ p.arrastar }}" onDragEnd="{{ p.solta }}" onClick="{{ p.abrir }}" style="position: relative; background: var(--painel, #101215); border: 1px solid {{ p.bordaCard }}; border-radius: 8px; padding: 14px 16px 12px; cursor: grab; display: flex; flex-direction: column; gap: 10px; overflow: hidden; opacity: {{ p.opacidade }};" style-hover="border-color: var(--bordaHover, #33383f);">
+                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: {{ p.cor }};"></div>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 19px; line-height: 1.15; letter-spacing: -0.01em;">{{ p.nome }}</div>
+                  <div style="flex: 1;"></div>
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: {{ p.cor }}; white-space: nowrap;">{{ p.statusLabel }}</div>
+                </div>
+                <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ p.editarResumo }}" onClick="{{ pararClique }}" style="font-size: 12.5px; color: var(--txt2, #b3b9c0); text-wrap: pretty; cursor: text;">{{ p.resumo }}</div>
+                <div style="display: flex; gap: 3px; flex-wrap: wrap;">
+                  <sc-for list="{{ p.strip }}" as="s" hint-placeholder-count="6">
+                    <div style="width: 19px; height: 19px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 8.5px; background: {{ s.bg }}; color: {{ s.fg }}; border: 1px solid {{ s.borda }};">{{ s.mono }}</div>
+                  </sc-for>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--linha3, #191c21); padding-top: 9px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--mut3, #5f666e);">
+                  <span>{{ p.ultimaRodada }}</span>
+                  <div style="flex: 1;"></div>
+                  <span style="color: {{ p.corTestes }};">{{ p.testesCurto }}</span>
+                </div>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ f.vazia }}" hint-placeholder-val="{{ false }}">
+              <div style="border: 1px dashed var(--borda, #1e2126); border-radius: 8px; padding: 18px 12px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">solte um projeto aqui</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ ehDetalhe }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 22px 36px 72px; max-width: 1240px;">
+      <div onClick="{{ irHome }}" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); cursor: pointer; margin-bottom: 20px;" style-hover="color: var(--txt, #eceef0);">← todos os projetos</div>
+
+      <div style="display: flex; align-items: flex-end; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid var(--linha, #1a1d22);">
+        <div style="min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="width: 8px; height: 8px; border-radius: 50%; background: {{ atual.cor }}; flex: none;"></div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: {{ atual.cor }};">{{ atual.statusLabel }}</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">{{ atual.repo }}</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); border: 1px solid var(--borda, #1e2126); border-radius: 3px; padding: 2px 7px;">{{ atual.cadenciaLabel }}</div>
+          </div>
+          <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ atual.editarNome }}" style="font-family: 'Instrument Serif', Georgia, serif; font-size: 42px; line-height: 1.05; letter-spacing: -0.02em; margin-top: 8px; cursor: text;">{{ atual.nome }}</div>
+        </div>
+        <div style="flex: 1;"></div>
+        <sc-if value="{{ atual.temPr }}" hint-placeholder-val="{{ true }}">
+          <a href="{{ atual.prUrl }}" target="_blank" rel="noreferrer" style="border: 1px solid {{ corAtn }}; border-radius: 5px; padding: 9px 16px; font-size: 13px; color: {{ corAtn }}; white-space: nowrap;" style-hover="background: var(--hover, #14171b);">Revisar PR no GitHub ↗</a>
+        </sc-if>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 36px; margin-top: 26px; align-items: start;">
+
+        <div style="min-width: 0;">
+
+          <div style="border: 1px solid var(--borda, #1e2126); border-radius: 8px; background: var(--painel, #101215); padding: 22px 24px; margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">onde estamos</div>
+              <div style="flex: 1; height: 1px; background: var(--linha3, #191c21);"></div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">{{ atual.etapa.contador }}</div>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+              <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ atual.editarEtapaTitulo }}" style="font-family: 'Instrument Serif', Georgia, serif; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em; cursor: text;">{{ atual.etapa.titulo }}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: {{ atual.etapa.corSelo }}; border: 1px solid {{ atual.etapa.corSelo }}; border-radius: 3px; padding: 2px 7px;">{{ atual.etapa.selo }}</div>
+            </div>
+            <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ atual.editarEtapaResumo }}" style="color: var(--txt2, #b3b9c0); font-size: 14px; margin-top: 12px; max-width: 68ch; text-wrap: pretty; cursor: text;">{{ atual.etapa.resumo }}</div>
+            <div style="display: flex; flex-direction: column; gap: 7px; margin-top: 16px;">
+              <sc-for list="{{ atual.etapa.proximos }}" as="n" hint-placeholder-count="3">
+                <div style="display: flex; gap: 10px; align-items: baseline;">
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); flex: none;">{{ n.num }}</div>
+                  <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ n.editar }}" style="font-size: 13px; color: var(--txt3, #d4d8dc); text-wrap: pretty; cursor: text; flex: 1;">{{ n.texto }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--linha3, #191c21); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">
+              <span>escrito por {{ atual.etapa.autor }}</span>
+              <span>·</span>
+              <span>{{ atual.etapa.atualizado }}</span>
+              <div style="flex: 1;"></div>
+              <span style="color: {{ atual.etapa.corFrescor }};">{{ atual.etapa.frescor }}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">rodadas noturnas</div>
+            <div style="flex: 1; height: 1px; background: var(--linha2, #16191d);"></div>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+            <sc-for list="{{ atual.rodadas }}" as="r" hint-placeholder-count="3">
+              <div onClick="{{ r.selecionar }}" style="border: 1px solid {{ r.borda }}; background: {{ r.fundo }}; border-radius: 6px; padding: 9px 13px; cursor: pointer; display: flex; align-items: center; gap: 9px;" style-hover="border-color: var(--bordaHover, #33383f);">
+                <div style="width: 5px; height: 5px; border-radius: 50%; background: {{ r.cor }};"></div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: {{ r.corTexto }};">{{ r.data }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">{{ r.qtdAgentes }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;">
+            <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 22px;">{{ rodada.tituloLongo }}</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">{{ rodada.janela }}</div>
+            <div style="flex: 1;"></div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: {{ rodada.cor }};">{{ rodada.testes }}</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px;">
+            <sc-for list="{{ rodada.agentes }}" as="a" hint-placeholder-count="6">
+              <div style="border: 1px solid var(--borda, #1e2126); border-radius: 8px; background: var(--painel, #101215); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;" style-hover="border-color: var(--bordaHover, #33383f);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 26px; height: 26px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 10px; background: {{ a.bg }}; color: {{ a.fg }}; border: 1px solid {{ a.borda }}; flex: none;">{{ a.mono }}</div>
+                  <div style="min-width: 0;">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; overflow-wrap: anywhere;">{{ a.nome }}</div>
+                    <div style="font-size: 10px; color: var(--mut3, #5f666e); margin-top: 2px;">{{ a.papel }}</div>
+                  </div>
+                </div>
+                <div style="font-size: 13px; color: var(--txt2, #b3b9c0); text-wrap: pretty;">{{ a.acao }}</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--linha3, #191c21); font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+                  <span style="color: {{ a.corTipo }};">{{ a.tipoLabel }}</span>
+                  <div style="flex: 1;"></div>
+                  <span style="color: var(--mut3, #5f666e);">{{ a.metrica }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 30px;">
+
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">documentos</div>
+              <div style="flex: 1; height: 1px; background: var(--linha2, #16191d);"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <sc-for list="{{ atual.docs }}" as="d" hint-placeholder-count="3">
+                <a href="{{ d.url }}" target="_blank" rel="noreferrer" style="display: flex; align-items: center; gap: 10px; border: 1px solid var(--borda, #1e2126); border-radius: 6px; background: var(--painel, #101215); padding: 11px 13px;" style-hover="border-color: var(--bordaHover, #33383f);">
+                  <span style="font-size: 13px; min-width: 0; overflow-wrap: anywhere;">{{ d.nome }}</span>
+                  <span style="flex: 1;"></span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); white-space: nowrap; flex: none;">{{ d.local }} ↗</span>
+                </a>
+              </sc-for>
+            </div>
+            <div style="font-size: 11px; color: var(--mut3, #5f666e); margin-top: 8px;">Links para onde o documento já vive — o app não guarda arquivos.</div>
+          </div>
+
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); white-space: nowrap; flex: none;">cofre de acessos</div>
+              <div style="flex: 1; height: 1px; background: var(--linha2, #16191d);"></div>
+              <div onClick="{{ sessaoToggle }}" style="display: flex; align-items: center; gap: 6px; cursor: pointer; flex: none;">
+                <div style="width: 5px; height: 5px; border-radius: 50%; background: {{ sessaoCor }};"></div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: {{ sessaoCor }}; white-space: nowrap;">{{ sessaoLabel }}</div>
+              </div>
+            </div>
+            <div style="font-size: 10px; color: var(--mut3, #5f666e); margin-bottom: 12px;">{{ sessaoDica }}</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <sc-for list="{{ atual.acessos }}" as="c" hint-placeholder-count="3">
+                <div style="border: 1px solid var(--borda, #1e2126); border-radius: 6px; background: var(--painel, #101215); padding: 12px 13px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="font-size: 13px; min-width: 0; overflow-wrap: anywhere;">{{ c.rotulo }}</div>
+                    <div style="flex: 1;"></div>
+                    <sc-if value="{{ c.podeRevelar }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ c.revelar }}" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut2, #7d848c); white-space: nowrap; flex: none; cursor: pointer; border: 1px solid var(--borda, #1e2126); border-radius: 4px; padding: 3px 8px;" style-hover="color: var(--txt, #eceef0); border-color: var(--bordaHover, #33383f);">{{ c.revelarLabel }}</div>
+                    </sc-if>
+                  </div>
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: {{ c.valorCor }}; margin-top: 8px; overflow-wrap: anywhere;">{{ c.valorExibido }}</div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e);">
+                    <span>{{ c.escopo }}</span>
+                    <div style="flex: 1;"></div>
+                    <a href="{{ c.url }}" target="_blank" rel="noreferrer" style="white-space: nowrap; color: var(--mut3, #5f666e);" style-hover="color: var(--txt, #eceef0);">{{ c.gerido }} ↗</a>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ mostrarNotaSeguranca }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top: 10px; border-left: 2px solid var(--borda, #1e2126); padding: 2px 0 2px 10px; font-size: 11px; color: var(--mut2, #7d848c); text-wrap: pretty;">Os valores vivem nas environment variables do Vercel e são lidos só no servidor, depois de validar a sessão do Vercel Authentication. Nada de credencial entra no bundle do navegador antes disso, e o app não recebe valor digitado — para adicionar ou trocar, use o painel do Vercel.</div>
+            </sc-if>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ ehConfig }}" hint-placeholder-val="{{ false }}">
+    <div style="padding: 32px 36px 72px; max-width: 940px;">
+      <div style="font-family: 'Instrument Serif', Georgia, serif; font-size: 32px; letter-spacing: -0.015em;">Configuração</div>
+      <div style="font-size: 13px; color: var(--mut2, #7d848c); margin: 8px 0 28px; max-width: 62ch; text-wrap: pretty;">A cadência aqui é a mesma do quadro na home — arraste lá ou escolha aqui. Isso controla o que este painel espera de cada projeto; a execução acontece na Routine do Claude Code Desktop, fora do app. Projeto pausado não recebe visita dos agentes nem atualiza o documento de etapa.</div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <sc-for list="{{ todos }}" as="p" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 16px; border: 1px solid var(--borda, #1e2126); border-radius: 6px; background: var(--painel, #101215); padding: 14px 16px; flex-wrap: wrap;">
+            <div style="min-width: 180px; flex: 1;">
+              <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ p.editarNome }}" style="font-family: 'Instrument Serif', Georgia, serif; font-size: 19px; color: {{ p.corTexto }}; cursor: text;">{{ p.nome }}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mut3, #5f666e); margin-top: 3px;">{{ p.repo }} · {{ p.ultimaRodada }}</div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <sc-for list="{{ p.opcoes }}" as="o" hint-placeholder-count="4">
+                <div onClick="{{ o.escolher }}" style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: {{ o.corTexto }}; border: 1px solid {{ o.borda }}; background: {{ o.fundo }}; border-radius: 4px; padding: 5px 9px; cursor: pointer; white-space: nowrap;" style-hover="border-color: var(--bordaHover, #33383f);">{{ o.rotulo }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="margin-top: 22px; font-size: 12px; color: var(--mut3, #5f666e); text-wrap: pretty;">Fora de escopo: login multiusuário (o acesso é resolvido pelo Vercel Authentication) e disparo de rodada pelo app.</div>
+    </div>
+  </sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mostrarTotais&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Painel&quot;},&quot;mostrarNotaSeguranca&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Painel&quot;},&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;escuro&quot;,&quot;claro&quot;],&quot;default&quot;:&quot;escuro&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Painel&quot;}}">
+const TEMAS = {
+  escuro: {
+    vars: { "--bg": "#0a0b0d", "--painel": "#101215", "--borda": "#1e2126", "--bordaHover": "#33383f", "--linha": "#1a1d22", "--linha2": "#16191d", "--linha3": "#191c21", "--hover": "#14171b", "--txt": "#eceef0", "--txt2": "#b3b9c0", "--txt3": "#d4d8dc", "--mut2": "#7d848c", "--mut3": "#5f666e", "--acento": "#58c98a" },
+    ok: "#58c98a", atn: "#e0a83c", fal: "#d0654f", mut: "#7d848c",
+    txt: "#eceef0", txt3: "#d4d8dc", mut3: "#5f666e", faint: "#4a5058",
+    painel: "#101215", borda: "#1e2126", bordaForte: "#454b54", faixaFundo: "#0d0f12", faixaAtiva: "#12161a",
+    chipBg: "#14161a", chipBgEsc: "#161a18", chipFg: "#d4d8dc", chipBorda: "#24282e", chipBordaEsc: "#2f3a34",
+    rodadaFundo: "#15181d", tipoForte: "#9aa1a9"
+  },
+  claro: {
+    vars: { "--bg": "#f6f6f3", "--painel": "#ffffff", "--borda": "#e2e2dc", "--bordaHover": "#c3c3bb", "--linha": "#e6e6e0", "--linha2": "#ebebe5", "--linha3": "#eeeee8", "--hover": "#f0f0ec", "--txt": "#16181b", "--txt2": "#4d535a", "--txt3": "#2c3136", "--mut2": "#5d646b", "--mut3": "#61686f", "--acento": "#1f8a55" },
+    ok: "#1f8a55", atn: "#8a6009", fal: "#a83e2b", mut: "#5d646b",
+    txt: "#16181b", txt3: "#2c3136", mut3: "#61686f", faint: "#6f767d",
+    painel: "#ffffff", borda: "#e2e2dc", bordaForte: "#b0b0a8", faixaFundo: "#f1f1ec", faixaAtiva: "#eaeae3",
+    chipBg: "#f2f2ee", chipBgEsc: "#eef4f0", chipFg: "#3a4046", chipBorda: "#e2e2dc", chipBordaEsc: "#cfe0d5",
+    rodadaFundo: "#eeeee8", tipoForte: "#5a6169"
+  }
+};
+
+const PAPEIS = {
+  "arquiteto-chefe": { mono: "AC", papel: "estrutura e prioridades", tipo: "leitura" },
+  "dev-backend": { mono: "BE", papel: "backend", tipo: "escrita" },
+  "dev-frontend": { mono: "FE", papel: "interface", tipo: "escrita" },
+  "engenheiro-banco": { mono: "DB", papel: "banco e migrações", tipo: "escrita" },
+  "revisor-seguranca": { mono: "SE", papel: "segurança", tipo: "leitura" },
+  "revisor-codigo": { mono: "RC", papel: "revisão de código", tipo: "leitura" },
+  "qa-testes": { mono: "QA", papel: "testes", tipo: "leitura" },
+  "devops-deploy": { mono: "DO", papel: "deploy", tipo: "escrita" }
+};
+
+const FAIXAS = [
+  { id: "diaria", titulo: "Toda madrugada", nota: "rodada completa todas as noites" },
+  { id: "alternada", titulo: "Dias alternados", nota: "segunda, quarta e sexta" },
+  { id: "semanal", titulo: "Uma vez por semana", nota: "só a checagem de segurança e testes" },
+  { id: "pausado", titulo: "Pausado", nota: "agentes não visitam nem atualizam a etapa" }
+];
+
+const DADOS = [
+  {
+    id: "cofre", nome: "Cofre de rotinas", repo: "gravidade/cofre-rotinas", cadencia: "diaria",
+    status: "atencao", ultimaRodada: "03:12", testesCurto: "testes ok", testesOk: true,
+    resumo: "2 bugs corrigidos e 1 PR aberto esperando sua revisão.",
+    prUrl: "https://github.com/gravidade/cofre-rotinas/pull/184",
+    etapa: {
+      titulo: "Fila de rodadas estável, revisão pendente", selo: "aguardando você",
+      contador: "etapa 4 de 6", autor: "arquiteto-chefe", atualizado: "29 jul, 03:12", dias: 0,
+      resumo: "O agendamento noturno já roda no fuso correto e a fila de rodadas não perde execução. O que falta é decidir se a extração do cliente de API entra agora ou depois do lançamento.",
+      proximos: ["Revisar e mergear o PR #184 (correção de fuso no cron).", "Decidir sobre extrair lib/schedule.ts em módulo próprio.", "Subir cobertura de queue.spec.ts acima de 80%."]
+    },
+    docs: [
+      { nome: "Especificação do produto", local: "Notion", url: "https://www.notion.so/" },
+      { nome: "Diagrama de dados", local: "Google Drive", url: "https://drive.google.com/" },
+      { nome: "Runbook de incidentes", local: "Notion", url: "https://www.notion.so/" }
+    ],
+    acessos: [
+      { id: "cofre-neon", rotulo: "Neon — banco de produção", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "postgres://prod:8fj2kd@ep-cofre.neon.tech/db" },
+      { id: "cofre-vercel", rotulo: "Vercel — deploy", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "vercel_7f2ac91be40d8a2f" },
+      { id: "cofre-auth", rotulo: "Auth.js — secret", escopo: "server-side", gerido: "cofre da empresa", url: "https://vercel.com/", valor: "authjs_9be14d0f7cc21ab5" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:40 – 03:12", testes: "142 testes, todos passando", ok: true, agentes: [
+        ["arquiteto-chefe", "Mapeou 3 pontos de dívida técnica no módulo de agendamento e abriu 1 tarefa mínima.", "3 achados"],
+        ["revisor-seguranca", "Nenhuma dependência com CVE aberta. Confirmou que nenhum segredo aparece no repositório.", "0 achados"],
+        ["revisor-codigo", "Sinalizou duplicação em lib/schedule.ts — deixou comentário, sem alterar.", "1 comentário"],
+        ["dev-backend", "Corrigiu erro de fuso na leitura do cron: a madrugada rodava 1h adiantada.", "2 arquivos"],
+        ["dev-frontend", "Ajustou o estado vazio da lista de rodadas.", "1 arquivo"],
+        ["qa-testes", "142 testes, todos passando. Cobertura 74%, +1 ponto.", "142 verdes"],
+        ["devops-deploy", "Preview publicado. Produção espera o merge do PR #184.", "preview"]
+      ] },
+      { data: "28 jul", janela: "02:38 – 03:05", testes: "140 testes, todos passando", ok: true, agentes: [
+        ["arquiteto-chefe", "Sem mudanças estruturais propostas nesta rodada.", "0 achados"],
+        ["engenheiro-banco", "Índice adicionado em runs(project_id, started_at).", "1 migração"],
+        ["qa-testes", "140 testes, todos passando.", "140 verdes"],
+        ["devops-deploy", "Merge automático do PR #181 depois da checagem verde.", "deploy ok"]
+      ] },
+      { data: "27 jul", janela: "02:41 – 03:19", testes: "1 teste quebrado", ok: false, agentes: [
+        ["dev-backend", "Tentou melhoria mínima na fila de rodadas e reverteu depois da falha.", "revertido"],
+        ["qa-testes", "139 testes, 1 falha em queue.spec.ts por timeout.", "1 vermelho"],
+        ["devops-deploy", "Deploy bloqueado. Falha reportada para a rodada seguinte.", "bloqueado"]
+      ] }
+    ]
+  },
+  {
+    id: "medidor", nome: "Medidor de consumo", repo: "gravidade/medidor", cadencia: "diaria",
+    status: "ok", ultimaRodada: "03:04", testesCurto: "testes ok", testesOk: true,
+    resumo: "Nenhum bug encontrado, 1 melhoria mínima aplicada.",
+    prUrl: "",
+    etapa: {
+      titulo: "Pronto para beta fechado", selo: "em andamento",
+      contador: "etapa 5 de 6", autor: "arquiteto-chefe", atualizado: "29 jul, 03:04", dias: 0,
+      resumo: "Coleta e agregação de consumo estão fechadas e o painel de métricas já responde abaixo de 200ms. Falta só o convite do beta e a checagem de acessibilidade.",
+      proximos: ["Gerar lista de convites do beta fechado.", "Passar auditoria de foco e contraste no painel.", "Definir alerta de consumo anômalo."]
+    },
+    docs: [
+      { nome: "Brief inicial", local: "Google Drive", url: "https://drive.google.com/" },
+      { nome: "Métricas de API", local: "Notion", url: "https://www.notion.so/" }
+    ],
+    acessos: [
+      { id: "med-supabase", rotulo: "Supabase — banco de produção", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "postgres://prod:m4d1d0r@db.supabase.co/main" },
+      { id: "med-resend", rotulo: "Resend — envio de e-mail", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "re_9d21fbc7a4e0" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:44 – 03:04", testes: "88 testes, todos passando", ok: true, agentes: [
+        ["revisor-seguranca", "Sem achados. Headers de segurança conferidos.", "0 achados"],
+        ["revisor-codigo", "Nenhum bloqueio.", "0 bloqueios"],
+        ["dev-frontend", "Melhoria mínima: foco visível nos botões da tabela.", "1 arquivo"],
+        ["qa-testes", "88 testes, todos passando.", "88 verdes"]
+      ] },
+      { data: "28 jul", janela: "02:45 – 03:01", testes: "88 testes, todos passando", ok: true, agentes: [
+        ["arquiteto-chefe", "Sugeriu extrair o cliente de API — fora do escopo mínimo, virou tarefa.", "1 tarefa"],
+        ["qa-testes", "88 testes, todos passando.", "88 verdes"]
+      ] }
+    ]
+  },
+  {
+    id: "atlas", nome: "Atlas interno", repo: "gravidade/atlas", cadencia: "diaria",
+    status: "falha", ultimaRodada: "03:27", testesCurto: "2 quebrados", testesOk: false,
+    resumo: "Rodada travou: migração pendente quebrou 2 testes de região.",
+    prUrl: "https://github.com/gravidade/atlas/pull/57",
+    etapa: {
+      titulo: "Migração de regiões precisa de decisão sua", selo: "travado",
+      contador: "etapa 3 de 7", autor: "engenheiro-banco", atualizado: "29 jul, 03:27", dias: 0,
+      resumo: "A coluna de região foi renomeada sem backfill, então dois testes falham e o deploy está bloqueado. O agente parou de propor mudanças até você escolher entre backfill ou rollback da migração 0042.",
+      proximos: ["Escolher entre backfill da coluna ou rollback da 0042.", "Rodar a suíte de regiões depois da escolha.", "Liberar o deploy travado no Fly.io."]
+    },
+    docs: [
+      { nome: "Modelo de dados geográficos", local: "Notion", url: "https://www.notion.so/" },
+      { nome: "Contrato de tiles", local: "Google Drive", url: "https://drive.google.com/" }
+    ],
+    acessos: [
+      { id: "atlas-pg", rotulo: "PostGIS — banco de produção", escopo: "server-side", gerido: "cofre da empresa", url: "https://vercel.com/", valor: "postgres://gis:a7lk92@atlas-db.internal/gis" },
+      { id: "atlas-mapbox", rotulo: "Mapbox — tiles", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "sk.eyJ1Ijoi4c9f2b7e11" },
+      { id: "atlas-fly", rotulo: "Fly.io — deploy", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "fly_2b81cd44e9f0" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:52 – 03:27", testes: "2 testes quebrados", ok: false, agentes: [
+        ["engenheiro-banco", "Aplicou a migração 0042 em teste; a coluna foi renomeada sem backfill.", "1 migração"],
+        ["dev-backend", "Corrigiu 1 chamada quebrada; 2 restantes precisam de decisão humana.", "1 de 3"],
+        ["qa-testes", "211 testes, 2 falhas em regions.spec.ts.", "2 vermelhos"],
+        ["devops-deploy", "Deploy bloqueado. PR #57 aberto com o diagnóstico completo.", "bloqueado"]
+      ] },
+      { data: "28 jul", janela: "02:50 – 03:11", testes: "211 testes, todos passando", ok: true, agentes: [
+        ["revisor-codigo", "Nenhum bloqueio.", "0 bloqueios"],
+        ["qa-testes", "211 testes, todos passando.", "211 verdes"]
+      ] }
+    ]
+  },
+  {
+    id: "pauta", nome: "Pauta editorial", repo: "gravidade/pauta", cadencia: "alternada",
+    status: "atencao", ultimaRodada: "02:58", testesCurto: "testes ok", testesOk: true,
+    resumo: "1 bug corrigido, 2 PRs aguardando revisão.",
+    prUrl: "https://github.com/gravidade/pauta/pull/93",
+    etapa: {
+      titulo: "Calendário funcionando, fila de revisão crescendo", selo: "aguardando você",
+      contador: "etapa 2 de 5", autor: "arquiteto-chefe", atualizado: "29 jul, 02:58", dias: 0,
+      resumo: "O calendário de pautas já publica e o recorte de títulos longos foi resolvido. O gargalo agora é humano: dois PRs pequenos parados há três noites.",
+      proximos: ["Revisar PRs #92 e #93.", "Definir regra de recorrência de pauta semanal.", "Ligar upload de mídia no Cloudinary."]
+    },
+    docs: [{ nome: "Calendário de conteúdo", local: "Google Drive", url: "https://drive.google.com/" }],
+    acessos: [
+      { id: "pauta-neon", rotulo: "Neon — banco de produção", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "postgres://prod:p4ut4x@ep-pauta.neon.tech/db" },
+      { id: "pauta-cloud", rotulo: "Cloudinary — mídia", escopo: "server-side", gerido: "cofre da empresa", url: "https://vercel.com/", valor: "cloudinary://41ba9c7e:Xk2p" }
+    ],
+    rodadas: [
+      { data: "29 jul", janela: "02:36 – 02:58", testes: "64 testes, todos passando", ok: true, agentes: [
+        ["revisor-seguranca", "Sem achados.", "0 achados"],
+        ["dev-frontend", "Corrigiu recorte de título longo no card de pauta.", "1 arquivo"],
+        ["qa-testes", "64 testes, todos passando.", "64 verdes"],
+        ["devops-deploy", "Preview publicado. 2 PRs na fila de revisão.", "preview"]
+      ] }
+    ]
+  },
+  {
+    id: "ponte", nome: "Ponte de integrações", repo: "gravidade/ponte", cadencia: "semanal",
+    status: "ok", ultimaRodada: "03:09", testesCurto: "testes ok", testesOk: true,
+    resumo: "Checagens limpas, nenhuma alteração necessária.",
+    prUrl: "",
+    etapa: {
+      titulo: "Em manutenção, sem frente aberta", selo: "estável",
+      contador: "etapa 6 de 6", autor: "arquiteto-chefe", atualizado: "29 jul, 03:09", dias: 0,
+      resumo: "Todos os webhooks estão mapeados e monitorados; as rodadas só confirmam que nada regrediu. Sem trabalho pendente até chegar uma integração nova.",
+      proximos: ["Manter a checagem semanal.", "Revisitar quando entrar a integração de pagamentos."]
+    },
+    docs: [{ nome: "Mapa de webhooks", local: "Notion", url: "https://www.notion.so/" }],
+    acessos: [{ id: "ponte-railway", rotulo: "Railway — deploy", escopo: "server-side", gerido: "Vercel env", url: "https://vercel.com/", valor: "railway_0cb4e7a19f2d" }],
+    rodadas: [
+      { data: "29 jul", janela: "03:00 – 03:09", testes: "37 testes, todos passando", ok: true, agentes: [
+        ["arquiteto-chefe", "Nada a propor nesta rodada.", "0 achados"],
+        ["revisor-seguranca", "Sem achados.", "0 achados"],
+        ["qa-testes", "37 testes, todos passando.", "37 verdes"]
+      ] }
+    ]
+  },
+  {
+    id: "arquivo", nome: "Arquivo morto", repo: "gravidade/arquivo", cadencia: "pausado",
+    status: "ok", ultimaRodada: "12 jul, 03:02", testesCurto: "testes ok", testesOk: true,
+    resumo: "Congelado depois da migração do histórico.",
+    prUrl: "",
+    etapa: {
+      titulo: "Congelado após a migração do histórico", selo: "pausado",
+      contador: "etapa 5 de 5", autor: "arquiteto-chefe", atualizado: "12 jul, 03:02", dias: 17,
+      resumo: "O histórico foi migrado e o projeto entrou em congelamento. Enquanto estiver pausado, este documento não é atualizado pelos agentes.",
+      proximos: ["Reativar o acompanhamento se voltar a receber commits."]
+    },
+    docs: [{ nome: "Histórico de decisões", local: "Notion", url: "https://www.notion.so/" }],
+    acessos: [{ id: "arq-s3", rotulo: "S3 — arquivos", escopo: "server-side", gerido: "cofre da empresa", url: "https://vercel.com/", valor: "AKIA7C2LX9QP4RD1E8" }],
+    rodadas: [
+      { data: "12 jul", janela: "02:55 – 03:02", testes: "19 testes, todos passando", ok: true, agentes: [
+        ["qa-testes", "19 testes, todos passando.", "19 verdes"]
+      ] }
+    ]
+  }
+];
+
+const LABEL = { ok: "tudo ok", atencao: "PR aberto", falha: "falha" };
+const PESO = { falha: 0, atencao: 1, ok: 2 };
+const CAD_LABEL = { diaria: "toda madrugada", alternada: "dias alternados", semanal: "semanal", pausado: "pausado" };
+const CAD_CURTO = { diaria: "diária", alternada: "alternada", semanal: "semanal", pausado: "pausado" };
+
+class Component extends DCLogic {
+  state = {
+    tela: "home", projetoId: null, rodadaIdx: 0, sessao: false, revelados: {},
+    tema: null, cadencias: {}, textos: {}, arrastando: null, faixaAlvo: null
+  };
+
+  cadencia(p) { return this.state.cadencias[p.id] || p.cadencia; }
+  txt(chave, padrao) { return this.state.textos[chave] ?? padrao; }
+  setTxt(chave) {
+    return (e) => {
+      const v = e.currentTarget.innerText.trim();
+      this.setState((s) => ({ textos: { ...s.textos, [chave]: v } }));
+    };
+  }
+
+  chip(nome, t) {
+    const m = PAPEIS[nome] || { mono: "??", papel: "agente", tipo: "leitura" };
+    const escrita = m.tipo === "escrita";
+    return {
+      mono: m.mono, papel: m.papel,
+      tipoLabel: escrita ? "escreve" : "só leitura",
+      corTipo: escrita ? t.tipoForte : t.mut3,
+      bg: escrita ? t.chipBgEsc : t.chipBg,
+      fg: t.chipFg,
+      borda: escrita ? t.chipBordaEsc : t.chipBorda
+    };
+  }
+
+  renderVals() {
+    const tema = this.state.tema || this.props.tema || "escuro";
+    const t = TEMAS[tema] || TEMAS.escuro;
+    const { sessao, revelados } = this.state;
+    const COR = { ok: t.ok, atencao: t.atn, falha: t.fal };
+    const SELO_COR = { "travado": t.fal, "aguardando você": t.atn, "em andamento": t.ok, "estável": t.ok, "pausado": t.mut };
+
+    const decorar = (p) => {
+      const cad = this.cadencia(p);
+      const pausado = cad === "pausado";
+      const etapa = {
+        contador: p.etapa.contador, selo: p.etapa.selo, autor: p.etapa.autor, atualizado: p.etapa.atualizado,
+        titulo: this.txt(p.id + ".etapa.titulo", p.etapa.titulo),
+        resumo: this.txt(p.id + ".etapa.resumo", p.etapa.resumo),
+        corSelo: SELO_COR[p.etapa.selo] || t.mut,
+        frescor: pausado ? "não atualiza enquanto pausado" : (p.etapa.dias === 0 ? "atualizado nesta madrugada" : "sem atualização há " + p.etapa.dias + " dias"),
+        corFrescor: pausado ? t.mut3 : (p.etapa.dias === 0 ? t.ok : t.mut),
+        proximos: p.etapa.proximos.map((padrao, i) => ({
+          num: String(i + 1).padStart(2, "0"),
+          texto: this.txt(p.id + ".prox." + i, padrao),
+          editar: this.setTxt(p.id + ".prox." + i)
+        }))
+      };
+      return {
+        ...p,
+        nome: this.txt(p.id + ".nome", p.nome),
+        resumo: this.txt(p.id + ".resumo", p.resumo),
+        editarNome: this.setTxt(p.id + ".nome"),
+        editarResumo: this.setTxt(p.id + ".resumo"),
+        editarEtapaTitulo: this.setTxt(p.id + ".etapa.titulo"),
+        editarEtapaResumo: this.setTxt(p.id + ".etapa.resumo"),
+        cor: pausado ? t.mut3 : COR[p.status],
+        statusLabel: pausado ? "pausado" : LABEL[p.status],
+        cadencia: cad,
+        cadenciaLabel: CAD_LABEL[cad],
+        corTestes: p.testesOk ? t.mut3 : t.fal,
+        temPr: !!p.prUrl && !pausado,
+        opacidade: this.state.arrastando === p.id ? 0.35 : 1,
+        bordaCard: this.state.arrastando === p.id ? t.bordaForte : t.borda,
+        etapa,
+        strip: p.rodadas[0].agentes.map(([nome]) => this.chip(nome, t)),
+        abrir: () => this.setState({ tela: "detalhe", projetoId: p.id, rodadaIdx: 0 }),
+        arrastar: (e) => { if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", p.id); } this.setState({ arrastando: p.id }); },
+        solta: () => this.setState({ arrastando: null, faixaAlvo: null }),
+        acessos: p.acessos.map((c) => {
+          const revelado = !!revelados[c.id];
+          let valorExibido = "requer sessão autenticada", valorCor = t.faint;
+          if (sessao) {
+            valorExibido = revelado ? c.valor : "•".repeat(Math.min(c.valor.length, 26));
+            valorCor = revelado ? t.txt3 : t.faint;
+          }
+          return {
+            ...c, valorExibido, valorCor,
+            podeRevelar: sessao,
+            revelarLabel: revelado ? "ocultar" : "revelar",
+            revelar: () => this.setState((s) => ({ revelados: { ...s.revelados, [c.id]: !s.revelados[c.id] } }))
+          };
+        }),
+        rodadas: p.rodadas.map((r, i) => ({
+          data: r.data, janela: r.janela, testes: r.testes,
+          cor: r.ok ? t.ok : t.fal,
+          qtdAgentes: r.agentes.length + " agentes",
+          borda: i === this.state.rodadaIdx ? t.bordaForte : t.borda,
+          fundo: i === this.state.rodadaIdx ? t.rodadaFundo : t.painel,
+          corTexto: i === this.state.rodadaIdx ? t.txt : t.mut,
+          selecionar: () => this.setState({ rodadaIdx: i })
+        }))
+      };
+    };
+
+    const todosDecorados = DADOS.map(decorar);
+    const ativos = todosDecorados.filter((p) => p.cadencia !== "pausado");
+    const ordenar = (a, b) => PESO[a.status] - PESO[b.status];
+
+    const faixas = FAIXAS.map((f) => {
+      const lista = todosDecorados.filter((p) => p.cadencia === f.id).sort(ordenar);
+      const alvo = this.state.faixaAlvo === f.id;
+      return {
+        titulo: f.titulo, nota: f.nota,
+        qtd: lista.length ? lista.length + (lista.length === 1 ? " projeto" : " projetos") : "vazio",
+        projetos: lista,
+        vazia: lista.length === 0,
+        tipoBorda: f.id === "pausado" ? "dashed" : "solid",
+        borda: alvo ? t.bordaForte : t.borda,
+        fundo: alvo ? t.faixaAtiva : t.faixaFundo,
+        sobre: (e) => { e.preventDefault(); if (this.state.faixaAlvo !== f.id) this.setState({ faixaAlvo: f.id }); },
+        sai: () => { if (this.state.faixaAlvo === f.id) this.setState({ faixaAlvo: null }); },
+        solta: (e) => {
+          e.preventDefault();
+          const id = (e.dataTransfer && e.dataTransfer.getData("text/plain")) || this.state.arrastando;
+          if (id) this.setState((s) => ({ cadencias: { ...s.cadencias, [id]: f.id }, arrastando: null, faixaAlvo: null }));
+        }
+      };
+    });
+
+    const atual = todosDecorados.find((p) => p.id === this.state.projetoId) || null;
+    const bruto = atual ? DADOS.find((p) => p.id === atual.id) : null;
+    const bruta = bruto ? (bruto.rodadas[this.state.rodadaIdx] || bruto.rodadas[0]) : null;
+    const rodada = bruta ? {
+      tituloLongo: bruta.data, janela: bruta.janela, testes: bruta.testes,
+      cor: bruta.ok ? t.ok : t.fal,
+      agentes: bruta.agentes.map(([nome, acao, metrica]) => ({ nome, acao, metrica, ...this.chip(nome, t) }))
+    } : {};
+
+    const prs = ativos.filter((p) => p.status === "atencao").length;
+    const falhas = ativos.filter((p) => p.status === "falha").length;
+    const nav = (tela) => (this.state.tela === tela ? t.txt : t.mut);
+
+    return {
+      temaVars: t.vars,
+      temaLabel: tema === "escuro" ? "tema claro" : "tema escuro",
+      temaToggle: () => this.setState({ tema: tema === "escuro" ? "claro" : "escuro" }),
+      corAtn: t.atn, corFal: t.fal,
+      agora: "29 jul 2026 · 07:40",
+      saudacao: "Bom dia",
+      resumoNoite: ativos.length + " projetos em acompanhamento · " + (falhas ? falhas + " pede atenção agora" : "nada travado") + (prs ? " · " + prs + " PRs esperando revisão" : ""),
+      ehHome: this.state.tela === "home",
+      ehDetalhe: this.state.tela === "detalhe" && !!atual,
+      ehConfig: this.state.tela === "config",
+      irHome: () => this.setState({ tela: "home" }),
+      irConfig: () => this.setState({ tela: "config" }),
+      corNavHome: nav("home"), corNavConfig: nav("config"),
+      pararClique: (e) => e.stopPropagation(),
+      faixas,
+      atual: atual || { etapa: { proximos: [] }, rodadas: [], docs: [], acessos: [] },
+      rodada,
+      todos: todosDecorados.map((p) => ({
+        ...p,
+        corTexto: p.cadencia === "pausado" ? t.mut : t.txt,
+        opcoes: FAIXAS.map((f) => {
+          const on = p.cadencia === f.id;
+          return {
+            rotulo: CAD_CURTO[f.id],
+            corTexto: on ? t.txt : t.mut3,
+            borda: on ? t.bordaForte : t.borda,
+            fundo: on ? t.rodadaFundo : t.painel,
+            escolher: () => this.setState((s) => ({ cadencias: { ...s.cadencias, [p.id]: f.id } }))
+          };
+        })
+      })),
+      totalAtivos: ativos.length,
+      totalPrs: prs,
+      totalFalhas: falhas,
+      mostrarTotais: this.props.mostrarTotais ?? true,
+      mostrarNotaSeguranca: this.props.mostrarNotaSeguranca ?? true,
+      sessaoLabel: sessao ? "sessão ativa" : "bloqueado",
+      sessaoDica: sessao ? "clique para encerrar a sessão simulada" : "clique para simular o login do Vercel Authentication",
+      sessaoCor: sessao ? t.ok : t.mut3,
+      sessaoToggle: () => this.setState((s) => ({ sessao: !s.sessao, revelados: {} }))
+    };
+  }
+}
+</script>
+</body>
+</html>
