@@ -1,4 +1,3 @@
-import { destinoSeguro } from "@/dominio/destinoSeguro";
 "use server";
 
 // Entrada e saída da sessão própria do dono (pendência 1 da revisão de
@@ -9,6 +8,7 @@ import { destinoSeguro } from "@/dominio/destinoSeguro";
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { destinoSeguro } from "@/dominio/destinoSeguro";
 import {
   ambientePermiteSessao,
   gerarValorCookieSessao,
