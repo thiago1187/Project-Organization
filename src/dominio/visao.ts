@@ -494,8 +494,16 @@ export interface SugestaoVM {
 }
 
 export interface FilaSugestoesVM {
+  /** Precisa de decisão do dono agora — aprovar ou recusar. */
   pendentes: SugestaoVM[];
-  decididas: SugestaoVM[];
+  /** Já aprovadas, ainda não feitas — o dono quer isso, mas o trabalho ainda não aconteceu.
+   * Continuam selecionáveis para o gerador de prompt (item 1 de docs/proximos-passos.md). */
+  aprovadas: SugestaoVM[];
+  /** Recusada ou feita — histórico. Não compete por atenção com o que ainda precisa de decisão. */
+  historico: SugestaoVM[];
+  /** Subconjunto de `historico`: só as recusadas. O gerador de prompt usa isto para
+   * dizer ao Claude Code o que já foi negado e não deve ser reproposto. */
+  recusadas: SugestaoVM[];
 }
 
 function sugestaoParaVM(s: Sugestao): SugestaoVM {
@@ -519,10 +527,8 @@ function sugestaoParaVM(s: Sugestao): SugestaoVM {
 }
 
 /**
- * Fila de sugestões de um projeto, separada em pendentes (o que precisa de
- * decisão) e decididas (aprovada/recusada/feita — histórico, não some da
- * tela, mas não compete por atenção com o que está pendente). Mais recente
- * primeiro nos dois grupos.
+ * Fila de sugestões de um projeto, em quatro vistas (ver `FilaSugestoesVM`).
+ * Mais recente primeiro em todos os grupos.
  */
 export function filaSugestoes(projetoId: string, sugestoes: Sugestao[]): FilaSugestoesVM {
   const doProjeto = sugestoes
@@ -530,9 +536,13 @@ export function filaSugestoes(projetoId: string, sugestoes: Sugestao[]): FilaSug
     .slice()
     .sort((a, b) => new Date(b.criada_em).getTime() - new Date(a.criada_em).getTime());
 
+  const historico = doProjeto.filter((s) => s.estado === "recusada" || s.estado === "feita");
+
   return {
     pendentes: doProjeto.filter((s) => s.estado === "pendente").map(sugestaoParaVM),
-    decididas: doProjeto.filter((s) => s.estado !== "pendente").map(sugestaoParaVM),
+    aprovadas: doProjeto.filter((s) => s.estado === "aprovada").map(sugestaoParaVM),
+    historico: historico.map(sugestaoParaVM),
+    recusadas: historico.filter((s) => s.estado === "recusada").map(sugestaoParaVM),
   };
 }
 
