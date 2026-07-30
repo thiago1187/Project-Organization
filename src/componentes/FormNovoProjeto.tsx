@@ -56,12 +56,11 @@ export default function FormNovoProjeto() {
           />
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 220px", minWidth: 180 }}>
-          <span style={{ fontSize: 11, color: "var(--mut2)" }}>repositório</span>
+          <span style={{ fontSize: 11, color: "var(--mut2)" }}>repositório · opcional</span>
           <input
             name="repositorio"
             defaultValue={estado.campos.repositorio}
-            required
-            maxLength={140}
+                        maxLength={140}
             style={estiloCampo}
             placeholder="dono/repositorio"
           />

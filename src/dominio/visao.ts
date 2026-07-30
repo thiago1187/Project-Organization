@@ -367,7 +367,7 @@ export function detalheProjeto(
   return {
     id: p.id,
     nome: p.nome,
-    repo: p.repositorio,
+    repo: rotuloRepositorio(p.repositorio),
     cor: pausado ? "var(--mut3)" : ultimo ? STATUS_COR[ultimo.status] : "var(--mut2)",
     statusLabel: pausado ? "pausado" : ultimo ? STATUS_LABEL[ultimo.status] : "sem rodada",
     cadenciaLabelLongo: FAIXA_LABEL_LONGO[faixa],
@@ -552,6 +552,17 @@ export interface ConfigLinhaVM {
   faixaAtual: Faixa;
 }
 
+/**
+ * O que mostrar no lugar do repositório quando o projeto não tem um.
+ *
+ * `repositorio` é nulo em projeto que vive dentro de um connector — um conjunto
+ * de workflows no n8n, por exemplo. Deixar em branco pareceria dado faltando;
+ * este rótulo diz que a ausência é a resposta, não um cadastro pela metade.
+ */
+export function rotuloRepositorio(repositorio: string | null): string {
+  return repositorio ?? "sem repositório";
+}
+
 export function linhasConfig(projetos: Projeto[], relatorios: Relatorio[]): ConfigLinhaVM[] {
   return projetos.map((p) => {
     const faixa = faixaDoProjeto(p);
@@ -559,7 +570,7 @@ export function linhasConfig(projetos: Projeto[], relatorios: Relatorio[]): Conf
     return {
       id: p.id,
       nome: p.nome,
-      repo: p.repositorio,
+      repo: rotuloRepositorio(p.repositorio),
       corTexto: faixa === "pausado" ? "var(--mut2)" : "var(--txt)",
       ultimaRodadaLabel: ultimo ? formatarUltimaRodada(ultimo.executado_em) : "sem rodada",
       faixaAtual: faixa,

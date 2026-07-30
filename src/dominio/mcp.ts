@@ -321,9 +321,14 @@ export function resolverProjeto(termo: unknown, projetos: Projeto[]): ResolucaoP
   const degraus: ((p: Projeto) => boolean)[] = [
     (p) => p.id.toLowerCase() === alvo,
     (p) => normalizar(p.nome) === alvo,
-    (p) => normalizar(p.repositorio) === alvo,
-    (p) => normalizar(p.repositorio.split("/")[1] ?? "") === alvo,
-    (p) => normalizar(p.nome).includes(alvo) || normalizar(p.repositorio).includes(alvo),
+    // `repositorio` é nulo em projeto que vive num connector (n8n, Notion) —
+    // ver migration 007. Esses degraus simplesmente não casam para ele; o
+    // degrau por nome, acima, é o que o encontra.
+    (p) => p.repositorio !== null && normalizar(p.repositorio) === alvo,
+    (p) => p.repositorio !== null && normalizar(p.repositorio.split("/")[1] ?? "") === alvo,
+    (p) =>
+      normalizar(p.nome).includes(alvo) ||
+      (p.repositorio !== null && normalizar(p.repositorio).includes(alvo)),
   ];
 
   for (const casa of degraus) {
@@ -376,7 +381,8 @@ export function truncar(texto: string, maximo: number): string {
 export interface ProjetoMcp {
   id: string;
   nome: string;
-  repositorio: string;
+  /** `null` quando o projeto vive num connector e não tem repositório (007). */
+  repositorio: string | null;
   frequencia: Frequencia;
   estado: "ativo" | "pausado";
 }
@@ -385,7 +391,8 @@ export function projetosParaMcp(projetos: Projeto[]): ProjetoMcp[] {
   return projetos.map((p) => ({
     id: p.id,
     nome: semCredencial(p.nome),
-    repositorio: semCredencial(p.repositorio),
+    // null quando o projeto vive num connector e não tem repositório (007).
+    repositorio: p.repositorio === null ? null : semCredencial(p.repositorio),
     frequencia: p.frequencia,
     estado: p.ativo ? "ativo" : "pausado",
   }));

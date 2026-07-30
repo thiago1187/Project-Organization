@@ -28,7 +28,7 @@ export type OrigemContexto = "painel";
 export interface Projeto {
   id: string; // uuid
   nome: string;
-  repositorio: string; // "owner/repo"
+  repositorio: string | null; // "owner/repo"
   frequencia: Frequencia;
   ativo: boolean;
   criado_em: string; // timestamptz (ISO)
