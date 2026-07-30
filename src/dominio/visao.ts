@@ -35,9 +35,18 @@ import { tarefasEmAberto } from "./tarefas";
 // Rótulos e cores fixos (equivalentes aos objetos LABEL/COR/PESO do export).
 // ─────────────────────────────────────────────────────────────────────────
 
+// `atencao` dizia "PR aberto", e mostrava isso em projeto com zero PRs e três
+// sugestões esperando decisão. O rótulo veio do export, de quando a rodada
+// executava e abria PR; hoje ela diagnostica e propõe, então `atencao` quer
+// dizer "a rodada achou algo que precisa de você" — o PR, quando existe, tem
+// botão próprio no cabeçalho e não depende deste selo.
+//
+// Importa mais do que um rótulo errado costuma importar: docs/visao.md define
+// o teste de cinco segundos para saber se algo precisa do dono, e este selo é
+// a primeira coisa que ele lê na tela inicial.
 const STATUS_LABEL: Record<StatusRelatorio, string> = {
   ok: "tudo ok",
-  atencao: "PR aberto",
+  atencao: "precisa de você",
   falha: "falha",
 };
 
