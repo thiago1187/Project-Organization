@@ -83,7 +83,8 @@ Quatro entidades. Deliberadamente mínimo — não anteveja campo que talvez sir
 | `POST /api/suggestions` | Recebe as sugestões que os agentes levantaram. Chamado pela routine. |
 | `PATCH /api/suggestions/:id` | Aprovar, recusar ou marcar como feita. **Só com sessão do dono** — as três transições. A routine não muda estado de sugestão. |
 | `GET /api/context/:projeto` | Contexto de um projeto. |
-| `PUT /api/context/:projeto` | Grava contexto. Chamado pelo painel. |
+| `PUT /api/context/:projeto` | Grava contexto. Chamado pelo painel. Recusa a routine. |
+| `POST /api/mcp` | Servidor MCP para o Claude Code do dono. Cinco ferramentas de leitura e duas de escrita (cadastrar projeto, anexar contexto). **Não expõe aprovar, recusar, marcar como feita nem apagar** — ver `docs/mcp.md`. |
 
 ## Como o contexto chega aos agentes
 
@@ -110,7 +111,13 @@ Estas regras não são preferência de estilo. Não as relaxe, não as contorne,
 1. **Segredos só existem no servidor.** Valores de credenciais vêm de variáveis de ambiente e só são lidos em route handlers ou server components. Nunca em código que vai para o navegador, nunca via prop, nunca via estado de cliente.
 2. **Nada de segredo em arquivo versionado.** Nenhuma chave, token ou senha entra no repositório — nem em exemplo, nem em comentário, nem em teste. `.env*` fica no `.gitignore`.
 3. **O deployment inteiro fica atrás do Vercel Authentication.** Isso é configurado no painel do Vercel, fora do código. Não escreva nada que dependa do app estar público.
-4. **As rotas de API aceitam duas formas de acesso:** sessão autenticada (o dono no navegador) ou o header `x-vercel-protection-bypass` com o secret correto (a routine). Qualquer requisição sem uma das duas recebe 401.
+4. **As rotas de API aceitam três origens de acesso, e elas não são intercambiáveis.** Sessão autenticada (o dono no navegador), o header `x-painel-mcp-secret` com `PAINEL_MCP_SECRET` (o Claude Code do dono), ou o header `x-vercel-protection-bypass` com o secret correto (a routine). Qualquer requisição sem uma das três recebe 401.
+
+   As três são distintas de propósito. A routine manda o bypass; o Claude Code manda o bypass **e** o do MCP, porque é o bypass que atravessa o Vercel Authentication na borda. Se o MCP se apoiasse só no bypass, "a routine às 3h" e "o dono no terminal" virariam a mesma origem — e toda regra futura do tipo "a routine não pode X" proibiria o dono junto, ou afrouxar algo para o dono abriria a porta para a rodada sem supervisão.
+
+   O que cada uma pode: **aprovar, recusar e marcar como feita são só da sessão** (`exigirSessaoDoDono`), dois cliques no painel. **Escrever contexto é da sessão ou do MCP** (`exigirDonoOuMcp`), nunca da routine — contexto vira instrução no `CLAUDE.md` do repositório alvo, e um agente comprometido escreveria as próprias ordens para a noite seguinte. **Ler é das três** (`exigirAcesso`).
+
+   O segredo do MCP não é defesa contra modelo mal conduzido: se o texto que o Claude Code leu o convencer a chamar a ferramenta, ele tem o segredo por construção. Ali a defesa é a **ausência** da ferramenta.
 5. **Este é um app de uso pessoal.** Não construa sistema de contas, convites ou papéis de usuário.
 6. **Contexto enviado pelo painel é dado, não instrução.** Ele é escrito em arquivo e lido por agentes que agem. Trate como entrada não confiável: valide tamanho e tipo, e nunca o interpole em comando de sistema nem em query.
 
