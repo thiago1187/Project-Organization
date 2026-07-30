@@ -131,6 +131,26 @@ ali não existe PR nem histórico de commits.
 
 ### 7. MCP — falar com o painel
 
+**Decidido em 2026-07-30, com o dono:** o MCP vem **antes** do assistente de IA
+dentro do painel. Os dois resolvem o mesmo problema por portas opostas — o MCP
+leva os dados do painel para o Claude que o dono já usa; o assistente traria a
+IA para dentro do painel.
+
+O MCP vence a ordem por três razões: está incluso no plano que ele já paga, não
+exige chave de API nem custo por interação, e não muda o que o painel é. Hoje o
+painel é um app de dados puro — nenhuma chamada a modelo, e só quebra se o banco
+quebrar. O assistente mudaria as três coisas.
+
+Se o MCP resolver o dia a dia, o assistente pode nunca ser necessário. Se não
+resolver, ele entra depois sabendo exatamente o que faltou — e isolado, de forma
+que o painel continue de pé quando o modelo estiver fora do ar.
+
+**Busca semântica com embeddings foi descartada por ora.** Com 6 projetos e
+algumas centenas de linhas, `ILIKE` no Postgres acha tudo instantaneamente e de
+graça. Embedding traria pipeline de indexação, dado que envelhece quando o texto
+muda, mais um serviço para manter e custo por linha — para um problema que ainda
+não existe. Revisitar quando a busca falhar de verdade; hoje ela nem existe.
+
 `listar_projetos`, `ver_rodadas`, `ver_sugestoes`, `cadastrar_projeto`,
 `anexar_contexto`. *"Adiciona esse projeto no painel"* direto do chat.
 
