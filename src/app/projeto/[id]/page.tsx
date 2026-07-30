@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { detalheProjeto, rodadaDetalhe } from "@/dominio/visao";
+import { detalheProjeto, filaSugestoes, rodadaDetalhe } from "@/dominio/visao";
 import { obterProjetoPorId } from "@/servidor/projetos";
 import { listarRelatoriosDoProjeto } from "@/servidor/relatorios";
 import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
 import { listarContextosDoProjeto } from "@/servidor/contextos";
 import PainelEtapa from "@/componentes/PainelEtapa";
+import FilaSugestoes from "@/componentes/FilaSugestoes";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
 import ListaDocumentos from "@/componentes/ListaDocumentos";
 import ListaAcessos from "@/componentes/ListaAcessos";
@@ -35,6 +36,8 @@ export default async function DetalheProjetoPage({
   // lista de acessos vazia), em vez de inventar dado que não existe.
   const atual = detalheProjeto(id, [projeto], relatorios, sugestoes, contextos, {}, {});
   if (!atual) notFound();
+
+  const fila = filaSugestoes(id, sugestoes);
 
   const rodadasDetalhe = atual.rodadas
     .map((r) => rodadaDetalhe(id, relatorios, r.idx))
@@ -132,6 +135,7 @@ export default async function DetalheProjetoPage({
       >
         <div style={{ minWidth: 0 }}>
           <PainelEtapa etapa={atual.etapa} />
+          <FilaSugestoes projetoId={atual.id} fila={fila} />
           <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />
         </div>
 

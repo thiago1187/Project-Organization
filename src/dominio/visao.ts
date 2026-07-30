@@ -9,7 +9,16 @@
 // explicitamente: as funções que os consomem recebem essas linhas como parâmetro,
 // nunca as leem de uma tabela.
 
-import type { Projeto, Relatorio, Sugestao, Contexto, StatusRelatorio } from "./tipos";
+import type {
+  Projeto,
+  Relatorio,
+  Sugestao,
+  Contexto,
+  StatusRelatorio,
+  Esforco,
+  Reversibilidade,
+  EstadoSugestao,
+} from "./tipos";
 import { type Faixa, faixaDoProjeto, FAIXA_META, FAIXA_LABEL_LONGO, ORDEM_FAIXAS } from "./cadencia";
 import { papelDoAgente } from "./papeis";
 
@@ -416,6 +425,114 @@ export function rodadaDetalhe(
       metrica: a.selo,
       ...chipDoAgente(a.agente),
     })),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Fila de sugestões (detalhe do projeto). "Duas velocidades" (docs/visao.md):
+// o resumo (agente, proposta, esforço, reversibilidade) é a porta; motivo e
+// risco só aparecem expandidos, sob demanda do componente de cliente.
+// ─────────────────────────────────────────────────────────────────────────
+
+const ESFORCO_LABEL: Record<Esforco, string> = {
+  pequeno: "esforço pequeno",
+  medio: "esforço médio",
+  grande: "esforço grande",
+};
+
+const REVERSIBILIDADE_LABEL: Record<Reversibilidade, string> = {
+  facil: "reverte fácil",
+  dificil: "reverte difícil",
+  nao_reverte: "não reverte",
+};
+
+const REVERSIBILIDADE_COR: Record<Reversibilidade, string> = {
+  facil: "var(--ok)",
+  dificil: "var(--atn)",
+  nao_reverte: "var(--fal)",
+};
+
+const ESTADO_SUGESTAO_LABEL: Record<EstadoSugestao, string> = {
+  pendente: "aguardando decisão",
+  aprovada: "aprovada",
+  recusada: "recusada",
+  feita: "feita",
+};
+
+const ESTADO_SUGESTAO_COR: Record<EstadoSugestao, string> = {
+  pendente: "var(--atn)",
+  aprovada: "var(--ok)",
+  recusada: "var(--mut3)",
+  feita: "var(--acento)",
+};
+
+function decisaoLabel(s: Sugestao): string | null {
+  if (s.estado === "aprovada" && s.aprovada_em) return `aprovada em ${formatarDataCurta(s.aprovada_em)}`;
+  if (s.estado === "recusada" && s.recusada_em) return `recusada em ${formatarDataCurta(s.recusada_em)}`;
+  if (s.estado === "feita" && s.feita_em) {
+    return `feita em ${formatarDataCurta(s.feita_em)}${s.pr_url ? " · PR aberto" : ""}`;
+  }
+  return null;
+}
+
+export interface SugestaoVM {
+  id: string;
+  chip: ChipVM;
+  proposta: string;
+  motivo: string;
+  risco: string;
+  esforcoLabel: string;
+  reversibilidadeLabel: string;
+  reversibilidadeCor: string;
+  naoReverte: boolean;
+  estado: EstadoSugestao;
+  estadoLabel: string;
+  estadoCor: string;
+  criadaEmLabel: string;
+  decisaoLabel: string | null;
+  prUrl: string | null;
+}
+
+export interface FilaSugestoesVM {
+  pendentes: SugestaoVM[];
+  decididas: SugestaoVM[];
+}
+
+function sugestaoParaVM(s: Sugestao): SugestaoVM {
+  return {
+    id: s.id,
+    chip: chipDoAgente(s.agente),
+    proposta: s.proposta,
+    motivo: s.motivo,
+    risco: s.risco,
+    esforcoLabel: ESFORCO_LABEL[s.esforco],
+    reversibilidadeLabel: REVERSIBILIDADE_LABEL[s.reversibilidade],
+    reversibilidadeCor: REVERSIBILIDADE_COR[s.reversibilidade],
+    naoReverte: s.reversibilidade === "nao_reverte",
+    estado: s.estado,
+    estadoLabel: ESTADO_SUGESTAO_LABEL[s.estado],
+    estadoCor: ESTADO_SUGESTAO_COR[s.estado],
+    criadaEmLabel: formatarDataCurta(s.criada_em),
+    decisaoLabel: decisaoLabel(s),
+    prUrl: s.pr_url,
+  };
+}
+
+/**
+ * Fila de sugestões de um projeto, separada em pendentes (o que precisa de
+ * decisão) e decididas (aprovada/recusada/feita — histórico, não some da
+ * tela, mas não compete por atenção com o que está pendente). Mais recente
+ * primeiro nos dois grupos.
+ */
+export function filaSugestoes(projetoId: string, sugestoes: Sugestao[]): FilaSugestoesVM {
+  const doProjeto = sugestoes
+    .filter((s) => s.projeto_id === projetoId)
+    .slice()
+    .sort((a, b) => new Date(b.criada_em).getTime() - new Date(a.criada_em).getTime());
+
+  return {
+    pendentes: doProjeto.filter((s) => s.estado === "pendente").map(sugestaoParaVM),
+    decididas: doProjeto.filter((s) => s.estado !== "pendente").map(sugestaoParaVM),
   };
 }
 

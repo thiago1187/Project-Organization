@@ -1,13 +1,19 @@
 import "server-only";
 import { sql } from "./db";
-import { traduzirErroDeBanco } from "./erros";
+import { ErroDados, traduzirErroDeBanco } from "./erros";
 import type { EstadoSugestao, Esforco, Reversibilidade, Sugestao } from "@/dominio/tipos";
 
-// Camada de leitura de `sugestao` — só o necessário para a tela de detalhe
-// derivar `temPr`/`prUrl` (ver `detalheProjeto` em src/dominio/visao.ts). A
-// fila de sugestões com aprovar/recusar, e as rotas que a routine usa para
-// criar e mudar estado, ficam para uma entrega própria (fora de escopo aqui
-// — ver CLAUDE.md).
+// Camada de acesso a `sugestao`. A leitura serve tanto a fila de sugestões da
+// tela de detalhe quanto `temPr`/`prUrl` (ver `detalheProjeto` em
+// src/dominio/visao.ts). As duas escritas — aprovar e recusar — são as únicas
+// que o painel faz; marcar como "feita" é da routine e não existe aqui (ver
+// CLAUDE.md > "O painel faz aprovar e recusar").
+//
+// As duas escritas restringem o UPDATE a `estado = 'pendente'` de propósito:
+// isso garante que a trigger `sugestao_validar_transicao` (db/migrations/
+// 001_schema_inicial.sql) só veja transições válidas partindo de pendente, e
+// dá uma mensagem clara (em vez de erro de trigger) quando a sugestão já foi
+// decidida em outra aba antes deste clique chegar ao banco.
 
 interface LinhaSugestao {
   id: string;
@@ -64,5 +70,53 @@ export async function listarSugestoesDoProjeto(projetoId: string): Promise<Suges
     return linhas.map(linhaParaSugestao);
   } catch (erro) {
     throw traduzirErroDeBanco(erro, "listarSugestoesDoProjeto");
+  }
+}
+
+/**
+ * pendente → aprovada. Lança `ErroDados` se a sugestão não existir mais ou já
+ * não estiver pendente (decidida em outra aba, por exemplo).
+ */
+export async function aprovarSugestao(id: string): Promise<Sugestao> {
+  try {
+    const linhas = (await sql()`
+      UPDATE sugestao
+      SET estado = 'aprovada', aprovada_em = now()
+      WHERE id = ${id} AND estado = 'pendente'
+      RETURNING id, projeto_id, agente, proposta, motivo, esforco, risco, reversibilidade,
+                estado, criada_em, aprovada_em, recusada_em, feita_em, pr_url
+    `) as unknown as LinhaSugestao[];
+    if (linhas.length === 0) {
+      throw new ErroDados(
+        "Esta sugestão não está mais pendente — pode já ter sido decidida em outra aba.",
+      );
+    }
+    return linhaParaSugestao(linhas[0]);
+  } catch (erro) {
+    throw traduzirErroDeBanco(erro, "aprovarSugestao");
+  }
+}
+
+/**
+ * pendente → recusada. Lança `ErroDados` se a sugestão não existir mais ou já
+ * não estiver pendente (decidida em outra aba, por exemplo).
+ */
+export async function recusarSugestao(id: string): Promise<Sugestao> {
+  try {
+    const linhas = (await sql()`
+      UPDATE sugestao
+      SET estado = 'recusada', recusada_em = now()
+      WHERE id = ${id} AND estado = 'pendente'
+      RETURNING id, projeto_id, agente, proposta, motivo, esforco, risco, reversibilidade,
+                estado, criada_em, aprovada_em, recusada_em, feita_em, pr_url
+    `) as unknown as LinhaSugestao[];
+    if (linhas.length === 0) {
+      throw new ErroDados(
+        "Esta sugestão não está mais pendente — pode já ter sido decidida em outra aba.",
+      );
+    }
+    return linhaParaSugestao(linhas[0]);
+  } catch (erro) {
+    throw traduzirErroDeBanco(erro, "recusarSugestao");
   }
 }

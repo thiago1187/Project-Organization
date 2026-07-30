@@ -1,10 +1,10 @@
 import type { EtapaVM } from "@/dominio/visao";
 
 // Portado do export, linhas 133-159. "onde estamos" continua mockado nesta
-// etapa — não tem tabela no schema (plano §2.8). O espaço deste painel é onde
-// a fila de sugestões deve morar, num PR futuro. Os campos que eram
-// contentEditable (título, resumo, cada próximo passo) viraram texto simples
-// (plano §2.12).
+// etapa — não tem tabela no schema (plano §2.8). A fila de sugestões mora em
+// FilaSugestoes.tsx, logo abaixo deste painel na tela de detalhe. Os campos
+// que eram contentEditable (título, resumo, cada próximo passo) viraram
+// texto simples (plano §2.12).
 export default function PainelEtapa({ etapa }: { etapa: EtapaVM }) {
   return (
     <div
