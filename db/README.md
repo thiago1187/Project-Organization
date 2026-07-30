@@ -200,3 +200,24 @@ migration.)
   não silenciar. Isso é sinal de bug no processo de aplicar, não algo para mascarar.
   A transação (`BEGIN`/`COMMIT`) garante que uma falha no meio do arquivo não deixa
   schema pela metade — ou aplica tudo, ou não aplica nada.
+
+## 006 — tripwire para os provedores do dono
+
+**Já aplicada** no banco em 2026-07-30.
+
+Estende `parece_credencial` (criada na 002) com as famílias de token que este
+projeto de fato usa: Vercel, Google, GitLab, DigitalOcean, Resend, Fly, npm, e
+Mapbox (que usa `sk.` em vez de `sk-`).
+
+O motivo está no cabeçalho do arquivo: a revisão de segurança rodou o padrão
+original contra os valores fabricados do próprio export e contra os provedores
+que o dono administra, e ele pegava 5 de 12. Estava calibrado para credenciais
+de terceiros e cego justamente para as que este inventário contém.
+
+Só substitui a função — nenhuma tabela, coluna ou constraint muda. Os `CHECK`
+da 002 a chamam por nome e passam a usar a versão nova. **Linhas já gravadas
+não são revalidadas**: `CHECK` só roda em `INSERT` e `UPDATE`.
+
+Precisa ficar idêntica a `src/dominio/pareceCredencial.ts`. Se uma mudar, a
+outra muda junto — senão a aplicação recusa com mensagem legível algo que o
+banco aceitaria, e ninguém entende por quê.
