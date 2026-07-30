@@ -12,6 +12,7 @@ import { listarRelatoriosDoProjeto } from "./relatorios";
 import { listarSugestoes, listarSugestoesDoProjeto } from "./sugestoes";
 import { listarServicoDoProjeto, listarStackDoProjeto } from "./inventario";
 import { listarContextosDoProjeto, upsertContexto } from "./contextos";
+import { semCredencial } from "@/dominio/pareceCredencial";
 import { validarContexto } from "@/dominio/validacaoContexto";
 import { validarDadosProjetoComFrequencia } from "@/dominio/validacaoProjeto";
 import type { EstadoSugestao, Projeto } from "@/dominio/tipos";
@@ -144,14 +145,24 @@ function texto(valor: unknown): string | null {
   return typeof valor === "string" ? valor : null;
 }
 
-/** Encontra o projeto do argumento `projeto`, ou devolve a falha já formatada. */
+/**
+ * Encontra o projeto do argumento `projeto`, ou devolve a falha já formatada.
+ *
+ * Devolve junto `nome`, que é o **único** rótulo que deve sair daqui para o
+ * modelo. `projeto.nome` cru escapava do filtro em quatro respostas enquanto
+ * `listar` o redigia — a inconsistência é que é a armadilha, porque a saída
+ * continua parecendo certa. Resolver uma vez aqui é o que impede a quinta.
+ */
 async function comProjeto(
   args: Argumentos,
-): Promise<{ ok: true; projeto: Projeto; todos: Projeto[] } | { ok: false; resposta: CallToolResult }> {
+): Promise<
+  | { ok: true; projeto: Projeto; nome: string; todos: Projeto[] }
+  | { ok: false; resposta: CallToolResult }
+> {
   const todos = await listarProjetos();
   const achado = resolverProjeto(args.projeto, todos);
   if (!achado.ok) return { ok: false, resposta: falha(achado.erro) };
-  return { ok: true, projeto: achado.projeto, todos };
+  return { ok: true, projeto: achado.projeto, nome: semCredencial(achado.projeto.nome), todos };
 }
 
 async function listar(): Promise<CallToolResult> {
@@ -166,7 +177,7 @@ async function verRodadas(args: Argumentos): Promise<CallToolResult> {
   const relatorios = await listarRelatoriosDoProjeto(alvo.projeto.id);
   const limite = limiteDeRodadas(args.limite);
   return resultado({
-    projeto: alvo.projeto.nome,
+    projeto: alvo.nome,
     total_de_rodadas: relatorios.length,
     rodadas: rodadasParaMcp(relatorios, limite),
   });
@@ -219,7 +230,7 @@ async function verInventario(args: Argumentos): Promise<CallToolResult> {
     listarStackDoProjeto(alvo.projeto.id),
     listarServicoDoProjeto(alvo.projeto.id),
   ]);
-  return resultado({ projeto: alvo.projeto.nome, ...inventarioParaMcp(stack, servicos) });
+  return resultado({ projeto: alvo.nome, ...inventarioParaMcp(stack, servicos) });
 }
 
 async function verContexto(args: Argumentos): Promise<CallToolResult> {
@@ -227,7 +238,7 @@ async function verContexto(args: Argumentos): Promise<CallToolResult> {
   if (!alvo.ok) return alvo.resposta;
 
   const contextos = await listarContextosDoProjeto(alvo.projeto.id);
-  return resultado({ projeto: alvo.projeto.nome, contexto: contextosParaMcp(contextos) });
+  return resultado({ projeto: alvo.nome, contexto: contextosParaMcp(contextos) });
 }
 
 async function cadastrarProjeto(args: Argumentos): Promise<CallToolResult> {
@@ -283,15 +294,15 @@ async function anexarContexto(args: Argumentos): Promise<CallToolResult> {
   if (colidindo && args.substituir !== true) {
     return falha(
       `Já existe contexto de tipo "${validado.dados.tipo}" para o agente "${validado.dados.agente_destino}" ` +
-        `no projeto "${alvo.projeto.nome}", atualizado em ${colidindo.atualizado_em}. ` +
+        `no projeto "${alvo.nome}", atualizado em ${colidindo.atualizado_em}. ` +
         "Gravar por cima apagaria o texto anterior e não há como desfazer daqui. " +
         "Mostre ao dono o que já está lá (ver_contexto) e só repita com substituir=true se ele confirmar.",
     );
   }
 
-  const contexto = await upsertContexto(alvo.projeto.id, validado.dados);
+  const contexto = await upsertContexto(alvo.projeto.id, validado.dados, "mcp");
   return resultado({
-    projeto: alvo.projeto.nome,
+    projeto: alvo.nome,
     anexado: contextosParaMcp([contexto])[0],
     substituiu: colidindo !== null,
   });

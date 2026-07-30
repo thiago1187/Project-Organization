@@ -1,7 +1,13 @@
-// Validação de entrada de PUT /api/context/:projeto e da Server Action
-// `salvarContextoAction` (src/servidor/acoes-contexto.ts) — as duas únicas
-// portas de escrita de `contexto`, e as duas são do painel (regra 4 do
-// CLAUDE.md, exceção deliberada: a routine só lê contexto). Espelha os CHECKs
+// Validação de entrada das três portas de escrita de `contexto`: PUT
+// /api/context/:projeto, a Server Action `salvarContextoAction`
+// (src/servidor/acoes-contexto.ts) e a ferramenta `anexar_contexto` do
+// servidor MCP (src/servidor/mcp.ts). Nenhuma delas é a routine — regra 4 do
+// CLAUDE.md: a rodada só lê contexto, porque contexto vira instrução no
+// CLAUDE.md do repositório alvo.
+//
+// A terceira porta é a que mais exige destes CHECKs. O texto que chega por
+// ela pode ter sido lido pelo modelo de um README ou de uma página, e vai
+// acabar num arquivo que todo agente da rodada seguinte recebe. Espelha os CHECKs
 // de db/migrations/001_schema_inicial.sql > contexto. Sem import de banco:
 // lógica pura, testável sem conexão — mesmo padrão de validacaoSugestao.ts.
 //

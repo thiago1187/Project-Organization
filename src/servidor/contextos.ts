@@ -100,21 +100,26 @@ export async function listarContextosDoProjeto(projetoId: string): Promise<Conte
  * agente_destino e tipo substitui `conteudo`/`arquivo_url`; gravar com
  * agente_destino ou tipo diferentes cria uma linha nova. `dados` já chega
  * validado por `validarContexto` (src/dominio/validacaoContexto.ts).
- * `origem` não é parâmetro: a coluna tem DEFAULT `'painel'` e o CHECK só
- * aceita esse valor — não há como esta função gravar outra coisa.
+ * `origem` é procedência, não permissão: quem chama declara se a escrita veio
+ * da tela ou do MCP, e a tela de detalhe mostra a diferença. Era um DEFAULT
+ * fixo em `'painel'` enquanto a tela era a única porta; virou parâmetro quando
+ * o MCP passou a gravar, porque sem isso o que o terminal anexou ficava
+ * indistinguível do que o dono digitou — e contexto é lido por agentes que
+ * agem, de madrugada. Ver a migration 010 para o argumento inteiro.
  */
 export async function upsertContexto(
   projetoId: string,
   dados: DadosContextoValidados,
+  origem: OrigemContexto = "painel",
 ): Promise<Contexto> {
   await exigirDonoOuMcp();
 
   try {
     const linhas = (await sql()`
-      INSERT INTO contexto (projeto_id, agente_destino, tipo, conteudo, arquivo_url)
-      VALUES (${projetoId}, ${dados.agente_destino}, ${dados.tipo}, ${dados.conteudo}, ${dados.arquivo_url})
+      INSERT INTO contexto (projeto_id, agente_destino, tipo, conteudo, arquivo_url, origem)
+      VALUES (${projetoId}, ${dados.agente_destino}, ${dados.tipo}, ${dados.conteudo}, ${dados.arquivo_url}, ${origem})
       ON CONFLICT (projeto_id, agente_destino, tipo)
-      DO UPDATE SET conteudo = EXCLUDED.conteudo, arquivo_url = EXCLUDED.arquivo_url
+      DO UPDATE SET conteudo = EXCLUDED.conteudo, arquivo_url = EXCLUDED.arquivo_url, origem = EXCLUDED.origem
       RETURNING id, projeto_id, agente_destino, tipo, conteudo, arquivo_url, origem, criado_em, atualizado_em
     `) as unknown as LinhaContexto[];
     return linhaParaContexto(linhas[0]);

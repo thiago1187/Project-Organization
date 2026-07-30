@@ -2,7 +2,14 @@ import "server-only";
 
 import { cookies, headers } from "next/headers";
 import { segredosBatem } from "./comparacaoSegura";
-import { ambientePermiteSessao, cookieSessaoEhValido, NOME_COOKIE_SESSAO } from "./sessao";
+// `ambientePermiteSessao` vale para as duas origens em que o dono está
+// presente — o navegador dele e o Claude Code dele. O apelido diz isso; o nome
+// original ficou preso a "sessão" porque, quando nasceu, sessão era a única.
+import {
+  ambientePermiteSessao as ambientePermiteOrigemDoDono,
+  cookieSessaoEhValido,
+  NOME_COOKIE_SESSAO,
+} from "./sessao";
 
 // Ponto único de verificação de acesso — regra 4 do CLAUDE.md.
 //
@@ -63,9 +70,24 @@ async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
   // O segredo do MCP é conferido antes do bypass de propósito: o Claude Code
   // manda os dois headers (o de bypass para atravessar a borda da Vercel, o do
   // MCP para se identificar), e a origem certa nesse caso é a mais específica.
+  //
+  // `ambientePermiteOrigemDoDono()` se aplica aqui pelo mesmo motivo que se
+  // aplica à sessão, e a ausência dele era um furo: a Vercel marca os três
+  // ambientes por padrão numa variável nova, então `PAINEL_MCP_SECRET` criada
+  // sem desmarcar Preview daria escrita de contexto a todo deploy de preview
+  // — que sai de qualquer branch, inclusive de código alterado, e aponta para
+  // o mesmo banco de produção. Preview é onde um furo aparece primeiro, e é
+  // por isso que a sessão já era recusada lá.
   const segredoMcp = process.env.PAINEL_MCP_SECRET;
   const recebidoMcp = cabecalhos.get(CABECALHO_MCP);
-  if (segredoMcp && recebidoMcp && segredosBatem(recebidoMcp, segredoMcp)) return "mcp";
+  if (
+    ambientePermiteOrigemDoDono() &&
+    segredoMcp &&
+    recebidoMcp &&
+    segredosBatem(recebidoMcp, segredoMcp)
+  ) {
+    return "mcp";
+  }
 
   // Caminho da routine: header de bypass com o segredo correto.
   //
@@ -114,7 +136,7 @@ async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
   // `ambientePermiteSessao()` decide separadamente se este ambiente pode
   // conceder sessão de dono (produção sempre; local só com opt-in explícito;
   // preview nunca — ver o comentário lá para o raciocínio de cada caso).
-  if (!ambientePermiteSessao()) return null;
+  if (!ambientePermiteOrigemDoDono()) return null;
 
   const cookieStore = await cookies();
   const cookieSessao = cookieStore.get(NOME_COOKIE_SESSAO)?.value;

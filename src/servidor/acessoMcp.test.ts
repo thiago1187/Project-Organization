@@ -20,6 +20,12 @@ import { describe, expect, it, vi } from "vitest";
 //   como feita continuam em `exigirSessaoDoDono()`, fora do alcance do MCP.
 // - Sem `PAINEL_MCP_SECRET` configurada, a degradação é recusar, nunca
 //   liberar — mesmo princípio de `cookieSessaoEhValido`.
+// - Em preview, o segredo do MCP não vale, nem para ler. Este é o caso que a
+//   revisão de segurança encontrou: a Vercel marca os três ambientes por
+//   padrão numa variável nova, então `PAINEL_MCP_SECRET` criada sem desmarcar
+//   Preview daria escrita de contexto a todo deploy de preview — que sai de
+//   qualquer branch e aponta para o mesmo banco de produção. A sessão já era
+//   recusada lá; a origem `mcp` não era, e passou a ser.
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
@@ -132,5 +138,65 @@ describe("acesso — origem mcp", () => {
     mockCookies();
 
     await expect(exigirDonoOuMcp()).rejects.toBeInstanceOf(AcessoNegado);
+  });
+
+  // ── Regra de ambiente ────────────────────────────────────────────────────
+
+  it("preview: segredo do MCP correto não concede acesso nenhum", () => {
+    process.env.VERCEL_ENV = "preview";
+    process.env.PAINEL_MCP_SECRET = SEGREDO_MCP;
+    mockHeaders({ [CABECALHO_MCP]: SEGREDO_MCP });
+    mockCookies();
+
+    // Nem escrita, nem leitura. Preview é onde um furo aparece primeiro, e o
+    // banco por trás é o mesmo de produção.
+    return Promise.all([
+      expect(exigirDonoOuMcp()).rejects.toBeInstanceOf(AcessoNegado),
+      expect(exigirSessaoDoDono()).rejects.toBeInstanceOf(AcessoNegado),
+      expect(exigirAcesso()).rejects.toBeInstanceOf(AcessoNegado),
+    ]);
+  });
+
+  it("preview: com o bypass válido junto, a origem cai para bypass — leitura sim, escrita não", () => {
+    process.env.VERCEL_ENV = "preview";
+    process.env.PAINEL_MCP_SECRET = SEGREDO_MCP;
+    process.env.PAINEL_BYPASS_SECRET = SEGREDO_BYPASS;
+    // O Claude Code manda os dois headers. Em preview o degrau do MCP não
+    // casa, e ele vira uma requisição de routine: lê, não escreve contexto.
+    mockHeaders({ [CABECALHO_MCP]: SEGREDO_MCP, [CABECALHO_BYPASS]: SEGREDO_BYPASS });
+    mockCookies();
+
+    return Promise.all([
+      expect(exigirAcesso()).resolves.toBeUndefined(),
+      expect(exigirDonoOuMcp()).rejects.toBeInstanceOf(AcessoNegado),
+      expect(exigirSessaoDoDono()).rejects.toBeInstanceOf(AcessoNegado),
+    ]);
+  });
+
+  it("local sem opt-in: segredo do MCP correto não concede acesso", () => {
+    // Mesma regra que a sessão local já seguia: `PERMITIR_SESSAO_LOCAL=1` é o
+    // opt-in explícito. Sem ele, uma instância de desenvolvimento apontando
+    // para o banco de produção não vira porta de escrita por acidente.
+    delete process.env.VERCEL_ENV;
+    process.env.PAINEL_MCP_SECRET = SEGREDO_MCP;
+    mockHeaders({ [CABECALHO_MCP]: SEGREDO_MCP });
+    mockCookies();
+
+    return expect(exigirDonoOuMcp()).rejects.toBeInstanceOf(AcessoNegado);
+  });
+
+  it("local com PERMITIR_SESSAO_LOCAL=1: o MCP funciona, inclusive escrita", () => {
+    // O caminho documentado em docs/mcp.md, "Testar contra o painel local".
+    delete process.env.VERCEL_ENV;
+    process.env.PERMITIR_SESSAO_LOCAL = "1";
+    process.env.PAINEL_MCP_SECRET = SEGREDO_MCP;
+    mockHeaders({ [CABECALHO_MCP]: SEGREDO_MCP });
+    mockCookies();
+
+    return Promise.all([
+      expect(exigirAcesso()).resolves.toBeUndefined(),
+      expect(exigirDonoOuMcp()).resolves.toBeUndefined(),
+      expect(exigirSessaoDoDono()).rejects.toBeInstanceOf(AcessoNegado),
+    ]);
   });
 });

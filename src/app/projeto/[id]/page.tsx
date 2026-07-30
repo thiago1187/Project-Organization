@@ -9,6 +9,7 @@ import { listarAgentesDoProjeto } from "@/servidor/agentesProjeto";
 import { listarTarefasDoProjeto } from "@/servidor/tarefas";
 import { listarServicoDoProjeto, listarStackDoProjeto } from "@/servidor/inventario";
 import { montarEsteira } from "@/dominio/esteiraAgentes";
+import { sugerirAgentes } from "@/dominio/sugestorAgentes";
 import TiraEstado from "@/componentes/TiraEstado";
 import DescricaoProjeto from "@/componentes/DescricaoProjeto";
 import OndeEstamos from "@/componentes/OndeEstamos";
@@ -47,6 +48,7 @@ export default async function DetalheProjetoPage({
   const fila = filaSugestoes(id, sugestoes);
   const agora = ondeEstamos(tarefas, fila.aprovadas);
   const esteira = montarEsteira(agentesProjeto);
+  const sugeridos = sugerirAgentes({ agentesProjeto, stack, servico, relatorios, sugestoes });
 
   const rodadasDetalhe = atual.rodadas
     .map((r) => rodadaDetalhe(id, relatorios, r.idx))
@@ -160,6 +162,7 @@ export default async function DetalheProjetoPage({
             inativos={esteira.inativos}
             pendentesCount={fila.pendentes.length}
             aprovadas={fila.aprovadas}
+            sugeridos={sugeridos}
           />
           <EditorContexto projetoId={atual.id} itens={contextos} />
           <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />

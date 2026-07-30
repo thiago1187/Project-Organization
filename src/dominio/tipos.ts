@@ -17,8 +17,13 @@ export type Reversibilidade = "facil" | "dificil" | "nao_reverte";
 /** sugestao.estado — CHECK sugestao_estado_valido (linha 99). */
 export type EstadoSugestao = "pendente" | "aprovada" | "recusada" | "feita";
 
-/** contexto.origem — CHECK contexto_origem_valida (linha 228). Lista fechada a um valor. */
-export type OrigemContexto = "painel";
+/**
+ * contexto.origem — CHECK contexto_origem_valida (001, ampliado pela 010).
+ * Procedência, não permissão: `"painel"` é o dono na tela, `"mcp"` é o Claude
+ * Code dele. `"routine"` não existe de propósito — a rodada não escreve
+ * contexto (CLAUDE.md, regra 4).
+ */
+export type OrigemContexto = "painel" | "mcp";
 
 /** tarefa.estado — CHECK tarefa_estado_valido (db/migrations/009_tarefa.sql). */
 export type EstadoTarefa = "aberta" | "fazendo" | "feita";

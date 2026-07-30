@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AgenteEsteiraVM } from "@/dominio/esteiraAgentes";
 import type { SugestaoVM } from "@/dominio/visao";
+import type { SugestaoAgenteVM } from "@/dominio/sugestorAgentes";
 import { alternarAgenteAction, reordenarAgentesAction } from "@/servidor/acoes-agentes";
 import CartaoAgenteEsteira from "./CartaoAgenteEsteira";
+import FaixaSugestorAgentes from "./FaixaSugestorAgentes";
 
 // A esteira de agentes (docs/plano-agentes-por-projeto.md § 2.3) — três
 // faixas fixas, lidas da esquerda para a direita. Só a primeira
@@ -29,12 +31,14 @@ export default function EsteiraAgentes({
   inativos,
   pendentesCount,
   aprovadas,
+  sugeridos,
 }: {
   projetoId: string;
   ativos: AgenteEsteiraVM[];
   inativos: AgenteEsteiraVM[];
   pendentesCount: number;
   aprovadas: SugestaoVM[];
+  sugeridos: SugestaoAgenteVM[];
 }) {
   const todosPorNome = useMemo(() => {
     const mapa = new Map<string, AgenteEsteiraVM>();
@@ -121,6 +125,8 @@ export default function EsteiraAgentes({
           {erro}
         </div>
       )}
+
+      <FaixaSugestorAgentes projetoId={projetoId} sugeridos={sugeridos} />
 
       <div
         style={{
