@@ -6,6 +6,7 @@ import { listarRelatoriosDoProjeto } from "@/servidor/relatorios";
 import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
 import { listarContextosDoProjeto } from "@/servidor/contextos";
 import { listarAgentesDoProjeto } from "@/servidor/agentesProjeto";
+import { listarServicoDoProjeto, listarStackDoProjeto } from "@/servidor/inventario";
 import { montarEsteira } from "@/dominio/esteiraAgentes";
 import PainelEtapa from "@/componentes/PainelEtapa";
 import FilaSugestoes from "@/componentes/FilaSugestoes";
@@ -13,7 +14,7 @@ import EsteiraAgentes from "@/componentes/EsteiraAgentes";
 import EditorContexto from "@/componentes/EditorContexto";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
 import ListaDocumentos from "@/componentes/ListaDocumentos";
-import ListaAcessos from "@/componentes/ListaAcessos";
+import InventarioProjeto from "@/componentes/InventarioProjeto";
 
 export const dynamic = "force-dynamic";
 
@@ -27,19 +28,23 @@ export default async function DetalheProjetoPage({
   const projeto = await obterProjetoPorId(id);
   if (!projeto) notFound();
 
-  const [relatorios, sugestoes, contextos, agentesProjeto] = await Promise.all([
+  const [relatorios, sugestoes, contextos, agentesProjeto, stack, servico] = await Promise.all([
     listarRelatoriosDoProjeto(id),
     listarSugestoesDoProjeto(id),
     listarContextosDoProjeto(id),
     listarAgentesDoProjeto(id),
+    listarStackDoProjeto(id),
+    listarServicoDoProjeto(id),
   ]);
 
-  // "onde estamos" (etapa) e o cofre de acessos não têm tabela no schema —
-  // são mock-only por desenho (ver src/dominio/visao.ts, cabeçalho do
-  // arquivo, e docs/visao.md "O que falta ser desenhado"). Passar mapas
-  // vazios aciona o estado vazio que essas funções já tratam (ETAPA_VAZIA,
-  // lista de acessos vazia), em vez de inventar dado que não existe.
-  const atual = detalheProjeto(id, [projeto], relatorios, sugestoes, contextos, {}, {});
+  // "onde estamos" (etapa) não tem tabela no schema — é mock-only por
+  // desenho (ver src/dominio/visao.ts, cabeçalho do arquivo, e
+  // docs/visao.md "O que falta ser desenhado"). Passar mapa vazio aciona o
+  // estado vazio que a função já trata (ETAPA_VAZIA), em vez de inventar
+  // dado que não existe. O antigo mapa de acessos (também mock) saiu daqui —
+  // ver InventarioProjeto, que substitui aquele bloco por `stack`/`servico`
+  // reais.
+  const atual = detalheProjeto(id, [projeto], relatorios, sugestoes, contextos, {});
   if (!atual) notFound();
 
   const fila = filaSugestoes(id, sugestoes);
@@ -162,7 +167,7 @@ export default async function DetalheProjetoPage({
 
         <div style={{ display: "flex", flexDirection: "column", gap: 30 }}>
           <ListaDocumentos docs={atual.docs} />
-          <ListaAcessos acessos={atual.acessos} />
+          <InventarioProjeto projetoId={atual.id} stack={stack} servico={servico} />
         </div>
       </div>
     </div>

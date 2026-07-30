@@ -2,12 +2,14 @@
 // linhas de tabela (Projeto, Relatorio, Sugestao, Contexto). Nenhuma cor aqui é
 // hexadecimal — sempre "var(--token)", os 28 tokens de src/app/globals.css.
 //
-// Três blocos do export não têm origem no modelo de dados (plano §2.8): o painel
-// "onde estamos" (etapa), a lista de acessos, e — parcialmente — os documentos
-// (o texto "local", ex. "Notion", não tem coluna; aqui é derivado do hostname da
-// URL, não inventado). Os tipos EtapaMock e AcessoMock, abaixo, marcam esse limite
-// explicitamente: as funções que os consomem recebem essas linhas como parâmetro,
-// nunca as leem de uma tabela.
+// Dois blocos do export não têm origem no modelo de dados (plano §2.8): o painel
+// "onde estamos" (etapa), e — parcialmente — os documentos (o texto "local", ex.
+// "Notion", não tem coluna; aqui é derivado do hostname da URL, não inventado). O
+// tipo EtapaMock, abaixo, marca esse limite explicitamente: as funções que o
+// consomem recebem essa linha como parâmetro, nunca a leem de uma tabela. A
+// antiga lista de acessos (AcessoMock) saiu daqui — substituída por `stack` e
+// `servico`, dado real (db/migrations/002_inventario.sql; ver
+// src/componentes/InventarioProjeto.tsx e docs/plano-agentes-por-projeto.md § 5.2).
 
 import type {
   Projeto,
@@ -35,14 +37,6 @@ export interface EtapaMock {
   dias: number;
   resumo: string;
   proximos: string[];
-}
-
-/** Sem campo de valor — ver plano §2.11 e CLAUDE.md, regra de segurança 1. */
-export interface AcessoMock {
-  rotulo: string;
-  escopo: string;
-  gerido: string;
-  url: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -342,7 +336,6 @@ export interface ProjetoDetalheVM {
   prUrl: string | null;
   etapa: EtapaVM;
   docs: DocVM[];
-  acessos: AcessoMock[];
   rodadas: RodadaHistItemVM[];
 }
 
@@ -353,7 +346,6 @@ export function detalheProjeto(
   sugestoes: Sugestao[],
   contextos: Contexto[],
   etapas: Record<string, EtapaMock>,
-  acessos: Record<string, AcessoMock[]>,
 ): ProjetoDetalheVM | null {
   const p = projetos.find((x) => x.id === projetoId);
   if (!p) return null;
@@ -383,7 +375,6 @@ export function detalheProjeto(
     prUrl,
     etapa: etapas[p.id] ? montarEtapa(etapas[p.id], pausado) : ETAPA_VAZIA,
     docs,
-    acessos: acessos[p.id] ?? [],
     rodadas: historico.map((r, idx) => ({
       idx,
       data: formatarDataCurta(r.executado_em),

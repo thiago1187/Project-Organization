@@ -109,3 +109,43 @@ export interface ProjetoAgente {
   criado_em: string; // timestamptz (ISO)
   atualizado_em: string; // timestamptz (ISO)
 }
+
+/** stack.categoria — CHECK stack_categoria_valida (db/migrations/002_inventario.sql). */
+export type CategoriaStack = "linguagem" | "framework" | "runtime";
+
+/** servico.categoria — CHECK servico_categoria_valida (db/migrations/002_inventario.sql). */
+export type CategoriaServico = "banco" | "hospedagem" | "modelo" | "autenticacao" | "storage" | "email";
+
+/**
+ * stack — db/migrations/002_inventario.sql. Linguagem, framework e runtime de
+ * um projeto. Sem `conta` nem `administrado_url` de propósito — ver o
+ * comentário de desenho no topo da tabela na migration: não faz sentido
+ * perguntar "em qual conta" de uma linguagem de programação.
+ */
+export interface Stack {
+  id: string; // uuid
+  projeto_id: string; // uuid
+  categoria: CategoriaStack;
+  nome: string; // ex.: "TypeScript", "Next.js", "Node.js 20"
+  criado_em: string; // timestamptz (ISO)
+  atualizado_em: string; // timestamptz (ISO)
+}
+
+/**
+ * servico — db/migrations/002_inventario.sql. Serviço ou conta externa que o
+ * projeto usa, e onde é administrado. Nunca guarda credencial (ver CLAUDE.md,
+ * regra de segurança 1, e o comentário no topo da tabela na migration) — não
+ * existe coluna `valor`/`chave`/`token`, e os campos livres são rótulos
+ * curtos, não um lugar para colar um segredo.
+ */
+export interface Servico {
+  id: string; // uuid
+  projeto_id: string; // uuid
+  categoria: CategoriaServico;
+  nome: string; // ex.: "Neon", "Vercel", "OpenAI"
+  conta: string; // em qual conta do dono, ex.: "pessoal", "cliente x"
+  papel: string | null; // ex.: "producao", "preview" — opcional
+  administrado_url: string | null; // link para o painel de administração — opcional
+  criado_em: string; // timestamptz (ISO)
+  atualizado_em: string; // timestamptz (ISO)
+}
