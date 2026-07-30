@@ -23,6 +23,7 @@ import { ambientePermiteSessao, cookieSessaoEhValido, NOME_COOKIE_SESSAO } from 
 // sozinho que Server Action também é superfície de rede.
 
 const CABECALHO_BYPASS = "x-vercel-protection-bypass";
+const CABECALHO_MCP = "x-painel-mcp-secret";
 
 export class AcessoNegado extends Error {
   constructor() {
@@ -32,21 +33,39 @@ export class AcessoNegado extends Error {
 }
 
 /**
- * Como o acesso foi concedido: sessão é o dono no navegador, bypass é a
- * routine com o header de segredo. Desde que a routine parou de escrever em
- * `sugestao` (docs/proximos-passos.md item 2, "tirar a execução da
- * routine"), nenhuma rota mais decide *o quê* fazer a partir dessa
- * distinção — todo caminho de escrita já exige sessão do dono
- * (`exigirSessaoDoDono()`); bypass só abre os caminhos de leitura e os dois
- * POSTs que a routine ainda usa (`/api/reports`, `/api/suggestions`), via
- * `exigirAcesso()`. O tipo continua interno a este arquivo por isso — nada
- * de fora precisa mais perguntar qual foi a origem, só se houve uma.
+ * Como o acesso foi concedido. Três origens, em ordem de autoridade:
+ *
+ * - `sessao` — o dono no navegador, com cookie assinado (ver sessao.ts).
+ * - `mcp` — o Claude Code do dono, com `PAINEL_MCP_SECRET` (ver
+ *   src/servidor/mcp.ts e docs/mcp.md).
+ * - `bypass` — a routine noturna, com o segredo de bypass da Vercel.
+ *
+ * `mcp` existe por um motivo específico, não por gosto de granularidade: o
+ * Claude Code precisa mandar o header de bypass de qualquer jeito, porque é
+ * ele que atravessa o Vercel Authentication na borda. Se o MCP se apoiasse só
+ * nisso, "a routine às 3h" e "o dono conversando no terminal" virariam a mesma
+ * origem — e aí toda decisão futura do tipo "a routine não pode fazer X"
+ * proibiria o dono junto, ou, pior, afrouxar algo para o dono abriria a mesma
+ * porta para a rodada sem supervisão. O segredo separado é o que mantém as
+ * duas distinguíveis.
+ *
+ * O que `mcp` **não** é: defesa contra um modelo mal conduzido. Se o texto que
+ * o Claude Code leu o convencer a chamar uma ferramenta, ele tem o segredo por
+ * construção. Por isso o MCP não expõe aprovar, recusar nem apagar — ali a
+ * defesa é a ausência da ferramenta, não a credencial.
  */
-type OrigemAcesso = "sessao" | "bypass";
+type OrigemAcesso = "sessao" | "mcp" | "bypass";
 
 /** Resolve a origem do acesso desta requisição, ou `null` se nenhuma bater. */
 async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
   const cabecalhos = await headers();
+
+  // O segredo do MCP é conferido antes do bypass de propósito: o Claude Code
+  // manda os dois headers (o de bypass para atravessar a borda da Vercel, o do
+  // MCP para se identificar), e a origem certa nesse caso é a mais específica.
+  const segredoMcp = process.env.PAINEL_MCP_SECRET;
+  const recebidoMcp = cabecalhos.get(CABECALHO_MCP);
+  if (segredoMcp && recebidoMcp && segredosBatem(recebidoMcp, segredoMcp)) return "mcp";
 
   // Caminho da routine: header de bypass com o segredo correto.
   //
@@ -117,9 +136,32 @@ export async function exigirSessaoDoDono(): Promise<void> {
 }
 
 /**
- * Garante que quem chama é o dono no navegador, ou a routine com o segredo.
- * Lança `AcessoNegado` caso contrário. Chame como primeira linha de qualquer
- * Server Action que escreve, e de qualquer route handler.
+ * Exige que quem chama seja o dono — no navegador, ou pelo MCP do Claude Code
+ * dele. Recusa o bypass da routine.
+ *
+ * Este é o portão das escritas que o dono faz de qualquer um dos dois lugares
+ * em que ele está presente. Hoje: `upsertContexto` (src/servidor/contextos.ts)
+ * e as duas ferramentas de escrita do MCP (src/servidor/mcp.ts).
+ *
+ * O que ele preserva: a regra registrada em `PUT /api/context/:projeto` de que
+ * **a routine não escreve contexto** — porque contexto vira instrução no
+ * CLAUDE.md do repositório alvo, e um agente comprometido numa rodada
+ * escreveria as próprias instruções para a rodada seguinte. A routine tem só o
+ * bypass, e o bypass continua recusado aqui. O que mudou é que "o dono" deixou
+ * de significar exclusivamente "o dono no navegador".
+ *
+ * Não use isto para aprovar, recusar ou marcar sugestão como feita: essas três
+ * continuam em `exigirSessaoDoDono()`, dois cliques no painel, de propósito.
+ */
+export async function exigirDonoOuMcp(): Promise<void> {
+  const origem = await resolverOrigemAcesso();
+  if (origem !== "sessao" && origem !== "mcp") throw new AcessoNegado();
+}
+
+/**
+ * Garante que quem chama é o dono no navegador, o MCP dele, ou a routine com o
+ * segredo. Lança `AcessoNegado` caso contrário. Chame como primeira linha de
+ * qualquer Server Action que escreve, e de qualquer route handler.
  */
 export async function exigirAcesso(): Promise<void> {
   const origem = await resolverOrigemAcesso();

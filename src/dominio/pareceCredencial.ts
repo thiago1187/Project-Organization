@@ -50,3 +50,36 @@ const MARCADOR_OMITIDO = "[omitido — este campo parece conter uma credencial e
 export function semCredencial(texto: string): string {
   return pareceCredencial(texto) ? MARCADOR_OMITIDO : texto;
 }
+
+/**
+ * URL reduzida a origem + caminho, para sair deste app sem carregar segredo.
+ *
+ * Nasceu privada no gerador de prompt, quando `contexto.arquivo_url` era a
+ * única URL que ia para a área de transferência. Mora aqui desde que o
+ * servidor MCP (src/dominio/mcp.ts) passou a precisar da mesma redução em
+ * `contexto.arquivo_url` e em `servico.administrado_url` — duas saídas
+ * diferentes, uma regra só.
+ *
+ * O único requisito desses campos é começar com `https://`. Link assinado de
+ * S3, export do Notion, compartilhamento do Google com chave na query, ou
+ * `https://usuario:senha@host/spec.md` — todos sairiam inteiros.
+ *
+ * `semCredencial` sozinho não resolve bem aqui: ele apagaria a URL inteira e o
+ * dono perderia a informação de onde o arquivo está. Descartar `userinfo` e
+ * query string preserva o que ele quer ver e joga fora exatamente a parte onde
+ * o segredo viaja.
+ */
+export function urlSemSegredo(bruta: string): string {
+  try {
+    const u = new URL(bruta);
+    u.username = "";
+    u.password = "";
+    u.search = "";
+    u.hash = "";
+    return u.toString();
+  } catch {
+    // Não parseou: não é URL reconhecível, então não dá para reduzir com
+    // segurança. Cai no tripwire genérico.
+    return semCredencial(bruta);
+  }
+}
