@@ -8,7 +8,9 @@
 --
 -- Não contém segredo nenhum: nenhuma string aqui tem formato de chave, token ou
 -- string de conexão. `pr_url` aponta para PRs que não existem de verdade — são só
--- URLs no formato exigido pela constraint `sugestao_pr_url_formato`.
+-- URLs no formato exigido pela constraint `sugestao_pr_url_formato`. Da mesma
+-- forma, `servico.administrado_url` aponta para a página inicial pública de cada
+-- provedor, não para um painel real de conta nenhuma.
 --
 -- Idempotência: este arquivo primeiro apaga qualquer linha de demonstração já
 -- existente (identificada pelo prefixo "demo-seed/" em projeto.repositorio) e
@@ -19,7 +21,8 @@
 -- UI enquanto testava, rodar o seed de novo deve devolver o cenário original,
 -- não deixar a edição manual convivendo com o resto do conjunto.
 --
--- Pressupõe a migration 001_schema_inicial.sql já aplicada.
+-- Pressupõe as migrations 001_schema_inicial.sql e 002_inventario.sql já
+-- aplicadas (esta última ainda não foi aplicada em produção — ver db/README.md).
 
 BEGIN;
 
@@ -28,8 +31,9 @@ BEGIN;
 -- ─────────────────────────────────────────────────────────────────────────
 
 -- sugestao tem ON DELETE RESTRICT em projeto_id (ver comentário na migration) —
--- precisa ser apagada explicitamente antes do projeto. relatorio e contexto têm
--- ON DELETE CASCADE e somem sozinhas quando o projeto for apagado a seguir.
+-- precisa ser apagada explicitamente antes do projeto. relatorio, contexto,
+-- stack e servico têm ON DELETE CASCADE e somem sozinhas quando o projeto for
+-- apagado a seguir.
 DELETE FROM sugestao
 WHERE projeto_id IN (SELECT id FROM projeto WHERE repositorio LIKE 'demo-seed/%');
 
@@ -310,6 +314,81 @@ Erros de execução de rotina seguem uma taxonomia de três categorias: erro de 
 Log de execução vai para stdout em formato de linha única por evento, sem quebras de linha dentro do campo de mensagem — é o que o coletor de log da hospedagem espera. Qualquer sugestão que mude o formato de log precisa dizer explicitamente que quebra essa expectativa, se for o caso.$$,
     'painel', now() - interval '60 days', now() - interval '60 days');
 
+-- ─────────────────────────────────────────────────────────────────────────
+-- stack — 15 linhas, todos os 6 projetos. Cada um tem ao menos linguagem e
+-- runtime; framework só onde faz sentido (os três projetos com tela própria).
+-- ─────────────────────────────────────────────────────────────────────────
+INSERT INTO stack (id, projeto_id, categoria, nome) VALUES
+  -- Cofre de Rotinas (demo) — executor de rotina em segundo plano, sem tela.
+  ('e0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', 'linguagem', 'TypeScript'),
+  ('e0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001', 'runtime', 'Node.js 20'),
+
+  -- Estufa Inteligente (demo) — coleta de sensor via API própria.
+  ('e0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000002', 'linguagem', 'Python'),
+  ('e0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000002', 'framework', 'FastAPI'),
+  ('e0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000002', 'runtime', 'Python 3.12'),
+
+  -- Painel do Aquário (demo) — tela própria (ver contexto de designer-ui acima).
+  ('e0000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000003', 'linguagem', 'TypeScript'),
+  ('e0000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000003', 'framework', 'Next.js'),
+  ('e0000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000003', 'runtime', 'Node.js 20'),
+
+  -- Gerador de Playlists (demo) — motor de recomendação (ver contexto de engenheiro-ia).
+  ('e0000000-0000-0000-0000-000000000009', 'a0000000-0000-0000-0000-000000000004', 'linguagem', 'Python'),
+  ('e0000000-0000-0000-0000-000000000010', 'a0000000-0000-0000-0000-000000000004', 'runtime', 'Python 3.11'),
+
+  -- Lembrete de Regar Plantas (demo) — notificar_email.py / notificar_push.py.
+  ('e0000000-0000-0000-0000-000000000011', 'a0000000-0000-0000-0000-000000000005', 'linguagem', 'Python'),
+  ('e0000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000005', 'runtime', 'Python 3.11'),
+
+  -- Catalogador de Vinis (demo) — pausado; runtime deliberadamente mais antigo,
+  -- coerente com um projeto que não recebe rodada há 20 dias.
+  ('e0000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000006', 'linguagem', 'TypeScript'),
+  ('e0000000-0000-0000-0000-000000000014', 'a0000000-0000-0000-0000-000000000006', 'framework', 'Next.js'),
+  ('e0000000-0000-0000-0000-000000000015', 'a0000000-0000-0000-0000-000000000006', 'runtime', 'Node.js 18');
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- servico — 13 linhas, as 6 categorias representadas ao menos uma vez. A linha
+-- do Neon no Cofre de Rotinas mostra de propósito nome e administrado_url em
+-- domínios diferentes (banco na Neon, administrado a partir do painel da
+-- Vercel) — é exatamente a distinção que motivou o desenho ter as duas
+-- colunas. A linha de Auth.js no mesmo projeto mostra papel e
+-- administrado_url nulos: nem todo serviço tem produção/preview distintos ou
+-- um painel próprio de administração.
+-- ─────────────────────────────────────────────────────────────────────────
+INSERT INTO servico (id, projeto_id, categoria, nome, conta, papel, administrado_url) VALUES
+  ('f0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001',
+    'banco', 'Neon', 'pessoal', 'producao', 'https://vercel.com/dashboard/stores'),
+  ('f0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001',
+    'hospedagem', 'Vercel', 'pessoal', 'producao', 'https://vercel.com/dashboard'),
+  ('f0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001',
+    'autenticacao', 'Auth.js', 'pessoal', NULL, NULL),
+
+  ('f0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000002',
+    'banco', 'Supabase', 'pessoal', 'producao', 'https://supabase.com/dashboard/project/estufa'),
+  ('f0000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000002',
+    'hospedagem', 'Fly.io', 'pessoal', 'producao', 'https://fly.io/dashboard'),
+
+  ('f0000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000003',
+    'banco', 'Neon', 'pessoal', 'producao', 'https://console.neon.tech/'),
+  ('f0000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000003',
+    'hospedagem', 'Vercel', 'pessoal', 'producao', 'https://vercel.com/dashboard'),
+
+  ('f0000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000004',
+    'modelo', 'OpenAI', 'pessoal', 'producao', 'https://platform.openai.com/settings'),
+  ('f0000000-0000-0000-0000-000000000009', 'a0000000-0000-0000-0000-000000000004',
+    'storage', 'AWS S3', 'pessoal', 'producao', 'https://s3.console.aws.amazon.com/'),
+
+  ('f0000000-0000-0000-0000-000000000010', 'a0000000-0000-0000-0000-000000000005',
+    'email', 'Resend', 'pessoal', 'producao', 'https://resend.com/emails'),
+  ('f0000000-0000-0000-0000-000000000011', 'a0000000-0000-0000-0000-000000000005',
+    'hospedagem', 'Railway', 'pessoal', 'producao', 'https://railway.app/dashboard'),
+
+  ('f0000000-0000-0000-0000-000000000012', 'a0000000-0000-0000-0000-000000000006',
+    'banco', 'Turso', 'pessoal', 'producao', 'https://turso.tech/app'),
+  ('f0000000-0000-0000-0000-000000000013', 'a0000000-0000-0000-0000-000000000006',
+    'hospedagem', 'Vercel', 'pessoal', 'producao', 'https://vercel.com/dashboard');
+
 COMMIT;
 
 -- Resumo do conjunto:
@@ -320,3 +399,7 @@ COMMIT;
 --              esforço pequeno/medio/grande e reversibilidade facil/dificil/nao_reverte,
 --              todos representados; 2 nao_reverte ainda pendentes)
 --   contexto:  3 linhas (designer-ui, engenheiro-ia, dev-backend, em 3 projetos distintos)
+--   stack:     15 linhas (linguagem e runtime em todos os 6 projetos; framework
+--              nos 3 que têm tela própria)
+--   servico:   13 linhas (as 6 categorias representadas; papel e administrado_url
+--              nulos numa linha, para exercitar os dois como opcionais)

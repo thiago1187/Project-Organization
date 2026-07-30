@@ -34,13 +34,40 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/001_schema_inicial.down.sql
 Mesma regra de conexão. O `down` apaga as tabelas (e qualquer dado que tiverem) —
 não há como recuperar sem um backup.
 
+## 002 — inventário de projeto (`stack`, `servico`)
+
+Adiciona duas tabelas: `stack` (linguagem, framework, runtime de um projeto) e
+`servico` (serviço ou conta externa que o projeto usa, e onde é administrado —
+nunca um valor de credencial; ver comentário no topo da migration e CLAUDE.md
+regra 1). As duas são independentes uma da outra e cada uma referencia só
+`projeto`, com `ON DELETE CASCADE` — mesma categoria de `relatorio` e `contexto`
+na 001 (material substituível), diferente de `sugestao` (evidência de auditoria).
+
+**Esta migration está escrita e ainda NÃO foi aplicada.** Ao contrário da 001,
+não há nada para rodar aqui até o dono decidir aplicar. Quando decidir:
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/002_inventario.sql
+```
+
+Reverter (apaga `stack`, `servico` e todo o inventário que tiverem, mas não toca
+em `contexto_atualizar_timestamp()`, que pertence à 001 e continua em uso por
+`contexto`):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/002_inventario.down.sql
+```
+
 ## Dado de demonstração (`seed.sql`)
 
 `db/seed.sql` popula o banco com um conjunto fictício de projetos, relatórios,
-sugestões e contexto — o suficiente para avaliar todas as telas do painel (visão
-geral com as três frequências e um pausado, detalhe com histórico raso e fundo,
-fila de sugestões nos quatro estados, estado vazio de um projeto sem rodada
-ainda) sem esperar por uma rodada real.
+sugestões, contexto e inventário — o suficiente para avaliar todas as telas do
+painel (visão geral com as três frequências e um pausado, detalhe com histórico
+raso e fundo, fila de sugestões nos quatro estados, estado vazio de um projeto
+sem rodada ainda) sem esperar por uma rodada real. As linhas de `stack` e
+`servico` do seed pressupõem a 002 já aplicada — rodar o seed antes disso falha
+alto (tabela inexistente), o que é o comportamento esperado, não um bug a
+mascarar.
 
 **Nunca rodar em banco com dado real.** Todo registro do seed é claramente
 fictício: `projeto.repositorio` usa o prefixo `demo-seed/` e `projeto.nome` tem
@@ -72,9 +99,10 @@ DELETE FROM sugestao WHERE projeto_id IN (SELECT id FROM projeto WHERE repositor
 DELETE FROM projeto WHERE repositorio LIKE 'demo-seed/%';
 ```
 
-(A segunda linha apaga `relatorio` e `contexto` das mesmas linhas via `ON DELETE
-CASCADE`; `sugestao` precisa da primeira linha porque sua referência a `projeto`
-é `ON DELETE RESTRICT`, de propósito — ver comentário na migration.)
+(A segunda linha apaga `relatorio`, `contexto`, `stack` e `servico` das mesmas
+linhas via `ON DELETE CASCADE`; `sugestao` precisa da primeira linha porque sua
+referência a `projeto` é `ON DELETE RESTRICT`, de propósito — ver comentário na
+migration.)
 
 ## Convenção para as próximas migrations
 
