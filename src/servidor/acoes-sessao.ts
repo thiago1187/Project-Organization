@@ -9,6 +9,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { destinoSeguro } from "@/dominio/destinoSeguro";
+import { mensagemDeTrava } from "@/dominio/travaEntrada";
+import {
+  estadoDaTravaDeEntrada,
+  limparFalhasDeEntrada,
+  registrarFalhaDeEntrada,
+} from "./tentativasEntrada";
 import {
   ambientePermiteSessao,
   gerarValorCookieSessao,
@@ -32,10 +38,20 @@ export async function entrarAction(_estadoAnterior: EstadoEntrar, formData: Form
     return { erro: "Informe o segredo." };
   }
 
+  // A trava é conferida antes de olhar o segredo. Conferir depois vazaria o
+  // que ela existe para esconder: quem estivesse adivinhando saberia, pela
+  // diferença entre "senha errada" e "travado", que a tentativa foi de fato
+  // avaliada. Ver db/migrations/011_tentativa_entrada.sql para o desenho.
+  const trava = await estadoDaTravaDeEntrada();
+  if (trava.travado) {
+    return { erro: mensagemDeTrava(trava) };
+  }
+
   // Degradação certa é recusar: sem PAINEL_SESSAO_SECRET configurada,
   // segredoDeSessaoBate devolve false para qualquer valor recebido — nunca
   // libera por omissão.
   if (!segredoDeSessaoBate(segredo)) {
+    await registrarFalhaDeEntrada();
     return { erro: "Segredo incorreto." };
   }
 
@@ -49,6 +65,10 @@ export async function entrarAction(_estadoAnterior: EstadoEntrar, formData: Form
         "Este ambiente não concede sessão. Em desenvolvimento local, defina PERMITIR_SESSAO_LOCAL=1 em .env.local.",
     };
   }
+
+  // Entrou: o orçamento de tentativas volta ao cheio. Um erro de digitação de
+  // ontem não deve comer metade do orçamento de amanhã.
+  await limparFalhasDeEntrada();
 
   const cookieStore = await cookies();
   cookieStore.set(NOME_COOKIE_SESSAO, gerarValorCookieSessao(), {
