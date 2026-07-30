@@ -1,12 +1,24 @@
 import "server-only";
 import { sql } from "./db";
-import { traduzirErroDeBanco } from "./erros";
+import { ErroDados, traduzirErroDeBanco } from "./erros";
+import { exigirSessaoDoDono } from "./acesso";
 import type { Contexto, OrigemContexto } from "@/dominio/tipos";
+import type { DadosContextoValidados } from "@/dominio/validacaoContexto";
 
-// Camada de leitura de `contexto` — só o necessário para a lista de
-// documentos da tela de detalhe (itens com `arquivo_url`). O editor de
-// contexto (escrever `conteudo`) é `PUT /api/context/:projeto`, fora do
-// escopo desta entrega (ver CLAUDE.md).
+// Camada de acesso a `contexto`. A leitura serve a lista de documentos da
+// tela de detalhe (itens com `arquivo_url`), `GET /api/projects` (routine) e
+// `GET /api/context/:projeto`. A escrita (`upsertContexto`, `deletarContexto`)
+// é só do editor de contexto da tela de detalhe, por `PUT`/`DELETE
+// /api/context/:projeto` e pela Server Action `salvarContextoAction` /
+// `removerContextoAction` (src/servidor/acoes-contexto.ts) — nunca pela
+// routine (ver CLAUDE.md, regra 4, exceção deliberada, e o comentário da
+// coluna `contexto.origem` na migration).
+//
+// `exigirSessaoDoDono()` mora aqui dentro, e não só na rota/action que chama
+// — mesmo raciocínio do comentário em `aprovarSugestao`/`recusarSugestao`
+// (src/servidor/sugestoes.ts): a regra "só o dono escreve contexto" precisa
+// valer em todo caminho de escrita, mesmo um que apareça depois e esqueça de
+// checar sozinho.
 
 interface LinhaContexto {
   id: string;
@@ -62,5 +74,65 @@ export async function listarContextosDoProjeto(projetoId: string): Promise<Conte
     return linhas.map(linhaParaContexto);
   } catch (erro) {
     throw traduzirErroDeBanco(erro, "listarContextosDoProjeto");
+  }
+}
+
+/**
+ * Cria ou substitui um item de contexto — upsert por `(projeto_id,
+ * agente_destino, tipo)`, a chave única da tabela (ver
+ * `contexto_projeto_agente_tipo_key` na migration). É essa combinação que
+ * identifica o "recurso" de um `PUT`: gravar de novo com o mesmo
+ * agente_destino e tipo substitui `conteudo`/`arquivo_url`; gravar com
+ * agente_destino ou tipo diferentes cria uma linha nova. `dados` já chega
+ * validado por `validarContexto` (src/dominio/validacaoContexto.ts).
+ * `origem` não é parâmetro: a coluna tem DEFAULT `'painel'` e o CHECK só
+ * aceita esse valor — não há como esta função gravar outra coisa.
+ */
+export async function upsertContexto(
+  projetoId: string,
+  dados: DadosContextoValidados,
+): Promise<Contexto> {
+  await exigirSessaoDoDono();
+
+  try {
+    const linhas = (await sql()`
+      INSERT INTO contexto (projeto_id, agente_destino, tipo, conteudo, arquivo_url)
+      VALUES (${projetoId}, ${dados.agente_destino}, ${dados.tipo}, ${dados.conteudo}, ${dados.arquivo_url})
+      ON CONFLICT (projeto_id, agente_destino, tipo)
+      DO UPDATE SET conteudo = EXCLUDED.conteudo, arquivo_url = EXCLUDED.arquivo_url
+      RETURNING id, projeto_id, agente_destino, tipo, conteudo, arquivo_url, origem, criado_em, atualizado_em
+    `) as unknown as LinhaContexto[];
+    return linhaParaContexto(linhas[0]);
+  } catch (erro) {
+    if (erro && typeof erro === "object" && "code" in erro && erro.code === "23503") {
+      // foreign_key_violation em projeto_id — projeto apagado entre a checagem
+      // da rota e esta escrita (não há rota de apagar projeto hoje, mas a
+      // mensagem clara vale a defesa).
+      throw new ErroDados("Este projeto não existe mais — pode ter sido removido em outra aba.");
+    }
+    throw traduzirErroDeBanco(erro, "upsertContexto");
+  }
+}
+
+/**
+ * Remove um item de contexto. Escopado por `projeto_id` além de `id` — não
+ * só por robustez (um `id` de outro projeto nunca deveria chegar aqui), mas
+ * porque isso faz o "não encontrado" cobrir os dois casos reais sem duas
+ * consultas: id inexistente, ou id de um projeto diferente do que a tela
+ * estava editando.
+ */
+export async function deletarContexto(id: string, projetoId: string): Promise<void> {
+  await exigirSessaoDoDono();
+
+  try {
+    const linhas = (await sql()`
+      DELETE FROM contexto WHERE id = ${id} AND projeto_id = ${projetoId}
+      RETURNING id
+    `) as unknown as { id: string }[];
+    if (linhas.length === 0) {
+      throw new ErroDados("Este item de contexto não existe mais — pode ter sido removido em outra aba.");
+    }
+  } catch (erro) {
+    throw traduzirErroDeBanco(erro, "deletarContexto");
   }
 }

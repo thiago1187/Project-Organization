@@ -7,6 +7,7 @@ import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
 import { listarContextosDoProjeto } from "@/servidor/contextos";
 import PainelEtapa from "@/componentes/PainelEtapa";
 import FilaSugestoes from "@/componentes/FilaSugestoes";
+import EditorContexto from "@/componentes/EditorContexto";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
 import ListaDocumentos from "@/componentes/ListaDocumentos";
 import ListaAcessos from "@/componentes/ListaAcessos";
@@ -136,6 +137,7 @@ export default async function DetalheProjetoPage({
         <div style={{ minWidth: 0 }}>
           <PainelEtapa etapa={atual.etapa} />
           <FilaSugestoes projetoId={atual.id} fila={fila} />
+          <EditorContexto projetoId={atual.id} itens={contextos} />
           <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />
         </div>
 
