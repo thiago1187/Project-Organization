@@ -128,8 +128,9 @@ A routine roda sem ninguém acordado para barrar nada. Estes limites são absolu
 
 ## Convenções de trabalho
 
-- **Nunca commit direto na branch principal.** Toda mudança vai por pull request.
-- Uma mudança por PR. PR grande e misturado é mais difícil de revisar às 7h da manhã do que dois PRs pequenos.
+- **A rodada automatizada nunca faz commit na branch principal.** Todo trabalho dela vai por pull request, sem merge. Isso não se relaxa: às 3h da manhã não há ninguém para barrar nada, e o PR é a única coisa que deixa o dono ver o que mudou antes de estar valendo.
+- **Trabalho interativo, com o dono acompanhando, pode ir direto para a branch principal.** A supervisão é ele, ali, na conversa. Abrir PR nesse caso vira cerimônia: o PR é aberto, mergeado sem leitura, e a proteção que ele deveria dar não aconteceu. Cerimônia que ninguém lê é pior que nada, porque dá sensação de controle sem o controle.
+- Uma mudança por commit. Commit grande e misturado é mais difícil de entender depois do que dois pequenos.
 - Antes de codar qualquer coisa não trivial, apresente o plano e espere confirmação.
 - Prefira a solução mais simples que resolve. Este é um painel pessoal, não um produto multi-tenant.
 - Se uma tarefa esbarrar em algo ambíguo, pergunte em vez de assumir.
