@@ -1,11 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { projetos, relatorios, sugestoes, contextos, ETAPAS, ACESSOS } from "@/dados/mock";
 import { detalheProjeto, rodadaDetalhe } from "@/dominio/visao";
+import { obterProjetoPorId } from "@/servidor/projetos";
+import { listarRelatoriosDoProjeto } from "@/servidor/relatorios";
+import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
+import { listarContextosDoProjeto } from "@/servidor/contextos";
 import PainelEtapa from "@/componentes/PainelEtapa";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
 import ListaDocumentos from "@/componentes/ListaDocumentos";
 import ListaAcessos from "@/componentes/ListaAcessos";
+
+export const dynamic = "force-dynamic";
 
 export default async function DetalheProjetoPage({
   params,
@@ -13,7 +18,22 @@ export default async function DetalheProjetoPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const atual = detalheProjeto(id, projetos, relatorios, sugestoes, contextos, ETAPAS, ACESSOS);
+
+  const projeto = await obterProjetoPorId(id);
+  if (!projeto) notFound();
+
+  const [relatorios, sugestoes, contextos] = await Promise.all([
+    listarRelatoriosDoProjeto(id),
+    listarSugestoesDoProjeto(id),
+    listarContextosDoProjeto(id),
+  ]);
+
+  // "onde estamos" (etapa) e o cofre de acessos não têm tabela no schema —
+  // são mock-only por desenho (ver src/dominio/visao.ts, cabeçalho do
+  // arquivo, e docs/visao.md "O que falta ser desenhado"). Passar mapas
+  // vazios aciona o estado vazio que essas funções já tratam (ETAPA_VAZIA,
+  // lista de acessos vazia), em vez de inventar dado que não existe.
+  const atual = detalheProjeto(id, [projeto], relatorios, sugestoes, contextos, {}, {});
   if (!atual) notFound();
 
   const rodadasDetalhe = atual.rodadas

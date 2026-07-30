@@ -1,8 +1,13 @@
-import { projetos, relatorios } from "@/dados/mock";
 import { linhasConfig } from "@/dominio/visao";
+import { listarProjetos } from "@/servidor/projetos";
+import { listarRelatorios } from "@/servidor/relatorios";
 import LinhaConfiguracao from "@/componentes/LinhaConfiguracao";
+import FormNovoProjeto from "@/componentes/FormNovoProjeto";
 
-export default function ConfiguracaoPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ConfiguracaoPage() {
+  const [projetos, relatorios] = await Promise.all([listarProjetos(), listarRelatorios()]);
   const linhas = linhasConfig(projetos, relatorios);
 
   return (
@@ -15,6 +20,8 @@ export default function ConfiguracaoPage() {
         espera de cada projeto; a execução acontece na Routine do Claude Code Desktop, fora do app. Projeto pausado
         não recebe visita dos agentes nem atualiza o documento de etapa.
       </div>
+
+      <FormNovoProjeto />
 
       {linhas.length === 0 ? (
         <div
