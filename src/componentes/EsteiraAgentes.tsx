@@ -111,14 +111,26 @@ export default function EsteiraAgentes({
     })();
   }
 
+  // Aberta por padrão só quando há sugestão de agente esperando decisão —
+  // caso contrário fica fechada: configurar quem roda é baixa frequência
+  // ("o que ele quase nunca precisa ver"), diferente da fila de sugestões de
+  // trabalho, que nunca se esconde.
   return (
-    <div style={{ marginBottom: 30 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+    <details className="dobravel" open={sugeridos.length > 0} style={{ marginBottom: 30 }}>
+      <summary style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span className="chevron" aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+          ▸
+        </span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
           esteira de agentes
-        </div>
+        </span>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
-      </div>
+        {sugeridos.length > 0 && (
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--atn)" }}>
+            {sugeridos.length} {sugeridos.length === 1 ? "sugestão de agente" : "sugestões de agente"}
+          </span>
+        )}
+      </summary>
 
       {erro && (
         <div style={{ fontSize: 11, color: "var(--fal)", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
@@ -360,6 +372,6 @@ export default function EsteiraAgentes({
           )}
         </div>
       </div>
-    </div>
+    </details>
   );
 }

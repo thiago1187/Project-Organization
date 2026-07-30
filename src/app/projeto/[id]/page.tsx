@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { detalheProjeto, filaSugestoes, ondeEstamos, rodadaDetalhe } from "@/dominio/visao";
-import { obterProjetoPorId } from "@/servidor/projetos";
+import { listarProjetos, obterProjetoPorId } from "@/servidor/projetos";
 import { listarRelatoriosDoProjeto } from "@/servidor/relatorios";
 import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
 import { listarContextosDoProjeto } from "@/servidor/contextos";
@@ -10,7 +10,6 @@ import { listarTarefasDoProjeto } from "@/servidor/tarefas";
 import { listarServicoDoProjeto, listarStackDoProjeto } from "@/servidor/inventario";
 import { montarEsteira } from "@/dominio/esteiraAgentes";
 import { sugerirAgentes } from "@/dominio/sugestorAgentes";
-import TiraEstado from "@/componentes/TiraEstado";
 import DescricaoProjeto from "@/componentes/DescricaoProjeto";
 import OndeEstamos from "@/componentes/OndeEstamos";
 import FilaSugestoes from "@/componentes/FilaSugestoes";
@@ -19,6 +18,9 @@ import EditorContexto from "@/componentes/EditorContexto";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
 import ListaDocumentos from "@/componentes/ListaDocumentos";
 import InventarioProjeto from "@/componentes/InventarioProjeto";
+import AbrirDocumentoAndamento from "@/componentes/AbrirDocumentoAndamento";
+import FaixaResumo from "@/componentes/FaixaResumo";
+import AtalhosProjeto from "@/componentes/AtalhosProjeto";
 
 export const dynamic = "force-dynamic";
 
@@ -32,15 +34,17 @@ export default async function DetalheProjetoPage({
   const projeto = await obterProjetoPorId(id);
   if (!projeto) notFound();
 
-  const [relatorios, sugestoes, contextos, agentesProjeto, stack, servico, tarefas] = await Promise.all([
-    listarRelatoriosDoProjeto(id),
-    listarSugestoesDoProjeto(id),
-    listarContextosDoProjeto(id),
-    listarAgentesDoProjeto(id),
-    listarStackDoProjeto(id),
-    listarServicoDoProjeto(id),
-    listarTarefasDoProjeto(id),
-  ]);
+  const [relatorios, sugestoes, contextos, agentesProjeto, stack, servico, tarefas, todosProjetos] =
+    await Promise.all([
+      listarRelatoriosDoProjeto(id),
+      listarSugestoesDoProjeto(id),
+      listarContextosDoProjeto(id),
+      listarAgentesDoProjeto(id),
+      listarStackDoProjeto(id),
+      listarServicoDoProjeto(id),
+      listarTarefasDoProjeto(id),
+      listarProjetos(),
+    ]);
 
   const atual = detalheProjeto(id, [projeto], relatorios, sugestoes, contextos);
   if (!atual) notFound();
@@ -54,22 +58,37 @@ export default async function DetalheProjetoPage({
     .map((r) => rodadaDetalhe(id, relatorios, r.idx))
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
+  // Vizinhos na mesma ordem da visão geral (criado_em ASC) — alimentam os
+  // atalhos "[" / "]" e os links visíveis ao lado de "todos os projetos"
+  // (AtalhosProjeto.tsx). Sem tabela nova: é a mesma listarProjetos() que a
+  // home já usa.
+  const indiceAtual = todosProjetos.findIndex((p) => p.id === id);
+  const anterior = indiceAtual > 0 ? todosProjetos[indiceAtual - 1] : null;
+  const proximo =
+    indiceAtual >= 0 && indiceAtual < todosProjetos.length - 1 ? todosProjetos[indiceAtual + 1] : null;
+  const ultimaRodadaOk = atual.rodadas[0]?.ok ?? null;
+
   return (
     <div style={{ padding: "22px 36px 72px", maxWidth: 1240 }}>
-      <Link
-        href="/"
-        className="h-txt"
-        style={{
-          display: "inline-block",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 10,
-          color: "var(--mut3)",
-          cursor: "pointer",
-          marginBottom: 20,
-        }}
-      >
-        ← todos os projetos
-      </Link>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+        <Link
+          href="/"
+          className="h-txt"
+          style={{
+            display: "inline-block",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 10,
+            color: "var(--mut3)",
+            cursor: "pointer",
+          }}
+        >
+          ← todos os projetos
+        </Link>
+        <AtalhosProjeto
+          anterior={anterior ? { id: anterior.id, nome: anterior.nome } : null}
+          proximo={proximo ? { id: proximo.id, nome: proximo.nome } : null}
+        />
+      </div>
 
       <div
         style={{
@@ -113,7 +132,6 @@ export default async function DetalheProjetoPage({
           >
             {atual.nome}
           </div>
-          <TiraEstado tira={atual.tira} />
         </div>
         <div style={{ flex: 1 }} />
         {atual.temPr && atual.prUrl && (
@@ -136,6 +154,8 @@ export default async function DetalheProjetoPage({
         )}
       </div>
 
+      <FaixaResumo tira={atual.tira} pendentesCount={fila.pendentes.length} ultimaRodadaOk={ultimaRodadaOk} />
+
       <div
         style={{
           display: "grid",
@@ -145,17 +165,27 @@ export default async function DetalheProjetoPage({
           alignItems: "start",
         }}
       >
+        {/* Ordem por urgência (docs/visao.md, "as quatro coisas que o painel
+            precisa responder"): a fila — o que precisa de decisão agora —
+            vem antes de "onde estamos" e do histórico. Configuração da
+            esteira e contexto do projeto, que mudam com pouca frequência,
+            ficam por último e dobradas (ver EsteiraAgentes/EditorContexto). */}
         <div style={{ minWidth: 0 }}>
           <DescricaoProjeto projetoId={atual.id} descricaoAtual={atual.descricao} />
+          <div id="fila-sugestoes">
+            <FilaSugestoes
+              projetoId={atual.id}
+              projetoNome={atual.nome}
+              repositorio={atual.repo}
+              fila={fila}
+              contextos={contextos}
+              ultimoRelatorio={relatorios[0] ?? null}
+            />
+          </div>
           <OndeEstamos projetoId={atual.id} ondeEstamos={agora} />
-          <FilaSugestoes
-            projetoId={atual.id}
-            projetoNome={atual.nome}
-            repositorio={atual.repo}
-            fila={fila}
-            contextos={contextos}
-            ultimoRelatorio={relatorios[0] ?? null}
-          />
+          <div id="historico-rodadas" style={{ marginBottom: 30 }}>
+            <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />
+          </div>
           <EsteiraAgentes
             projetoId={atual.id}
             ativos={esteira.ativos}
@@ -165,11 +195,11 @@ export default async function DetalheProjetoPage({
             sugeridos={sugeridos}
           />
           <EditorContexto projetoId={atual.id} itens={contextos} />
-          <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 30 }}>
           <ListaDocumentos docs={atual.docs} />
+          <AbrirDocumentoAndamento projetoId={atual.id} />
           <InventarioProjeto projetoId={atual.id} stack={stack} servico={servico} />
         </div>
       </div>

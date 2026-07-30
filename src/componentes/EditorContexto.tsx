@@ -12,17 +12,31 @@ import FormNovoContexto from "./FormNovoContexto";
 export default function EditorContexto({ projetoId, itens }: { projetoId: string; itens: Contexto[] }) {
   const [adicionando, setAdicionando] = useState(false);
 
+  // Fechado por padrão: contexto muda quando o dono decide anexar algo, não
+  // toda noite — mesmo raciocínio de EsteiraAgentes.tsx. A contagem de itens
+  // fica visível no resumo mesmo fechado, para não esconder "quanto já tem
+  // anexado" atrás de um clique.
   return (
-    <div style={{ marginBottom: 30 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+    <details className="dobravel" style={{ marginBottom: 30 }}>
+      <summary style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span className="chevron" aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+          ▸
+        </span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
           contexto do projeto
-        </div>
+        </span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+          {itens.length === 0 ? "nenhum ainda" : itens.length}
+        </span>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
         {!adicionando && (
           <button
             type="button"
-            onClick={() => setAdicionando(true)}
+            onClick={(e) => {
+              e.preventDefault();
+              setAdicionando(true);
+              (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.setAttribute("open", "");
+            }}
             className="h-txt"
             style={{
               fontFamily: "'JetBrains Mono', monospace",
@@ -38,7 +52,7 @@ export default function EditorContexto({ projetoId, itens }: { projetoId: string
             + adicionar
           </button>
         )}
-      </div>
+      </summary>
 
       {itens.length === 0 && !adicionando && (
         <div
@@ -67,6 +81,6 @@ export default function EditorContexto({ projetoId, itens }: { projetoId: string
         Isto é lido pela routine e escrito no CLAUDE.md do repositório alvo antes de acionar os
         agentes — é dado, não instrução, e nunca é editado por ela.
       </div>
-    </div>
+    </details>
   );
 }

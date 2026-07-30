@@ -29,6 +29,42 @@ a {
   background: #23272e;
 }
 
+/* Foco visível, tema único para todo elemento interativo do painel — parte
+   da "sala de controle" (docs/visao.md), não decoração: sem isto, navegar as
+   telas por teclado (atalhos de projeto, fila de sugestões, formulários) não
+   dá pra saber onde se está. Não substitui outline por nada pior: só troca a
+   cor default do navegador pela de acento do tema. */
+:focus-visible {
+  outline: 2px solid var(--atn);
+  outline-offset: 2px;
+}
+
+/* Seções dobráveis (esteira de agentes, contexto do projeto, detalhe de
+   rodada) — <details> nativo, sem biblioteca. O cabeçalho de cada seção é o
+   próprio <summary>; a seta gira ao abrir. Mesma ideia que já existia só na
+   fila de sugestões (o bloco "já decididas"), agora reaproveitada como
+   convenção do resto da tela de detalhe (plano do designer-ui, hierarquia da
+   tela de projeto). */
+details.dobravel > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details.dobravel > summary::-webkit-details-marker {
+  display: none;
+}
+details.dobravel > summary .chevron {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+details.dobravel[open] > summary .chevron {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  details.dobravel > summary .chevron {
+    transition: none;
+  }
+}
+
 /* As três classes que substituem o atributo style-hover do export — não há
    pseudo-classe em style inline do React (plano §2.2). Combináveis: um
    elemento pode ter mais de uma. */
@@ -115,4 +151,35 @@ a {
   --chip-borda-esc: #cfe0d5;
   --rodada-fundo: #eeeee8;
   --tipo-forte: #5a6169;
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Impressão — só usado por /projeto/[id]/documento (item 4 de
+   docs/proximos-passos.md, "documento de andamento"). `.no-imprimir` some
+   do PDF (cabeçalho do app, barra de navegação da página, botão de
+   imprimir). Os tokens de cor viram claros na impressão independente do
+   tema escolhido na tela — página impressa em preto sobre fundo escuro
+   desperdiça tinta e é ilegível em papel.
+   ─────────────────────────────────────────────────────────────────────── */
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
+
+  :root {
+    --bg: #ffffff;
+    --painel: #ffffff;
+    --txt: #16181b;
+    --txt2: #4d535a;
+    --txt3: #2c3136;
+    --mut2: #5d646b;
+    --mut3: #61686f;
+    --linha: #e2e2dc;
+    --linha2: #ebebe5;
+    --borda: #e2e2dc;
+  }
+
+  body {
+    background: #ffffff;
+  }
 }

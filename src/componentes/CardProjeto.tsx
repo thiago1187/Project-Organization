@@ -29,6 +29,19 @@ export default function CardProjeto({
       }}
       onDragEnd={onDragEnd}
       onClick={() => router.push(`/projeto/${card.id}`)}
+      // O arraste é o caminho rápido do mouse para mudar a cadência; abrir o
+      // projeto precisa funcionar sem mouse também — o mesmo CRUD existe na
+      // tela de Configuração, mas o card é o primeiro lugar que o dono vê.
+      // role="link" + Enter/Espaço porque a ação é navegar, não um formulário.
+      role="link"
+      tabIndex={0}
+      aria-label={`${card.nome}, ${card.statusLabel} — abrir projeto`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/projeto/${card.id}`);
+        }
+      }}
       className="h-borda"
       style={{
         position: "relative",

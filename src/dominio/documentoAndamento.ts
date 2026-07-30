@@ -100,13 +100,19 @@ export interface DocumentoAndamento {
   andamento: string;
 }
 
-function formatarData(iso: string): string {
+/**
+ * Exportado para o servidor formatar `geradoEmLabel` (a página que monta
+ * `DadosDocumentoAndamento` não deveria reimplementar o parser de ISO).
+ */
+export function formatarDataHora(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
   if (!m) return iso;
   const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   const [, ano, mes, dia, hora, minuto] = m;
   return `${Number(dia)} ${MESES[Number(mes) - 1]} ${ano}, ${hora}:${minuto}`;
 }
+
+const formatarData = formatarDataHora;
 
 // ─────────────────────────────────────────────────────────────────────────
 // Voz técnica.
@@ -229,9 +235,9 @@ function resumoAndamento(relatoriosPeriodo: Relatorio[]): string {
   const falha = relatoriosPeriodo.filter((r) => r.status === "falha").length;
 
   const partes = [`O projeto passou por ${relatoriosPeriodo.length} ${relatoriosPeriodo.length === 1 ? "revisão" : "revisões"} neste período.`];
-  if (ok > 0) partes.push(`${ok} não encontraram nenhum problema.`);
-  if (atencao > 0) partes.push(`${atencao} encontraram algo que já está sendo avaliado.`);
-  if (falha > 0) partes.push(`${falha} sinalizaram uma falha.`);
+  if (ok > 0) partes.push(`${ok} ${ok === 1 ? "não encontrou" : "não encontraram"} nenhum problema.`);
+  if (atencao > 0) partes.push(`${atencao} ${atencao === 1 ? "encontrou" : "encontraram"} algo que já está sendo avaliado.`);
+  if (falha > 0) partes.push(`${falha} ${falha === 1 ? "sinalizou" : "sinalizaram"} uma falha.`);
   return partes.join(" ");
 }
 

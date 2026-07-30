@@ -71,8 +71,15 @@ export default function HistoricoRodadas({
       </div>
 
       {atual ? (
-        <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
+        // O que cada agente encontrou fica dobrado por padrão — dá pra
+        // decidir se essa noite precisa de leitura só pelos chips coloridos
+        // acima. Abre sozinho quando a rodada selecionada falhou, porque
+        // "erro" é exatamente o caso em que o detalhe importa sem pedir.
+        <details className="dobravel" open={atual.cor === "var(--fal)"} key={idx}>
+          <summary style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
+            <span className="chevron" aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+              ▸
+            </span>
             <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22 }}>{atual.tituloLongo}</div>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
               {atual.concluida}
@@ -81,14 +88,14 @@ export default function HistoricoRodadas({
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: atual.cor }}>
               {atual.testes}
             </div>
-          </div>
+          </summary>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 12 }}>
             {atual.agentes.map((a, i) => (
               <CartaoAgente key={a.nome + i} agente={a} />
             ))}
           </div>
-        </>
+        </details>
       ) : (
         // Estado vazio: projeto sem nenhuma rodada registrada ainda (plano
         // "estado vazio importa" — não é um bug, é um projeto novo ou parado.

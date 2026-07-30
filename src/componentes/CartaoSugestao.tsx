@@ -50,6 +50,25 @@ export default function CartaoSugestao({
 
   const decidida = s.estado === "recusada" || s.estado === "feita";
 
+  // Atalho de teclado do cartão em foco: "a" aprova, "x" recusa — só quando
+  // pendente, e nunca dentro de um campo de texto (o link da sugestão feita
+  // usa input, por exemplo). Funciona porque o evento nasce em qualquer
+  // elemento focável do cartão (checkbox, "ver detalhe", os próprios botões)
+  // e sobe até aqui — não precisa de tabIndex extra no cartão inteiro.
+  function aoTeclarNoCartao(e: React.KeyboardEvent<HTMLDivElement>) {
+    const alvo = e.target as HTMLElement;
+    if (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA") return;
+    if (s.estado !== "pendente" || pendente) return;
+    if (e.key === "a" || e.key === "A") {
+      e.preventDefault();
+      if (s.naoReverte) setConfirmandoNaoReverte(true);
+      else aprovar();
+    } else if (e.key === "x" || e.key === "X") {
+      e.preventDefault();
+      recusar();
+    }
+  }
+
   function aprovar() {
     if (pendente) return;
     setErro(null);
@@ -114,6 +133,7 @@ export default function CartaoSugestao({
   return (
     <div
       className="h-borda"
+      onKeyDown={aoTeclarNoCartao}
       style={{
         border: `1px solid ${s.naoReverte && !decidida ? "var(--fal)" : "var(--borda)"}`,
         borderRadius: 8,
@@ -327,7 +347,7 @@ export default function CartaoSugestao({
                   opacity: pendente ? 0.6 : 1,
                 }}
               >
-                {pendente ? "aprovando…" : "aprovar"}
+                {pendente ? "aprovando…" : "aprovar · a"}
               </button>
               <button
                 type="button"
@@ -346,7 +366,7 @@ export default function CartaoSugestao({
                   opacity: pendente ? 0.6 : 1,
                 }}
               >
-                {pendente ? "recusando…" : "recusar"}
+                {pendente ? "recusando…" : "recusar · x"}
               </button>
             </div>
           )}
