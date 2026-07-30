@@ -220,6 +220,40 @@ mesmo e registre o achado com "agente": "rodada", dizendo em uma frase no resumo
 subagentes faltaram. Os chips do painel mostram quem rodou de verdade — não os preencha
 com nome de agente que não rodou.
 
+### 2.2b Teste é o eixo da madrugada
+
+Rodar a suíte é a coisa mais valiosa que esta rodada faz, e a razão é o horário: teste é
+somente leitura, produz sinal duro em vez de opinião, e é chato o bastante para ninguém
+fazer à mão todo dia. É o melhor uso possível de uma janela sem supervisão.
+
+Faça, nesta ordem, e reporte cada item mesmo quando não houver o que dizer:
+
+**1. Rode a suíte inteira.** Se não existir suíte, esse é o achado — registre e siga; não
+invente teste nem crie arquivo.
+
+**2. Rode de novo, uma segunda vez.** Teste que passa numa e falha na outra é
+intermitente, e intermitente é pior que vermelho: ele treina quem vê a ignorar a suíte.
+Nomeie no relatório qual teste variou. Se os dois resultados forem iguais, diga que rodou
+duas vezes e bateu — é informação, não enfeite.
+
+**3. Meça a cobertura do que mudou**, não a do projeto inteiro. Porcentagem total é
+indicador fraco e não muda de uma noite para outra; o que importa é se o código que entrou
+desde a última rodada está coberto. Se não der para restringir ao diff, diga isso em vez
+de reportar o número total como se fosse a resposta.
+
+**4. Compare com a noite anterior.** O relatório mais recente daquele projeto, que você
+leu no passo 0, tem o resultado de ontem. O que interessa é o **delta**: teste que passou a
+falhar, teste que sumiu, cobertura que caiu. Número absoluto sem comparação não diz nada —
+"142 testes passando" só vira informação ao lado de "eram 148 ontem".
+
+**5. Teste do gate de aprovação é atenção máxima.** Se algum teste que cobre autorização,
+sessão ou a máquina de estados de sugestão mudou, falhou ou foi removido, isso vai no
+resumo em primeiro lugar, com status `atencao` no mínimo. São as regras das quais todo o
+resto depende, e já furaram uma vez.
+
+Nada disso autoriza escrever teste, corrigir teste quebrado ou tocar em arquivo de teste.
+Teste faltando ou quebrado vira sugestão, como qualquer outra coisa.
+
 ### 2.3 Enviar o relatório
 
 POST $PAINEL_URL/api/reports
