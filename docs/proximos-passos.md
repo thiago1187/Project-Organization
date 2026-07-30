@@ -8,6 +8,34 @@ Ordem por valor, não por facilidade.
 
 ---
 
+## O fluxo alvo
+
+Fechado com o dono em 2026-07-30. É o que os itens abaixo constroem.
+
+```
+madrugada   routine lê o painel
+            para cada projeto, aciona os agentes CONFIGURADOS NAQUELE PROJETO
+            (3 projetos = 3 configurações diferentes)
+                    ↓
+            diagnóstico + sugestões  →  painel
+            mudança significativa    →  documento gerado, no painel
+                    ↓
+manhã       o dono lê, marca o que quer levar adiante
+                    ↓
+            [gerar prompt] → cola no Claude Code → o trabalho acontece agora,
+                                                   com ele junto
+```
+
+**A routine nunca escreve. Em lugar nenhum.** Nem código, nem documentação, nem
+connector. Tudo que ela produz nasce no painel.
+
+Isso vale inclusive para o documento do `escriba-docs`: se ele fosse escrito no
+repositório, viraria commit, e a rodada voltaria a mexer em código sem
+supervisão. O documento nasce no painel; se o dono quiser que ele vá para o
+`docs/` do repositório, isso entra no prompt gerado e acontece com ele junto.
+
+---
+
 ## 1. Gerador de prompt — a mudança de rumo
 
 Ideia do dono, e ela é melhor que o desenho original.
