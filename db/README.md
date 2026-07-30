@@ -21,8 +21,9 @@ pooled normalmente.
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/001_schema_inicial.sql
 ```
 
-O comando acima **não foi executado**. É o dono quem decide rodar, depois de ler a
-migration.
+Esta migration **já foi aplicada** no banco: as quatro tabelas (`projeto`, `relatorio`,
+`sugestao`, `contexto`) e as triggers existem. O comando acima fica registrado aqui
+como referência de como ela foi (e como qualquer migration futura deve ser) aplicada.
 
 ## Como reverter
 
@@ -32,6 +33,101 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/001_schema_inicial.down.sql
 
 Mesma regra de conexão. O `down` apaga as tabelas (e qualquer dado que tiverem) —
 não há como recuperar sem um backup.
+
+## 002 — inventário de projeto (`stack`, `servico`)
+
+Adiciona duas tabelas: `stack` (linguagem, framework, runtime de um projeto) e
+`servico` (serviço ou conta externa que o projeto usa, e onde é administrado —
+nunca um valor de credencial; ver comentário no topo da migration e CLAUDE.md
+regra 1). As duas são independentes uma da outra e cada uma referencia só
+`projeto`, com `ON DELETE CASCADE` — mesma categoria de `relatorio` e `contexto`
+na 001 (material substituível), diferente de `sugestao` (evidência de auditoria).
+
+**Esta migration está escrita e ainda NÃO foi aplicada.** Ao contrário da 001,
+não há nada para rodar aqui até o dono decidir aplicar. Quando decidir:
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/002_inventario.sql
+```
+
+Reverter (apaga `stack`, `servico` e todo o inventário que tiverem, mas não toca
+em `contexto_atualizar_timestamp()`, que pertence à 001 e continua em uso por
+`contexto`):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/002_inventario.down.sql
+```
+
+## 003 — tetos de tamanho (`relatorio`, `sugestao`)
+
+Adiciona `CHECK`s de teto de tamanho a `relatorio.resumo`, aos três campos de cada
+item de `relatorio.achados_por_agente` (`agente`, `achado`, `selo`) e à quantidade
+de itens desse array, e a `sugestao.agente`, `sugestao.proposta`, `sugestao.motivo`
+e `sugestao.risco`. Espelha os tetos já aplicados em
+`src/dominio/validacaoRelatorio.ts` e `src/dominio/validacaoSugestao.ts` — ver o
+comentário no topo desses dois arquivos para o raciocínio de cada número, e o
+comentário no topo da migration para o porquê (rodada em laço gravando dado gigante
+sem paginação em `GET /api/reports`, degradando todas as telas de uma vez).
+
+**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002, não há nada
+para rodar aqui até o dono decidir aplicar. Quando decidir:
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/003_tetos_tamanho.sql
+```
+
+Reverter (remove os `CHECK`s e a função `achados_por_agente_dentro_dos_tetos`; não
+apaga nenhum dado — ver comentário no topo do `down`):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/003_tetos_tamanho.down.sql
+```
+
+## Dado de demonstração (`seed.sql`)
+
+`db/seed.sql` popula o banco com um conjunto fictício de projetos, relatórios,
+sugestões, contexto e inventário — o suficiente para avaliar todas as telas do
+painel (visão geral com as três frequências e um pausado, detalhe com histórico
+raso e fundo, fila de sugestões nos quatro estados, estado vazio de um projeto
+sem rodada ainda) sem esperar por uma rodada real. As linhas de `stack` e
+`servico` do seed pressupõem a 002 já aplicada — rodar o seed antes disso falha
+alto (tabela inexistente), o que é o comportamento esperado, não um bug a
+mascarar.
+
+**Nunca rodar em banco com dado real.** Todo registro do seed é claramente
+fictício: `projeto.repositorio` usa o prefixo `demo-seed/` e `projeto.nome` tem
+o sufixo `(demo)`, exatamente para que quem abrir o painel ou o banco reconheça
+o dado como semente à primeira vista. Não há nada com formato de credencial no
+arquivo.
+
+Aplicar (mesma regra de conexão não-pooled da migration, por ter múltiplos
+`INSERT` numa única transação):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/seed.sql
+```
+
+O arquivo é idempotente por conta própria: a primeira coisa que ele faz é apagar
+qualquer linha de demonstração já existente (identificada pelo prefixo
+`demo-seed/` em `projeto.repositorio`) antes de inserir o conjunto de novo.
+Rodar duas vezes não duplica nada e devolve sempre o mesmo cenário conhecido —
+inclusive desfazendo qualquer edição feita pela UI durante um teste anterior.
+Por não tocar em nenhum projeto fora desse prefixo, também não precisa de banco
+vazio: pode ser aplicado a um banco que já tenha os dados reais do dono, sem
+misturar os dois — mas o cenário recomendado continua sendo um banco só para
+avaliação, separado do de produção.
+
+Para limpar o dado de demonstração sem reaplicar o seed:
+
+```sql
+DELETE FROM sugestao WHERE projeto_id IN (SELECT id FROM projeto WHERE repositorio LIKE 'demo-seed/%');
+DELETE FROM projeto WHERE repositorio LIKE 'demo-seed/%';
+```
+
+(A segunda linha apaga `relatorio`, `contexto`, `stack` e `servico` das mesmas
+linhas via `ON DELETE CASCADE`; `sugestao` precisa da primeira linha porque sua
+referência a `projeto` é `ON DELETE RESTRICT`, de propósito — ver comentário na
+migration.)
 
 ## Convenção para as próximas migrations
 
