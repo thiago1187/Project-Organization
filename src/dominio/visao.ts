@@ -138,7 +138,9 @@ export interface ChipVM {
   borda: string;
 }
 
-function chipDoAgente(nomeAgente: string): ChipVM {
+/** Exportado para src/dominio/esteiraAgentes.ts reaproveitar (mesmo crachá que os
+ * chips de achado e de sugestão já usam, agora também nos cards da esteira). */
+export function chipDoAgente(nomeAgente: string): ChipVM {
   const papel = papelDoAgente(nomeAgente);
   const escrita = papel.tipo === "escrita";
   return {

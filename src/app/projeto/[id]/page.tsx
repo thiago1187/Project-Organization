@@ -5,8 +5,11 @@ import { obterProjetoPorId } from "@/servidor/projetos";
 import { listarRelatoriosDoProjeto } from "@/servidor/relatorios";
 import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
 import { listarContextosDoProjeto } from "@/servidor/contextos";
+import { listarAgentesDoProjeto } from "@/servidor/agentesProjeto";
+import { montarEsteira } from "@/dominio/esteiraAgentes";
 import PainelEtapa from "@/componentes/PainelEtapa";
 import FilaSugestoes from "@/componentes/FilaSugestoes";
+import EsteiraAgentes from "@/componentes/EsteiraAgentes";
 import EditorContexto from "@/componentes/EditorContexto";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
 import ListaDocumentos from "@/componentes/ListaDocumentos";
@@ -24,10 +27,11 @@ export default async function DetalheProjetoPage({
   const projeto = await obterProjetoPorId(id);
   if (!projeto) notFound();
 
-  const [relatorios, sugestoes, contextos] = await Promise.all([
+  const [relatorios, sugestoes, contextos, agentesProjeto] = await Promise.all([
     listarRelatoriosDoProjeto(id),
     listarSugestoesDoProjeto(id),
     listarContextosDoProjeto(id),
+    listarAgentesDoProjeto(id),
   ]);
 
   // "onde estamos" (etapa) e o cofre de acessos não têm tabela no schema —
@@ -39,6 +43,7 @@ export default async function DetalheProjetoPage({
   if (!atual) notFound();
 
   const fila = filaSugestoes(id, sugestoes);
+  const esteira = montarEsteira(agentesProjeto);
 
   const rodadasDetalhe = atual.rodadas
     .map((r) => rodadaDetalhe(id, relatorios, r.idx))
@@ -143,6 +148,13 @@ export default async function DetalheProjetoPage({
             fila={fila}
             contextos={contextos}
             ultimoRelatorio={relatorios[0] ?? null}
+          />
+          <EsteiraAgentes
+            projetoId={atual.id}
+            ativos={esteira.ativos}
+            inativos={esteira.inativos}
+            pendentesCount={fila.pendentes.length}
+            aprovadas={fila.aprovadas}
           />
           <EditorContexto projetoId={atual.id} itens={contextos} />
           <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />

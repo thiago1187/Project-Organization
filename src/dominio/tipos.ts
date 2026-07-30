@@ -90,3 +90,22 @@ export interface Contexto {
   criado_em: string; // timestamptz (ISO)
   atualizado_em: string; // timestamptz (ISO)
 }
+
+/**
+ * projeto_agente — db/migrations/005_agentes_por_projeto.sql. A esteira de
+ * diagnóstico de um projeto: quais agentes rodam, em que ordem, e com que
+ * instrução (o que fazer aqui — diferente de `contexto`, que é o que ler).
+ * `instrucao` vai para a chamada do subagente, nunca para o CLAUDE.md (ver
+ * docs/plano-agentes-por-projeto.md § 3.3).
+ */
+export interface ProjetoAgente {
+  id: string; // uuid
+  projeto_id: string; // uuid
+  agente: string;
+  habilitado: boolean;
+  ordem: number;
+  instrucao: string | null;
+  teto_sugestoes: number | null; // NULL = herda o teto global (3)
+  criado_em: string; // timestamptz (ISO)
+  atualizado_em: string; // timestamptz (ISO)
+}

@@ -110,6 +110,34 @@ outra origem; ver comentário no topo do `down`):
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/004_pr_url_opcional.down.sql
 ```
 
+## 005 — esteira de agentes por projeto (`projeto_agente`)
+
+Adiciona `projeto_agente`: qual agente diagnostica cada projeto, em que ordem,
+e com que instrução específica (`instrucao`, teto de 4000 caracteres — vai
+para a chamada do subagente, não para o CLAUDE.md; diferente de `contexto`,
+que é o que o agente deve ler). Ver o comentário no topo da migration e
+`docs/plano-agentes-por-projeto.md` § 3 para o desenho completo, e
+`docs/proximos-passos.md` item 1 para o problema que resolve.
+
+**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002, 003 e
+004, não há nada para rodar aqui até o dono decidir aplicar. Quando decidir:
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/005_agentes_por_projeto.sql
+```
+
+Até lá, `GET /api/projects` sempre devolve `agentes: []` para todo projeto
+(a tabela não existe) e a routine cai na lista fixa de sempre — é a mesma
+degradação aditiva que vale depois de aplicada, para projeto sem nenhum
+agente configurado (ver o comentário em `src/app/api/projects/route.ts`).
+
+Reverter (apaga `projeto_agente` e toda configuração de esteira gravada; não
+toca em `contexto_atualizar_timestamp()`, que pertence à 001):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/005_agentes_por_projeto.down.sql
+```
+
 ## Dado de demonstração (`seed.sql`)
 
 `db/seed.sql` popula o banco com um conjunto fictício de projetos, relatórios,
