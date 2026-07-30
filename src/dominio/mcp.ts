@@ -180,6 +180,7 @@ export const FERRAMENTAS_MCP: readonly FerramentaMcp[] = [
       "Use quando o dono pedir para adicionar, registrar ou incluir um projeto no painel — nunca por " +
       "iniciativa própria só porque você está trabalhando num repositório. " +
       "Confirme nome e repositório com ele antes de chamar: não existe ferramenta para apagar projeto aqui. " +
+      "Se o projeto não tem repositório (vive num connector, tipo n8n), omita o campo em vez de inventar um. " +
       "Cadastrar no painel não faz o repositório entrar sozinho na routine noturna; a lista de " +
       "repositórios dela é mantida à parte e o dono precisa somar o repositório lá também.",
     inputSchema: {
@@ -188,7 +189,10 @@ export const FERRAMENTAS_MCP: readonly FerramentaMcp[] = [
         nome: { type: "string", description: "Como o projeto aparece no painel.", maxLength: 200 },
         repositorio: {
           type: "string",
-          description: 'Repositório no formato "dono/repo" — sem URL, sem https, sem espaços.',
+          description:
+            'Repositório no formato "dono/repo" — sem URL, sem https, sem espaços. ' +
+            "Omita quando o projeto não tem código em repositório nenhum (o dono tem projetos que " +
+            "vivem só num connector, como n8n ou Notion).",
           maxLength: 140,
         },
         frequencia: {
@@ -197,7 +201,7 @@ export const FERRAMENTAS_MCP: readonly FerramentaMcp[] = [
           description: "De quanto em quanto tempo os agentes visitam este projeto.",
         },
       },
-      required: ["nome", "repositorio", "frequencia"],
+      required: ["nome", "frequencia"],
       additionalProperties: false,
     },
     annotations: {

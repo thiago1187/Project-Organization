@@ -175,7 +175,10 @@ async function verRodadas(args: Argumentos): Promise<CallToolResult> {
 const ESTADOS: readonly EstadoSugestao[] = ["pendente", "aprovada", "recusada", "feita"];
 
 async function verSugestoes(args: Argumentos): Promise<CallToolResult> {
-  const estadoPedido = args.estado;
+  // `null` é tratado como ausente junto com `undefined`: cliente que serializa
+  // parâmetro opcional omitido como `null` é comum, e recusar isso viraria um
+  // erro que o modelo não entende como corrigir.
+  const estadoPedido = args.estado ?? undefined;
   if (estadoPedido !== undefined && !ESTADOS.includes(estadoPedido as EstadoSugestao)) {
     return falha(`estado precisa ser um de: ${ESTADOS.join(", ")}.`);
   }
@@ -242,9 +245,15 @@ async function cadastrarProjeto(args: Argumentos): Promise<CallToolResult> {
   const projeto = await criarProjeto(validado.dados);
   return resultado({
     criado: projetosParaMcp([projeto])[0],
+    // Pendência conhecida (docs/proximos-passos.md, "Pendências menores"):
+    // painel e routine mantêm listas separadas de repositório, e a falha é
+    // silenciosa — vira `falha` no relatório da manhã seguinte. Enquanto o
+    // painel não avisa sozinho, o aviso sai por aqui, onde o dono está lendo.
     lembrete:
-      "O projeto está no painel, mas a routine noturna tem a própria lista de repositórios. " +
-      "Avise o dono para somar este repositório lá, senão a primeira rodada vira falha.",
+      projeto.repositorio === null
+        ? "O projeto está no painel sem repositório: a rodada não vai clonar nada, e não haverá histórico de commit nem PR na tela dele."
+        : "O projeto está no painel, mas a routine noturna tem a própria lista de repositórios. " +
+          "Avise o dono para somar este repositório lá também, senão a primeira rodada vira falha.",
   });
 }
 
