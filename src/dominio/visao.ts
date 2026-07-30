@@ -1,15 +1,19 @@
 // Modelos de visão (o que o template consome) e as funções que os derivam das
-// linhas de tabela (Projeto, Relatorio, Sugestao, Contexto). Nenhuma cor aqui é
-// hexadecimal — sempre "var(--token)", os 28 tokens de src/app/globals.css.
+// linhas de tabela (Projeto, Relatorio, Sugestao, Contexto, Tarefa). Nenhuma
+// cor aqui é hexadecimal — sempre "var(--token)", os 28 tokens de
+// src/app/globals.css.
 //
-// Dois blocos do export não têm origem no modelo de dados (plano §2.8): o painel
-// "onde estamos" (etapa), e — parcialmente — os documentos (o texto "local", ex.
-// "Notion", não tem coluna; aqui é derivado do hostname da URL, não inventado). O
-// tipo EtapaMock, abaixo, marca esse limite explicitamente: as funções que o
-// consomem recebem essa linha como parâmetro, nunca a leem de uma tabela. A
-// antiga lista de acessos (AcessoMock) saiu daqui — substituída por `stack` e
-// `servico`, dado real (db/migrations/002_inventario.sql; ver
-// src/componentes/InventarioProjeto.tsx e docs/plano-agentes-por-projeto.md § 5.2).
+// O painel "onde estamos" era mock (EtapaMock/montarEtapa/ETAPA_VAZIA) desde
+// a conversão — ver docs/plano-gerenciador-de-projeto.md § 2 para o
+// desmonte: título e resumo viram `projeto.descricao`, "próximos passos"
+// vira `tarefa`, e "etapa 4 de 6"/autoria morrem (enfeite de mockup sem
+// origem no schema e sem consumidor real, ver § 2 e § 3.4 do plano). O
+// "estado agora" derivado (última rodada, pendentes, aprovadas, testes) não
+// virou um painel — vira uma tira de uma linha no cabeçalho (`TiraEstadoVM`,
+// abaixo): voz da máquina cabe numa linha, voz do dono precisa do
+// retângulo. A antiga lista de acessos (AcessoMock) saiu daqui antes —
+// substituída por `stack` e `servico`, dado real
+// (db/migrations/002_inventario.sql; ver src/componentes/InventarioProjeto.tsx).
 
 import type {
   Projeto,
@@ -20,24 +24,12 @@ import type {
   Esforco,
   Reversibilidade,
   EstadoSugestao,
+  EstadoTarefa,
+  Tarefa,
 } from "./tipos";
 import { type Faixa, faixaDoProjeto, FAIXA_META, FAIXA_LABEL_LONGO, ORDEM_FAIXAS } from "./cadencia";
 import { papelDoAgente } from "./papeis";
-
-// ─────────────────────────────────────────────────────────────────────────
-// Sem origem no schema (plano §2.8) — tipos das linhas de mock "cruas".
-// ─────────────────────────────────────────────────────────────────────────
-
-export interface EtapaMock {
-  titulo: string;
-  selo: string;
-  contador: string;
-  autor: string;
-  atualizado: string;
-  dias: number;
-  resumo: string;
-  proximos: string[];
-}
+import { tarefasEmAberto } from "./tarefas";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Rótulos e cores fixos (equivalentes aos objetos LABEL/COR/PESO do export).
@@ -56,14 +48,6 @@ const STATUS_COR: Record<StatusRelatorio, string> = {
 };
 
 const STATUS_PESO: Record<StatusRelatorio, number> = { falha: 0, atencao: 1, ok: 2 };
-
-const SELO_COR: Record<string, string> = {
-  travado: "var(--fal)",
-  "aguardando você": "var(--atn)",
-  "em andamento": "var(--ok)",
-  estável: "var(--ok)",
-  pausado: "var(--mut2)",
-};
 
 // ─────────────────────────────────────────────────────────────────────────
 // Datas: "agora" fica fixo em 29 jul 2026 nesta etapa (plano §6, risco
@@ -267,51 +251,6 @@ export function totaisHome(projetos: Projeto[], relatorios: Relatorio[]): Totais
 // Detalhe do projeto.
 // ─────────────────────────────────────────────────────────────────────────
 
-export interface EtapaVM {
-  titulo: string;
-  selo: string;
-  corSelo: string;
-  contador: string;
-  autor: string;
-  atualizado: string;
-  resumo: string;
-  frescor: string;
-  corFrescor: string;
-  proximos: { num: string; texto: string }[];
-}
-
-const ETAPA_VAZIA: EtapaVM = {
-  titulo: "Sem diagnóstico registrado",
-  selo: "sem dados",
-  corSelo: "var(--mut2)",
-  contador: "",
-  autor: "—",
-  atualizado: "—",
-  resumo: "Nenhuma rodada preencheu esta etapa ainda.",
-  frescor: "sem dado de frescor",
-  corFrescor: "var(--mut2)",
-  proximos: [],
-};
-
-function montarEtapa(e: EtapaMock, pausado: boolean): EtapaVM {
-  return {
-    titulo: e.titulo,
-    selo: e.selo,
-    corSelo: SELO_COR[e.selo] ?? "var(--mut2)",
-    contador: e.contador,
-    autor: e.autor,
-    atualizado: e.atualizado,
-    resumo: e.resumo,
-    frescor: pausado
-      ? "não atualiza enquanto pausado"
-      : e.dias === 0
-        ? "atualizado nesta madrugada"
-        : `sem atualização há ${e.dias} dias`,
-    corFrescor: pausado ? "var(--mut3)" : e.dias === 0 ? "var(--ok)" : "var(--mut2)",
-    proximos: e.proximos.map((texto, i) => ({ num: String(i + 1).padStart(2, "0"), texto })),
-  };
-}
-
 export interface DocVM {
   nome: string;
   url: string;
@@ -325,6 +264,42 @@ export interface RodadaHistItemVM {
   ok: boolean;
 }
 
+/**
+ * Voz da máquina: o que a rodada mais recente achou e o que espera decisão,
+ * reduzido a uma linha para o cabeçalho (docs/plano-gerenciador-de-projeto.md
+ * § 2.1, § 5.2) — o "estado agora" de um plano anterior, que era pensado como
+ * painel e virou tira. Cabe uma linha porque muda toda noite; a voz do dono
+ * (`descricao`, `tarefa`) é que precisa do retângulo, porque muda quando ele decide.
+ */
+export interface TiraEstadoVM {
+  texto: string;
+  cor: string;
+}
+
+function tiraEstado(ultimo: Relatorio | undefined, pendentes: number, aprovadas: number): TiraEstadoVM {
+  const partes = [
+    ultimo ? `última rodada ${formatarUltimaRodada(ultimo.executado_em)}` : "nenhuma rodada ainda",
+    pendentes > 0
+      ? `${pendentes} ${pendentes === 1 ? "sugestão esperando" : "sugestões esperando"} você`
+      : "nada esperando você",
+  ];
+  if (aprovadas > 0) {
+    partes.push(`${aprovadas} ${aprovadas === 1 ? "aprovada" : "aprovadas"} na fila`);
+  }
+  if (ultimo) {
+    partes.push(
+      ultimo.testes_passaram === false
+        ? "testes com falha"
+        : ultimo.testes_passaram === null
+          ? "sem suíte de testes"
+          : "testes ok",
+    );
+  }
+  const cor =
+    ultimo?.testes_passaram === false ? "var(--fal)" : pendentes > 0 ? "var(--atn)" : "var(--mut3)";
+  return { texto: partes.join(" · "), cor };
+}
+
 export interface ProjetoDetalheVM {
   id: string;
   nome: string;
@@ -334,7 +309,9 @@ export interface ProjetoDetalheVM {
   cadenciaLabelLongo: string;
   temPr: boolean;
   prUrl: string | null;
-  etapa: EtapaVM;
+  /** O que este projeto é, em prosa do dono (projeto.descricao) — null quando ainda não escrita. */
+  descricao: string | null;
+  tira: TiraEstadoVM;
   docs: DocVM[];
   rodadas: RodadaHistItemVM[];
 }
@@ -345,7 +322,6 @@ export function detalheProjeto(
   relatorios: Relatorio[],
   sugestoes: Sugestao[],
   contextos: Contexto[],
-  etapas: Record<string, EtapaMock>,
 ): ProjetoDetalheVM | null {
   const p = projetos.find((x) => x.id === projetoId);
   if (!p) return null;
@@ -360,6 +336,10 @@ export function detalheProjeto(
     .sort((a, b) => new Date(b.feita_em ?? 0).getTime() - new Date(a.feita_em ?? 0).getTime());
   const prUrl = feitasComPr[0]?.pr_url ?? null;
 
+  const sugestoesDoProjeto = sugestoes.filter((s) => s.projeto_id === p.id);
+  const pendentes = sugestoesDoProjeto.filter((s) => s.estado === "pendente").length;
+  const aprovadas = sugestoesDoProjeto.filter((s) => s.estado === "aprovada").length;
+
   const docs: DocVM[] = contextos
     .filter((c) => c.projeto_id === p.id && c.arquivo_url)
     .map((c) => ({ nome: c.tipo, url: c.arquivo_url as string, local: hostnameCurto(c.arquivo_url as string) }));
@@ -373,7 +353,8 @@ export function detalheProjeto(
     cadenciaLabelLongo: FAIXA_LABEL_LONGO[faixa],
     temPr: !!prUrl && !pausado,
     prUrl,
-    etapa: etapas[p.id] ? montarEtapa(etapas[p.id], pausado) : ETAPA_VAZIA,
+    descricao: p.descricao,
+    tira: tiraEstado(ultimo, pendentes, aprovadas),
     docs,
     rodadas: historico.map((r, idx) => ({
       idx,
@@ -382,6 +363,64 @@ export function detalheProjeto(
       ok: r.status !== "falha",
     })),
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// "Onde estamos": tarefas do dono (aberta/fazendo) e sugestões aprovadas, num
+// bloco só, com selo de origem (plano § 3.3 e § 5.2). Tabelas separadas no
+// banco, união só aqui — ver docs/plano-gerenciador-de-projeto.md § 3.3 para
+// o porquê de não fundir `tarefa` e `sugestao`.
+// ─────────────────────────────────────────────────────────────────────────
+
+export type OrigemItemOndeEstamos = "tarefa" | "sugestao";
+
+export interface ItemOndeEstamosVM {
+  origem: OrigemItemOndeEstamos;
+  id: string;
+  num: string;
+  texto: string;
+  /** Só presente quando origem === "tarefa" — o checkbox de concluir usa isto. */
+  tarefaEstado?: EstadoTarefa;
+  /** Só presente quando origem === "sugestao" — o crachá de quem propôs. */
+  chip?: ChipVM;
+}
+
+export interface OndeEstamosVM {
+  /** A tarefa em `fazendo`, se houver uma — dá título ao bloco (plano § 3.5). */
+  fazendoAgora: { id: string; titulo: string } | null;
+  itens: ItemOndeEstamosVM[];
+}
+
+/**
+ * `tarefas` já filtradas para um projeto (mesma convenção de `stack`/`servico`
+ * na tela de detalhe); `aprovadas` é `FilaSugestoesVM.aprovadas`, já derivada
+ * por `filaSugestoes` — reaproveitada aqui, não recalculada.
+ */
+export function ondeEstamos(tarefas: Tarefa[], aprovadas: SugestaoVM[]): OndeEstamosVM {
+  const emAberto = tarefasEmAberto(tarefas);
+  const tarefaFazendo = emAberto.find((t) => t.estado === "fazendo");
+  const fazendoAgora = tarefaFazendo ? { id: tarefaFazendo.id, titulo: tarefaFazendo.titulo } : null;
+  const abertas = emAberto.filter((t) => t.estado === "aberta");
+
+  const itensTarefa: Omit<ItemOndeEstamosVM, "num">[] = abertas.map((t) => ({
+    origem: "tarefa",
+    id: t.id,
+    texto: t.titulo,
+    tarefaEstado: t.estado,
+  }));
+  const itensSugestao: Omit<ItemOndeEstamosVM, "num">[] = aprovadas.map((s) => ({
+    origem: "sugestao",
+    id: s.id,
+    texto: s.proposta,
+    chip: s.chip,
+  }));
+
+  const itens = [...itensTarefa, ...itensSugestao].map((item, i) => ({
+    ...item,
+    num: String(i + 1).padStart(2, "0"),
+  }));
+
+  return { fazendoAgora, itens };
 }
 
 export interface AgenteAchadoVM extends ChipVM {

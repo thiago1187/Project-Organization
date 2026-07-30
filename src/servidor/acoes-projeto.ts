@@ -9,8 +9,17 @@
 
 import { revalidatePath } from "next/cache";
 import { ORDEM_FAIXAS, patchParaFaixa, type Faixa } from "@/dominio/cadencia";
-import { validarDadosProjeto, validarDadosProjetoComFrequencia } from "@/dominio/validacaoProjeto";
-import { atualizarCadenciaProjeto, atualizarDadosProjeto, criarProjeto } from "./projetos";
+import {
+  validarDadosProjeto,
+  validarDadosProjetoComFrequencia,
+  validarDescricaoProjeto,
+} from "@/dominio/validacaoProjeto";
+import {
+  atualizarCadenciaProjeto,
+  atualizarDadosProjeto,
+  atualizarDescricaoProjeto,
+  criarProjeto,
+} from "./projetos";
 import { AcessoNegado, exigirSessaoDoDono } from "./acesso";
 
 function revalidarTelasDeProjeto(projetoId?: string) {
@@ -44,7 +53,7 @@ function mensagemDeErro(erro: unknown, fallback: string): string {
 export interface EstadoFormProjeto {
   ok: boolean;
   erro: string | null;
-  campos: { nome?: string; repositorio?: string; frequencia?: string };
+  campos: { nome?: string; repositorio?: string; frequencia?: string; descricao?: string };
 }
 
 /** Cadastra um projeto novo. Usada por `useActionState` no formulário da tela de Configuração. */
@@ -53,7 +62,9 @@ export async function criarProjetoAction(
   formData: FormData,
 ): Promise<EstadoFormProjeto> {
   const negado = await verificarAcesso();
-  if (negado) return { ok: false, erro: negado, campos: { nome: "", repositorio: "", frequencia: "" } };
+  if (negado) {
+    return { ok: false, erro: negado, campos: { nome: "", repositorio: "", frequencia: "", descricao: "" } };
+  }
 
   const entrada = {
     nome: formData.get("nome"),
@@ -64,19 +75,59 @@ export async function criarProjetoAction(
     nome: typeof entrada.nome === "string" ? entrada.nome : "",
     repositorio: typeof entrada.repositorio === "string" ? entrada.repositorio : "",
     frequencia: typeof entrada.frequencia === "string" ? entrada.frequencia : "",
+    descricao: typeof formData.get("descricao") === "string" ? (formData.get("descricao") as string) : "",
   };
 
   const validado = validarDadosProjetoComFrequencia(entrada);
   if (!validado.ok) return { ok: false, erro: validado.erro, campos };
 
+  const descricaoValidada = validarDescricaoProjeto(formData.get("descricao"));
+  if (!descricaoValidada.ok) return { ok: false, erro: descricaoValidada.erro, campos };
+
   try {
-    await criarProjeto(validado.dados);
+    await criarProjeto({ ...validado.dados, descricao: descricaoValidada.dados });
   } catch (erro) {
     return { ok: false, erro: mensagemDeErro(erro, "Não foi possível cadastrar o projeto."), campos };
   }
 
   revalidarTelasDeProjeto();
   return { ok: true, erro: null, campos: {} };
+}
+
+export interface ResultadoDescricaoProjeto {
+  ok: boolean;
+  erro: string | null;
+}
+
+/**
+ * Salva a descrição de um projeto já existente — o editor no lugar do
+ * cabeçalho da tela de detalhe (docs/plano-gerenciador-de-projeto.md § 5.2).
+ * Chamada direto com o valor atual do campo (sem `useActionState`/FormData):
+ * é um único textarea que salva ao perder o foco, não um formulário com
+ * vários campos.
+ */
+export async function salvarDescricaoProjetoAction(
+  projetoId: string,
+  descricao: string,
+): Promise<ResultadoDescricaoProjeto> {
+  const negado = await verificarAcesso();
+  if (negado) return { ok: false, erro: negado };
+
+  if (typeof projetoId !== "string" || projetoId.length === 0) {
+    return { ok: false, erro: "Projeto inválido." };
+  }
+
+  const validado = validarDescricaoProjeto(descricao);
+  if (!validado.ok) return { ok: false, erro: validado.erro };
+
+  try {
+    await atualizarDescricaoProjeto(projetoId, validado.dados);
+  } catch (erro) {
+    return { ok: false, erro: mensagemDeErro(erro, "Não foi possível salvar a descrição.") };
+  }
+
+  revalidarTelasDeProjeto(projetoId);
+  return { ok: true, erro: null };
 }
 
 /** Edita nome e repositório de um projeto existente. Cadência não muda por aqui — ver `definirCadenciaAction`. */

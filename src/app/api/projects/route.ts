@@ -4,9 +4,11 @@ import { listarProjetos } from "@/servidor/projetos";
 import { listarContextos } from "@/servidor/contextos";
 import { listarSugestoes } from "@/servidor/sugestoes";
 import { listarAgentesProjeto } from "@/servidor/agentesProjeto";
+import { listarTarefas } from "@/servidor/tarefas";
 import { agentesAtivosOrdenados } from "@/dominio/esteiraAgentes";
+import { tarefasEmAberto } from "@/dominio/tarefas";
 import { respostaErro } from "@/servidor/respostaApi";
-import type { Contexto, ProjetoAgente, Sugestao } from "@/dominio/tipos";
+import type { Contexto, ProjetoAgente, Sugestao, Tarefa } from "@/dominio/tipos";
 
 // GET /api/projects — lido pela routine noturna (ver CLAUDE.md, "Rotas de
 // API", e docs/routine-noturna.md, "Passo 0"). Contrato sensível: mudar o
@@ -34,13 +36,24 @@ import type { Contexto, ProjetoAgente, Sugestao } from "@/dominio/tipos";
 //   degradação é o que evita deploy coordenado entre este app e a routine:
 //   o painel pode subir o campo antes de a routine saber dele, e a routine
 //   pode ser atualizada antes de qualquer projeto ter esteira configurada.
+// - `descricao`: o que este projeto é, em prosa do dono (projeto.descricao,
+//   db/migrations/008_projeto_descricao.sql) — `null` quando ainda não
+//   escrita, ou enquanto a migration não foi aplicada. Entra no bloco
+//   contexto-do-painel do CLAUDE.md alvo (docs/routine-noturna.md, passo
+//   2.1) pela mesma porta que `contexto` já usa.
+// - `tarefas`: as tarefas em aberto do projeto (`aberta`/`fazendo`, nunca
+//   `feita` — a rodada não tem o que fazer com uma tarefa concluída), na
+//   ordem gravada. Campo ADITIVO, mesma degradação de `agentes`: ausente ou
+//   vazio, a rodada não tem material de anti-duplicata extra e segue como
+//   hoje (docs/plano-gerenciador-de-projeto.md § 6.1). Sem `id` nem
+//   timestamps — a routine nunca escreve em `tarefa`, então não há uso para
+//   um identificador que ela não pode usar.
 //
 // Formato inalterado pela mudança de fluxo de execução — só o significado de
 // "aprovada" mudou (de "a routine pode executar" para "o dono quer, vai
-// entrar no prompt"), não o contrato JSON daquele campo. `agentes` é o
-// primeiro campo novo desde então. Trocar o formato de `agentes` depois é
-// mudança significativa pelo CLAUDE.md e exige aviso + escriba-docs, mesma
-// regra que já vale para o resto desta rota.
+// entrar no prompt"), não o contrato JSON daquele campo. `descricao` e
+// `tarefas` trocar de formato depois é mudança significativa pelo CLAUDE.md
+// e exige aviso + escriba-docs, mesma regra que já vale para o resto desta rota.
 //
 // Projeto pausado (ativo = false) não entra: a routine não deve rodar nele.
 
@@ -99,6 +112,15 @@ function agenteParaRoutine(a: ProjetoAgente): AgenteParaRoutine {
   return { agente: a.agente, ordem: a.ordem, instrucao: a.instrucao, teto_sugestoes: a.teto_sugestoes };
 }
 
+interface TarefaParaRoutine {
+  titulo: string;
+  estado: Tarefa["estado"];
+}
+
+function tarefaParaRoutine(t: Tarefa): TarefaParaRoutine {
+  return { titulo: t.titulo, estado: t.estado };
+}
+
 export async function GET() {
   try {
     await exigirAcesso();
@@ -107,11 +129,12 @@ export async function GET() {
     throw erro;
   }
 
-  const [projetos, contextos, sugestoes, agentesProjeto] = await Promise.all([
+  const [projetos, contextos, sugestoes, agentesProjeto, tarefas] = await Promise.all([
     listarProjetos(),
     listarContextos(),
     listarSugestoes(),
     listarAgentesProjeto(),
+    listarTarefas(),
   ]);
 
   const projetosAtivos = projetos.filter((p) => p.ativo);
@@ -121,12 +144,14 @@ export async function GET() {
       const contextoDoProjeto = contextos.filter((c) => c.projeto_id === p.id);
       const sugestoesDoProjeto = sugestoes.filter((s) => s.projeto_id === p.id);
       const agentesDoProjeto = agentesProjeto.filter((a) => a.projeto_id === p.id);
+      const tarefasDoProjeto = tarefas.filter((t) => t.projeto_id === p.id);
 
       return {
         id: p.id,
         nome: p.nome,
         repositorio: p.repositorio,
         frequencia: p.frequencia,
+        descricao: p.descricao,
         contexto: contextoDoProjeto.map(contextoParaRoutine),
         sugestoes_aprovadas: sugestoesDoProjeto
           .filter((s) => s.estado === "aprovada")
@@ -134,6 +159,7 @@ export async function GET() {
         sugestoes_pendentes: sugestoesDoProjeto.filter((s) => s.estado === "pendente").map((s) => s.proposta),
         sugestoes_recusadas: sugestoesDoProjeto.filter((s) => s.estado === "recusada").map((s) => s.proposta),
         agentes: agentesAtivosOrdenados(agentesDoProjeto).map(agenteParaRoutine),
+        tarefas: tarefasEmAberto(tarefasDoProjeto).map(tarefaParaRoutine),
       };
     }),
   };

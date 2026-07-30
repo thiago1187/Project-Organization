@@ -31,6 +31,16 @@ function temSegmentoDeTravessia(repositorio: string): boolean {
   return repositorio.split("/").some((parte) => parte === "." || parte === "..");
 }
 
+// descricao (008): corpo de texto, não rótulo — aceita quebra de linha, sem
+// checagem de caractere de controle (mesmo raciocínio de contexto.conteudo).
+// Teto de 2000 espelha o CHECK projeto_descricao_tamanho_maximo da migration
+// (regra 6 do CLAUDE.md: isto vai para o CLAUDE.md do repositório alvo e
+// para o prompt gerado). Sem checagem de parece_credencial aqui — ver o
+// comentário da coluna na migration para por que o falso positivo é mais
+// provável que o verdadeiro num campo de prosa deste tamanho; a defesa real
+// do caminho de saída é `semCredencial`, em src/dominio/prompt.ts.
+const DESCRICAO_TAMANHO_MAXIMO = 2000;
+
 export interface DadosProjetoValidados {
   nome: string;
   /** `null` quando o projeto vive num connector e não tem repositório. */
@@ -97,4 +107,22 @@ export function validarDadosProjetoComFrequencia(input: {
   }
 
   return { ok: true, dados: { ...base.dados, frequencia: frequencia as Frequencia } };
+}
+
+/**
+ * Valida `descricao` isolada — usada pelo campo opcional do cadastro (junto
+ * com `validarDadosProjetoComFrequencia`) e pelo editor no lugar do
+ * cabeçalho da tela de detalhe (`salvarDescricaoProjetoAction`), que não
+ * mexe em nome, repositório nem frequência. Vazio vira `null`, mesma regra
+ * de `repositorio`: duas formas de dizer "não tem" deixariam o dado ambíguo.
+ */
+export function validarDescricaoProjeto(
+  input: FormDataEntryValue | null | undefined,
+): ResultadoValidacao<string | null> {
+  const descricao = typeof input === "string" ? input.trim() : "";
+  if (!descricao) return { ok: true, dados: null };
+  if (descricao.length > DESCRICAO_TAMANHO_MAXIMO) {
+    return { ok: false, erro: `Descrição muito longa — no máximo ${DESCRICAO_TAMANHO_MAXIMO} caracteres.` };
+  }
+  return { ok: true, dados: descricao };
 }

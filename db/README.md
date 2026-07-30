@@ -221,3 +221,51 @@ não são revalidadas**: `CHECK` só roda em `INSERT` e `UPDATE`.
 Precisa ficar idêntica a `src/dominio/pareceCredencial.ts`. Se uma mudar, a
 outra muda junto — senão a aplicação recusa com mensagem legível algo que o
 banco aceitaria, e ninguém entende por quê.
+
+## 008 — `projeto.descricao`
+
+**Escrita, ainda NÃO aplicada.** O que o projeto é, em prosa do dono — voz do
+dono, não derivada de rodada nenhuma. `text` nullable, teto de 2000
+caracteres. Ver o comentário no topo da migration e
+`docs/plano-gerenciador-de-projeto.md` § 3.1 para o raciocínio completo,
+inclusive por que esta coluna não usa `parece_credencial` (diferença
+deliberada em relação a `stack.nome`/`servico.nome`).
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/008_projeto_descricao.sql
+```
+
+Até aplicada, `descricao` não existe — a camada de dados
+(`src/servidor/projetos.ts`) trata como se toda linha tivesse `descricao:
+null`, mesma degradação aditiva de sempre.
+
+Reverter (apaga qualquer descrição já escrita):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/008_projeto_descricao.down.sql
+```
+
+## 009 — `tarefa`
+
+**Escrita, ainda NÃO aplicada.** A worklist do dono por projeto — "o que
+estamos fazendo nele". Deliberadamente separada de `sugestao`, sem FK entre
+as duas: `sugestao` é evidência do portão de aprovação (`ON DELETE
+RESTRICT`, trigger de transição); `tarefa` é material do dono, que apaga e
+reordena livremente, e por isso não tem trigger de transição de estado — ver
+o comentário no topo da migration e
+`docs/plano-gerenciador-de-projeto.md` § 3.2-3.5 para o argumento completo.
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/009_tarefa.sql
+```
+
+Até aplicada, `listarTarefasDoProjeto`/`listarTarefas`
+(`src/servidor/tarefas.ts`) devolvem `[]` no `42P01`, e `GET /api/projects`
+não manda o campo `tarefas` — mesma degradação aditiva de `projeto_agente`
+(005).
+
+Reverter (apaga toda tarefa gravada em qualquer projeto):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/009_tarefa.down.sql
+```

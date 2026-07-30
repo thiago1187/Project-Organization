@@ -20,8 +20,12 @@ export type EstadoSugestao = "pendente" | "aprovada" | "recusada" | "feita";
 /** contexto.origem — CHECK contexto_origem_valida (linha 228). Lista fechada a um valor. */
 export type OrigemContexto = "painel";
 
+/** tarefa.estado — CHECK tarefa_estado_valido (db/migrations/009_tarefa.sql). */
+export type EstadoTarefa = "aberta" | "fazendo" | "feita";
+
 /**
- * projeto — linha 15-30 da migration.
+ * projeto — linha 15-30 da migration, `descricao` acrescentada em
+ * db/migrations/008_projeto_descricao.sql.
  * "pausar não muda a frequência configurada, só interrompe as rodadas"
  * (comentário da tabela, linha 32-37).
  */
@@ -32,6 +36,26 @@ export interface Projeto {
   frequencia: Frequencia;
   ativo: boolean;
   criado_em: string; // timestamptz (ISO)
+  /** O que este projeto é, em prosa do dono — null quando ainda não escrita, ou
+   * enquanto a migration 008 não foi aplicada. Ver comentário da coluna na migration. */
+  descricao: string | null;
+}
+
+/**
+ * tarefa — db/migrations/009_tarefa.sql. A worklist do dono por projeto:
+ * "o que estamos fazendo nele". Não é `sugestao` e não vira `sugestao` — ver
+ * o comentário no topo da migration e docs/plano-gerenciador-de-projeto.md
+ * § 3.3 para o argumento completo.
+ */
+export interface Tarefa {
+  id: string; // uuid
+  projeto_id: string; // uuid
+  titulo: string;
+  estado: EstadoTarefa;
+  ordem: number;
+  criado_em: string; // timestamptz (ISO)
+  atualizado_em: string; // timestamptz (ISO)
+  concluida_em: string | null; // preenchido só quando estado = 'feita'
 }
 
 /**
