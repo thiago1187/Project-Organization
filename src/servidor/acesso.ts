@@ -1,7 +1,8 @@
 import "server-only";
 
-import { timingSafeEqual } from "node:crypto";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { segredosBatem } from "./comparacaoSegura";
+import { ambientePermiteSessao, cookieSessaoEhValido, NOME_COOKIE_SESSAO } from "./sessao";
 
 // Ponto único de verificação de acesso — regra 4 do CLAUDE.md.
 //
@@ -22,16 +23,6 @@ import { headers } from "next/headers";
 // sozinho que Server Action também é superfície de rede.
 
 const CABECALHO_BYPASS = "x-vercel-protection-bypass";
-
-/** Comparação em tempo constante. `===` em segredo vaza o tamanho do prefixo comum pelo tempo de resposta. */
-function segredosBatem(recebido: string, esperado: string): boolean {
-  const a = Buffer.from(recebido);
-  const b = Buffer.from(esperado);
-  // timingSafeEqual joga se os tamanhos diferem — o que já é um vazamento de
-  // tamanho, mas inevitável e sem valor prático para quem ataca.
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
 
 export class AcessoNegado extends Error {
   constructor() {
@@ -63,25 +54,23 @@ async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
   // recusa tudo. A degradação certa é "para de funcionar", nunca "vira o dono".
   if (process.env.VERCEL_ENV && !segredo) return null;
 
-  // Caminho do dono: sessão resolvida pelo Vercel Authentication, que roda na
-  // borda e só deixa a requisição chegar aqui se já estiver autenticada.
+  // Caminho do dono: sessão própria do app (cookie assinado com
+  // `PAINEL_SESSAO_SECRET`, ver sessao.ts), não mais "confia que o Vercel
+  // Authentication já barrou na borda". Aquele caminho não era verificável em
+  // código — a Vercel não injeta cabeçalho de identidade não-falsificável —
+  // e se a proteção de borda fosse desligada, qualquer requisição anônima
+  // seria promovida a dono. O Vercel Authentication continua ligado e
+  // continua sendo a primeira camada; esta é a segunda, a que o código
+  // consegue de fato verificar.
   //
-  // Isto é uma dependência de configuração externa ao repositório, e o código
-  // não consegue verificá-la: o Vercel Authentication não injeta cabeçalho de
-  // identidade que não seja falsificável. Se a proteção for desligada, este
-  // ramo libera. A correção durável é sessão própria do app (cookie assinado
-  // com segredo nosso) — está registrada como pendência, e precisa existir
-  // antes da primeira madrugada.
-  //
-  // Preview fica de fora de propósito: costuma ter proteção diferente da
-  // produção, e é onde o furo apareceria primeiro.
-  if (process.env.VERCEL_ENV === "production") return "sessao";
+  // `ambientePermiteSessao()` decide separadamente se este ambiente pode
+  // conceder sessão de dono (produção sempre; local só com opt-in explícito;
+  // preview nunca — ver o comentário lá para o raciocínio de cada caso).
+  if (!ambientePermiteSessao()) return null;
 
-  // Desenvolvimento local não tem borda nenhuma na frente, e exigir segredo
-  // aqui tornaria o app impossível de rodar na máquina do dono.
-  if (!process.env.VERCEL_ENV && process.env.NODE_ENV !== "production") return "sessao";
-
-  return null;
+  const cookieStore = await cookies();
+  const cookieSessao = cookieStore.get(NOME_COOKIE_SESSAO)?.value;
+  return cookieSessaoEhValido(cookieSessao) ? "sessao" : null;
 }
 
 /**

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import BotaoTema from "./BotaoTema";
+import { sairAction } from "@/servidor/acoes-sessao";
 
 // "agora" fica fixo nesta etapa — calcular no servidor divergiria na
 // hidratação e mostraria hora errada (plano §6, risco "agora e saudação fixos").
@@ -71,6 +72,23 @@ export default function Cabecalho() {
           Configuração
         </Link>
       </div>
+      <form action={sairAction}>
+        <button
+          type="submit"
+          className="h-fundo"
+          style={{
+            border: "none",
+            background: "transparent",
+            padding: "6px 12px",
+            borderRadius: 4,
+            cursor: "pointer",
+            fontSize: 13,
+            color: "var(--mut2)",
+          }}
+        >
+          sair
+        </button>
+      </form>
     </div>
   );
 }

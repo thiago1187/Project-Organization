@@ -58,6 +58,31 @@ em `contexto_atualizar_timestamp()`, que pertence à 001 e continua em uso por
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/002_inventario.down.sql
 ```
 
+## 003 — tetos de tamanho (`relatorio`, `sugestao`)
+
+Adiciona `CHECK`s de teto de tamanho a `relatorio.resumo`, aos três campos de cada
+item de `relatorio.achados_por_agente` (`agente`, `achado`, `selo`) e à quantidade
+de itens desse array, e a `sugestao.agente`, `sugestao.proposta`, `sugestao.motivo`
+e `sugestao.risco`. Espelha os tetos já aplicados em
+`src/dominio/validacaoRelatorio.ts` e `src/dominio/validacaoSugestao.ts` — ver o
+comentário no topo desses dois arquivos para o raciocínio de cada número, e o
+comentário no topo da migration para o porquê (rodada em laço gravando dado gigante
+sem paginação em `GET /api/reports`, degradando todas as telas de uma vez).
+
+**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002, não há nada
+para rodar aqui até o dono decidir aplicar. Quando decidir:
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/003_tetos_tamanho.sql
+```
+
+Reverter (remove os `CHECK`s e a função `achados_por_agente_dentro_dos_tetos`; não
+apaga nenhum dado — ver comentário no topo do `down`):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/003_tetos_tamanho.down.sql
+```
+
 ## Dado de demonstração (`seed.sql`)
 
 `db/seed.sql` popula o banco com um conjunto fictício de projetos, relatórios,
