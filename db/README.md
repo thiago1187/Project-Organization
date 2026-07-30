@@ -21,8 +21,9 @@ pooled normalmente.
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/001_schema_inicial.sql
 ```
 
-O comando acima **não foi executado**. É o dono quem decide rodar, depois de ler a
-migration.
+Esta migration **já foi aplicada** no banco: as quatro tabelas (`projeto`, `relatorio`,
+`sugestao`, `contexto`) e as triggers existem. O comando acima fica registrado aqui
+como referência de como ela foi (e como qualquer migration futura deve ser) aplicada.
 
 ## Como reverter
 
@@ -32,6 +33,48 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/001_schema_inicial.down.sql
 
 Mesma regra de conexão. O `down` apaga as tabelas (e qualquer dado que tiverem) —
 não há como recuperar sem um backup.
+
+## Dado de demonstração (`seed.sql`)
+
+`db/seed.sql` popula o banco com um conjunto fictício de projetos, relatórios,
+sugestões e contexto — o suficiente para avaliar todas as telas do painel (visão
+geral com as três frequências e um pausado, detalhe com histórico raso e fundo,
+fila de sugestões nos quatro estados, estado vazio de um projeto sem rodada
+ainda) sem esperar por uma rodada real.
+
+**Nunca rodar em banco com dado real.** Todo registro do seed é claramente
+fictício: `projeto.repositorio` usa o prefixo `demo-seed/` e `projeto.nome` tem
+o sufixo `(demo)`, exatamente para que quem abrir o painel ou o banco reconheça
+o dado como semente à primeira vista. Não há nada com formato de credencial no
+arquivo.
+
+Aplicar (mesma regra de conexão não-pooled da migration, por ter múltiplos
+`INSERT` numa única transação):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/seed.sql
+```
+
+O arquivo é idempotente por conta própria: a primeira coisa que ele faz é apagar
+qualquer linha de demonstração já existente (identificada pelo prefixo
+`demo-seed/` em `projeto.repositorio`) antes de inserir o conjunto de novo.
+Rodar duas vezes não duplica nada e devolve sempre o mesmo cenário conhecido —
+inclusive desfazendo qualquer edição feita pela UI durante um teste anterior.
+Por não tocar em nenhum projeto fora desse prefixo, também não precisa de banco
+vazio: pode ser aplicado a um banco que já tenha os dados reais do dono, sem
+misturar os dois — mas o cenário recomendado continua sendo um banco só para
+avaliação, separado do de produção.
+
+Para limpar o dado de demonstração sem reaplicar o seed:
+
+```sql
+DELETE FROM sugestao WHERE projeto_id IN (SELECT id FROM projeto WHERE repositorio LIKE 'demo-seed/%');
+DELETE FROM projeto WHERE repositorio LIKE 'demo-seed/%';
+```
+
+(A segunda linha apaga `relatorio` e `contexto` das mesmas linhas via `ON DELETE
+CASCADE`; `sugestao` precisa da primeira linha porque sua referência a `projeto`
+é `ON DELETE RESTRICT`, de propósito — ver comentário na migration.)
 
 ## Convenção para as próximas migrations
 
