@@ -239,21 +239,66 @@ export function agruparPorFaixa(cards: ProjetoCardVM[]): FaixaVM[] {
 
 export interface TotaisHomeVM {
   totalAtivos: number;
-  totalPrs: number;
-  totalFalhas: number;
   resumoNoite: string;
 }
 
+/**
+ * Só a prosa do cabeçalho ("N projetos em acompanhamento · ..."). Os números
+ * soltos que existiam aqui (PRs na fila, com falha) saíram — plano da
+ * segunda passada de design da visão geral: um bloco de números que ninguém
+ * decide nada a partir dele é ruído, e a mesma informação, acionável, agora
+ * vive em `itensAtencao` (abaixo), que vira o painel de atenção no topo da
+ * tela em vez de estatística estática.
+ */
 export function totaisHome(projetos: Projeto[], relatorios: Relatorio[]): TotaisHomeVM {
   const ativos = projetos.filter((p) => p.ativo);
   const status = ativos.map((p) => ultimoRelatorio(p.id, relatorios)?.status ?? null);
   const falhas = status.filter((s) => s === "falha").length;
-  const prs = status.filter((s) => s === "atencao").length;
+  const pedemDecisao = status.filter((s) => s === "atencao").length;
   const resumoNoite =
-    `${ativos.length} projetos em acompanhamento · ` +
-    (falhas ? `${falhas} pede atenção agora` : "nada travado") +
-    (prs ? ` · ${prs} PRs esperando revisão` : "");
-  return { totalAtivos: ativos.length, totalPrs: prs, totalFalhas: falhas, resumoNoite };
+    `${ativos.length} ${ativos.length === 1 ? "projeto" : "projetos"} em acompanhamento · ` +
+    (falhas ? `${falhas} com falha` : "nada travado") +
+    (pedemDecisao ? ` · ${pedemDecisao} ${pedemDecisao === 1 ? "pede decisão" : "pedem decisão"}` : "");
+  return { totalAtivos: ativos.length, resumoNoite };
+}
+
+export interface ItemAtencaoVM {
+  id: string;
+  nome: string;
+  statusLabel: string;
+  cor: string;
+  resumo: string;
+  cadenciaLabelLongo: string;
+}
+
+/**
+ * Projetos que pedem decisão do dono agora, **através de todas as faixas de
+ * cadência** — a resposta direta a "em qual dos meus projetos algo precisa
+ * de mim", que a grade por frequência sozinha não responde (um projeto em
+ * chamas na faixa "uma vez por semana" ficaria no rodapé da tela). Isto não
+ * substitui o agrupamento por faixa — ele continua sendo como o dono muda a
+ * cadência — só deixa de ser a única leitura possível da tela.
+ *
+ * Pausado nunca aparece: a rodada não visita mais um projeto pausado, então
+ * o status ali é de quando ele ainda rodava — reaparecer na lista de
+ * urgência seria alarme falso sobre algo que não está mais em andamento.
+ *
+ * Ordem: falha antes de "precisa de você" (mesmo peso de `agruparPorFaixa`),
+ * mais recente primeiro dentro de cada um — `cards` já chega nessa ordem
+ * porque vem de `cardsProjetos`, que preserva a ordem de `listarProjetos`.
+ */
+export function itensAtencao(cards: ProjetoCardVM[]): ItemAtencaoVM[] {
+  return cards
+    .filter((c) => c.faixa !== "pausado" && (c.status === "falha" || c.status === "atencao"))
+    .sort((a, b) => pesoStatus(a.status) - pesoStatus(b.status))
+    .map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      statusLabel: c.statusLabel,
+      cor: c.cor,
+      resumo: c.resumo,
+      cadenciaLabelLongo: c.cadenciaLabelLongo,
+    }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────

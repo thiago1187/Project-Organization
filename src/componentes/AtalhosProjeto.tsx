@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { estaDigitando } from "./tecladoUtil";
 
 // Atalhos de teclado da tela de detalhe (CLAUDE.md, "maleável" — atalho para
 // quem já sabe o caminho): `[`/`]` vão para o projeto anterior/próximo na
@@ -25,12 +26,6 @@ export default function AtalhosProjeto({
   const router = useRouter();
 
   useEffect(() => {
-    function estaDigitando(alvo: EventTarget | null) {
-      if (!(alvo instanceof HTMLElement)) return false;
-      const tag = alvo.tagName;
-      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || alvo.isContentEditable;
-    }
-
     function aoTeclar(e: KeyboardEvent) {
       if (estaDigitando(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
 

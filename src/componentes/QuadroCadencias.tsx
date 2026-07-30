@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ORDEM_FAIXAS, type Faixa } from "@/dominio/cadencia";
 import { agruparPorFaixa, type ProjetoCardVM } from "@/dominio/visao";
 import { definirCadenciaAction } from "@/servidor/acoes-projeto";
+import { estaDigitando } from "./tecladoUtil";
+import { estiloCampo } from "./estiloCampo";
 import CardProjeto from "./CardProjeto";
 
 // Drag and drop com HTML5 nativo, sem biblioteca (plano §2.10) — portado do
@@ -13,18 +16,42 @@ import CardProjeto from "./CardProjeto";
 // tela de Configuração usam, via `patchParaFaixa` (src/dominio/cadencia.ts).
 // Se a escrita falhar, a faixa volta para onde estava e a mensagem de erro
 // aparece acima do quadro.
+//
+// A busca (segunda passada de design da visão geral) mora aqui e não num
+// componente à parte porque já é este componente que segura `cards` em
+// memória para o arraste responder sem esperar a rede — filtrar antes de
+// agrupar é reaproveitar esse mesmo estado, não um estado novo.
 export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
+  const router = useRouter();
   const [cadencias, setCadencias] = useState<Record<string, Faixa>>({});
   const [arrastando, setArrastando] = useState<string | null>(null);
   const [faixaAlvo, setFaixaAlvo] = useState<Faixa | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
   const [, iniciarTransicao] = useTransition();
+  const buscaRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function aoTeclar(e: KeyboardEvent) {
+      if (e.key === "/" && !estaDigitando(e.target) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        buscaRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", aoTeclar);
+    return () => window.removeEventListener("keydown", aoTeclar);
+  }, []);
 
   const cardsComFaixaEfetiva = cards.map((c) => ({
     ...c,
     faixa: cadencias[c.id] ?? c.faixa,
   }));
-  const faixas = agruparPorFaixa(cardsComFaixaEfetiva);
+  const termo = busca.trim().toLowerCase();
+  const cardsFiltrados = termo
+    ? cardsComFaixaEfetiva.filter((c) => c.nome.toLowerCase().includes(termo))
+    : cardsComFaixaEfetiva;
+  const faixas = agruparPorFaixa(cardsFiltrados);
+  const buscaSemResultado = termo !== "" && cardsFiltrados.length === 0;
 
   // Limpa o estado de arraste. Quem grava a cadência é o onDrop da faixa —
   // este handler só cobre o caso de o drag terminar fora de um alvo válido
@@ -66,6 +93,46 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
           {erro}
         </div>
       )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+        <input
+          ref={buscaRef}
+          type="text"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.currentTarget.blur();
+              setBusca("");
+            } else if (e.key === "Enter" && cardsFiltrados.length > 0) {
+              router.push(`/projeto/${cardsFiltrados[0].id}`);
+            }
+          }}
+          placeholder="buscar projeto… (/)"
+          aria-label="Buscar projeto por nome"
+          style={{ ...estiloCampo, width: 220, padding: "6px 10px", fontSize: 12 }}
+        />
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+          arraste um card para mudar com que frequência os agentes visitam o projeto
+        </div>
+        <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
+      </div>
+
+      {buscaSemResultado ? (
+        <div
+          style={{
+            border: "1px dashed var(--borda)",
+            borderRadius: 8,
+            padding: "24px 12px",
+            textAlign: "center",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 11,
+            color: "var(--mut3)",
+          }}
+        >
+          nenhum projeto encontrado para “{busca.trim()}”
+        </div>
+      ) : (
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14, alignItems: "start" }}>
         {ORDEM_FAIXAS.map((idFaixa) => {
           const f = faixas.find((x) => x.id === idFaixa)!;
@@ -152,6 +219,7 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
           );
         })}
       </div>
+      )}
     </>
   );
 }

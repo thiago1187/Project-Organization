@@ -1,7 +1,8 @@
-import { cardsProjetos, totaisHome } from "@/dominio/visao";
+import { cardsProjetos, itensAtencao, totaisHome } from "@/dominio/visao";
 import { listarProjetos } from "@/servidor/projetos";
 import { listarRelatorios } from "@/servidor/relatorios";
 import QuadroCadencias from "@/componentes/QuadroCadencias";
+import PainelAtencao from "@/componentes/PainelAtencao";
 
 // Server Component: lê direto do banco a cada requisição — nunca cacheado
 // pelo Next (a tela de controle precisa refletir toda ação imediatamente,
@@ -17,54 +18,42 @@ export default async function VisaoGeralPage() {
   const [projetos, relatorios] = await Promise.all([listarProjetos(), listarRelatorios()]);
   const cards = cardsProjetos(projetos, relatorios);
   const totais = totaisHome(projetos, relatorios);
+  const atencao = itensAtencao(cards);
 
   return (
     <div style={{ padding: "30px 36px 64px" }}>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 28, marginBottom: 26 }}>
-        <div>
-          <div
-            style={{
-              fontFamily: "'Instrument Serif', Georgia, serif",
-              fontSize: 34,
-              lineHeight: 1.1,
-              letterSpacing: "-0.015em",
-            }}
-          >
-            {SAUDACAO}
-          </div>
-          <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: 13 }}>{totais.resumoNoite}</div>
+      <div>
+        <div
+          style={{
+            fontFamily: "'Instrument Serif', Georgia, serif",
+            fontSize: 34,
+            lineHeight: 1.1,
+            letterSpacing: "-0.015em",
+          }}
+        >
+          {SAUDACAO}
         </div>
-        <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", gap: 28, paddingBottom: 4 }}>
-          <div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, lineHeight: 1 }}>
-              {totais.totalAtivos}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--mut2)", marginTop: 6 }}>em acompanhamento</div>
-          </div>
-          <div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, lineHeight: 1, color: "var(--atn)" }}>
-              {totais.totalPrs}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--mut2)", marginTop: 6 }}>PRs na fila</div>
-          </div>
-          <div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, lineHeight: 1, color: "var(--fal)" }}>
-              {totais.totalFalhas}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--mut2)", marginTop: 6 }}>com falha</div>
-          </div>
-        </div>
+        <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: 13 }}>{totais.resumoNoite}</div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
-          arraste um card para mudar com que frequência os agentes visitam o projeto
-        </div>
-        <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
-      </div>
+      {/* O bloco de números (em acompanhamento / PRs na fila / com falha) saiu
+          daqui: era estatística estática, sem ação nenhuma associada. No
+          lugar, o painel de atenção abaixo é a mesma informação, mas
+          acionável — cada projeto que "pede decisão" já é um link para lá,
+          e o dígito ao lado abre direto do teclado (ver PainelAtencao.tsx e
+          `itensAtencao` em src/dominio/visao.ts). Esta é a resposta à
+          tensão entre "agrupar por frequência" e "mostrar urgência": a
+          grade abaixo continua organizada por cadência — é como o dono
+          arrasta um projeto para mudar a frequência, a interação mais
+          "maleável" da tela — mas deixa de ser a única leitura possível,
+          porque este painel atravessa as quatro faixas e responde primeiro
+          "o que precisa de mim", independente de onde o projeto mora na
+          grade. */}
+      <PainelAtencao itens={atencao} totalAtivos={totais.totalAtivos} />
 
-      <QuadroCadencias cards={cards} />
+      <div style={{ marginTop: 30 }}>
+        <QuadroCadencias cards={cards} />
+      </div>
     </div>
   );
 }
