@@ -111,9 +111,9 @@ não a routine escrevendo às 3h. São coisas diferentes, e só a segunda está
 proibida. Escrita por clique do dono, num destino que ele escolheu, tem
 supervisão por definição.
 
-### 5. Inventário na tela
+### 5. Inventário na tela — ✅ FEITO
 
-Migration `002` está escrita e **não aplicada**. Responde *"o que tem dentro
+Migration `002` aplicada. Responde *"o que tem dentro
 deste projeto"*: stack, contas, serviços, e onde cada um é administrado.
 
 Nenhuma coluna capaz de guardar segredo, e isso é estrutural — não existe
@@ -193,7 +193,6 @@ desenhar sobre mock. Quando chegar, também desenha o documento do item 4.
 - **Migrations `002` e `003` escritas e não aplicadas.**
 - **`devops-deploy` classificado como agente de escrita** em `papeis.ts`, mas o
   prompt o aciona entre os somente-leitura. Resolver antes da esteira.
-- **`src/dados/mock.ts` está morto** — nenhuma tela importa. Remover.
 - **Segredo do bypass em texto claro no prompt da routine.** Foi a única saída
   (a caixa de environment avisa para não pôr segredo). Rotacionar quando houver
   lugar melhor.

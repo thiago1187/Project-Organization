@@ -41,6 +41,26 @@ function projetoValido(projetoId: unknown): projetoId is string {
 // stack
 // ─────────────────────────────────────────────────────────────────────────
 
+/**
+ * O que devolver ao navegador quando a validação recusou.
+ *
+ * Em geral, ecoar o que o dono digitou é o certo — ele corrige em cima em vez
+ * de redigitar tudo. A exceção é a recusa pelo tripwire anti-credencial: ali o
+ * valor já foi reconhecido como possível segredo, e devolvê-lo faria uma cópia
+ * atravessar a resposta da action e ser re-renderizada como defaultValue.
+ *
+ * É o único ponto onde um possível segredo sairia do servidor *depois* de ter
+ * sido identificado como tal. A mensagem já diz ao dono o que fazer; ele não
+ * precisa do valor de volta na tela. Achado 3 da revisão de 2026-07-30.
+ */
+function camposAposRecusa<T extends Record<string, string>>(
+  campos: T,
+  erro: string,
+  vazio: T,
+): T {
+  return erro.includes("parece conter uma credencial") ? vazio : campos;
+}
+
 export interface EstadoFormStack {
   ok: boolean;
   erro: string | null;
@@ -76,7 +96,13 @@ export async function salvarStackAction(
   if (!projetoValido(projetoId)) return { ok: false, erro: "Projeto inválido.", campos };
 
   const validado = validarStack(entrada);
-  if (!validado.ok) return { ok: false, erro: validado.erro, campos };
+  if (!validado.ok) {
+    return {
+      ok: false,
+      erro: validado.erro,
+      campos: camposAposRecusa(campos, validado.erro, ESTADO_INICIAL_CAMPOS_STACK),
+    };
+  }
 
   try {
     if (typeof id === "string" && id.length > 0) {
@@ -155,7 +181,13 @@ export async function salvarServicoAction(
   if (!projetoValido(projetoId)) return { ok: false, erro: "Projeto inválido.", campos };
 
   const validado = validarServico(entrada);
-  if (!validado.ok) return { ok: false, erro: validado.erro, campos };
+  if (!validado.ok) {
+    return {
+      ok: false,
+      erro: validado.erro,
+      campos: camposAposRecusa(campos, validado.erro, ESTADO_INICIAL_CAMPOS_SERVICO),
+    };
+  }
 
   try {
     if (typeof id === "string" && id.length > 0) {
