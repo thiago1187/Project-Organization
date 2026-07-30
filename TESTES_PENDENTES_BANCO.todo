@@ -1,0 +1,42 @@
+Casos de teste que exigem Postgres real — não implementados nesta entrega.
+
+Ver docs/plano-testes.md § 4 para a justificativa completa de cada um e de por
+que ficam para depois (recomendação do próprio plano). Resumo do que falta:
+
+1. Trigger `sugestao_validar_transicao_estado`
+   (db/migrations/001_schema_inicial.sql) — só um UPDATE direto via SQL que
+   pule de estado (ex.: pendente -> feita num único comando, contornando a
+   aplicação) prova que o Postgres rejeita. Testar só por
+   aprovarSugestao/marcarSugestaoFeita (que já restringem o WHERE antes de
+   chegar na trigger) não exercita a trigger de verdade — isso já está
+   coberto, com mock, pelos casos 5 e 6 de docs/plano-testes.md (nível 1),
+   em src/servidor/sugestoes.test.ts.
+
+2. CHECKs de db/migrations/001_schema_inicial.sql e
+   db/migrations/003_tetos_tamanho.sql — os validadores em src/dominio/*
+   já espelham esses limites (ver comentário de topo de cada validador).
+   O risco real a testar aqui não é "o CHECK funciona", é "o validador e o
+   CHECK divergirem com o tempo" — só um teste contra o banco pega isso.
+
+3. aprovarSugestao / recusarSugestao / criarSugestao / marcarSugestaoFeita
+   (src/servidor/sugestoes.ts) contra Postgres de verdade — hoje só a forma
+   da chamada e o tratamento de erro estão cobertos (SQL mockado, nível 1,
+   casos 5 e 6). Falta provar que a query em si está correta: nome de
+   coluna, RETURNING com os campos certos, o WHERE restringindo a linha
+   certa quando há mais de uma sugestão na tabela.
+
+4. GET /api/projects contra dados reais — o contrato que a routine depende
+   (a rota já comenta: "mudar o formato quebra a automação em silêncio")
+   merece um teste de contrato completo: projeto com contexto, sugestões
+   nos três estados, agentes habilitados e desabilitados. Exige popular o
+   banco antes de perguntar; não faz sentido sem ambiente de teste.
+
+Por que não agora: não há ambiente de banco de teste configurado neste
+repositório (Neon de teste, ou Postgres local via Docker), e montar essa
+infraestrutura é uma decisão própria (qual banco, como isolar de produção,
+como resetar entre execuções) que merece plano e aprovação separados — ver
+CLAUDE.md, "antes de codar algo não trivial, apresente o plano".
+
+Próximo passo sugerido: abrir item em docs/proximos-passos.md — "ambiente de
+teste de banco — provar a trigger" (já antecipado em
+docs/plano-testes.md § 4).

@@ -66,11 +66,22 @@ async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
   const recebido = cabecalhos.get(CABECALHO_BYPASS);
   if (segredo && recebido && segredosBatem(recebido, segredo)) return "bypass";
 
-  // Se o segredo não está configurado, o ramo do bypass acima nunca casa — e a
-  // requisição da routine cairia nas regras de sessão abaixo, promovendo a
-  // routine a dono. Falta de segredo é erro de configuração, não permissão:
-  // recusa tudo. A degradação certa é "para de funcionar", nunca "vira o dono".
-  if (process.env.VERCEL_ENV && !segredo) return null;
+  // Aqui havia uma recusa geral quando `PAINEL_BYPASS_SECRET` não estava
+  // configurada em ambiente Vercel. Ela foi removida, e vale registrar por quê,
+  // porque a intenção original era boa.
+  //
+  // Ela nasceu quando "sessão" era concedida pela mera presença num ambiente
+  // Vercel — sem segredo, a requisição da routine caía nas regras de sessão e
+  // ela era promovida a dona. Recusar tudo era a defesa certa naquele desenho.
+  //
+  // Hoje sessão exige cookie assinado com HMAC sobre `PAINEL_SESSAO_SECRET`,
+  // que a routine não tem e não consegue forjar. A defesa perdeu o alvo, e
+  // sobrou só o efeito colateral: um deploy sem o segredo de bypass trancava
+  // também o dono fora do próprio painel — não só a routine ficava sem acesso.
+  //
+  // A degradação certa continua existindo, só que no lugar certo: sem segredo
+  // configurado, o ramo do bypass acima nunca casa, então a routine é recusada.
+  // O dono, com cookie válido, entra. Achado pelo caso 13 da suíte de teste.
 
   // Caminho do dono: sessão própria do app (cookie assinado com
   // `PAINEL_SESSAO_SECRET`, ver sessao.ts), não mais "confia que o Vercel
