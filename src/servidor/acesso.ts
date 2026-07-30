@@ -44,7 +44,20 @@ async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
   const cabecalhos = await headers();
 
   // Caminho da routine: header de bypass com o segredo correto.
-  const segredo = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  //
+  // `PAINEL_BYPASS_SECRET` é uma variável nossa, criada à mão com o mesmo valor
+  // do bypass gerado no Vercel. `VERCEL_AUTOMATION_BYPASS_SECRET` é a variável
+  // de sistema que a Vercel injeta sozinha — quando injeta: depende de uma
+  // configuração do projeto que nem sempre está ligada, e cujo nome e lugar
+  // mudam entre versões do painel deles. Depender só dela custou uma sessão
+  // inteira de depuração para um 401 que parecia segredo errado e era variável
+  // ausente.
+  //
+  // A nossa vem primeiro porque é a que o dono controla e consegue ver. A da
+  // Vercel fica como conveniência para quem tiver a exposição automática
+  // ligada e não quiser manter o valor em dois lugares.
+  const segredo =
+    process.env.PAINEL_BYPASS_SECRET || process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
   const recebido = cabecalhos.get(CABECALHO_BYPASS);
   if (segredo && recebido && segredosBatem(recebido, segredo)) return "bypass";
 
