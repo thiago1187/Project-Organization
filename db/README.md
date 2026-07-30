@@ -43,7 +43,7 @@ regra 1). As duas são independentes uma da outra e cada uma referencia só
 `projeto`, com `ON DELETE CASCADE` — mesma categoria de `relatorio` e `contexto`
 na 001 (material substituível), diferente de `sugestao` (evidência de auditoria).
 
-**Esta migration está escrita e ainda NÃO foi aplicada.** Ao contrário da 001,
+**Esta migration **já foi aplicada** no banco em 2026-07-30.** Antes disso,
 não há nada para rodar aqui até o dono decidir aplicar. Quando decidir:
 
 ```bash
@@ -69,7 +69,7 @@ comentário no topo desses dois arquivos para o raciocínio de cada número, e o
 comentário no topo da migration para o porquê (rodada em laço gravando dado gigante
 sem paginação em `GET /api/reports`, degradando todas as telas de uma vez).
 
-**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002, não há nada
+**Esta migration **já foi aplicada** no banco em 2026-07-30.** Antes disso,
 para rodar aqui até o dono decidir aplicar. Quando decidir:
 
 ```bash
@@ -93,7 +93,7 @@ branch principal, sem pull request. Quando `pr_url` é informado, ainda precisa
 começar com `https://`, mas aceita qualquer origem, não só GitHub. Ver o
 comentário no topo da migration para o raciocínio completo.
 
-**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002 e 003,
+**Esta migration **já foi aplicada** no banco em 2026-07-30.** Antes disso,
 não há nada para rodar aqui até o dono decidir aplicar. Até lá, marcar uma
 sugestão como "feita" sem link falha no banco com um erro claro — é o
 comportamento esperado, não um bug. Quando decidir aplicar:
@@ -119,7 +119,7 @@ que é o que o agente deve ler). Ver o comentário no topo da migration e
 `docs/plano-agentes-por-projeto.md` § 3 para o desenho completo, e
 `docs/proximos-passos.md` item 1 para o problema que resolve.
 
-**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002, 003 e
+**Esta migration **já foi aplicada** no banco em 2026-07-30.** Antes disso,
 004, não há nada para rodar aqui até o dono decidir aplicar. Quando decidir:
 
 ```bash

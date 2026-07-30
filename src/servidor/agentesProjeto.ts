@@ -135,13 +135,22 @@ export async function alternarAgenteProjeto(
       return linhaParaAgenteProjeto(linhas[0]);
     }
 
+    // Upsert também no desligar, não só no ligar. Um UPDATE puro falharia para
+    // agente que nunca teve linha — e esse é exatamente o caso do sugestor de
+    // agentes: ele recomenda quem ainda não tem registro, e "dispensar" a
+    // sugestão é justamente gravar `habilitado = false` na primeira vez.
+    //
+    // A linha desligada não é lixo: é a memória de que o dono já decidiu não
+    // querer aquele agente aqui, e é ela que impede o sugestor de insistir.
     const linhas = (await sql()`
-      UPDATE projeto_agente SET habilitado = false
-      WHERE projeto_id = ${projetoId} AND agente = ${agente}
+      INSERT INTO projeto_agente (projeto_id, agente, habilitado, ordem)
+      VALUES (${projetoId}, ${agente}, false, 0)
+      ON CONFLICT (projeto_id, agente)
+      DO UPDATE SET habilitado = false
       RETURNING id, projeto_id, agente, habilitado, ordem, instrucao, teto_sugestoes, criado_em, atualizado_em
     `) as unknown as LinhaAgenteProjeto[];
     if (linhas.length === 0) {
-      throw new ErroDados("Este agente já está desligado — pode ter sido alterado em outra aba.");
+      throw new ErroDados("Não foi possível desligar este agente.");
     }
     return linhaParaAgenteProjeto(linhas[0]);
   } catch (erro) {
