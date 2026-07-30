@@ -50,6 +50,16 @@ usada em duas semanas.
 Regra prática: se o dono precisa rolar para saber se algo exige atenção, o
 resumo falhou.
 
+**Isto deixou de ser intenção e ganhou implementação (2026-07-30).** Na tela
+de detalhe do projeto: uma faixa de resumo no cabeçalho concentra a leitura de
+cinco segundos (status, o que espera decisão, a ação principal), a fila de
+sugestões vem logo abaixo dela, e o histórico de rodadas e o inventário —
+segunda velocidade — ficam recolhidos por padrão, um clique de distância. O
+documento de andamento (`/projeto/[id]/documento`) aplica o mesmo princípio a
+outra audiência: a voz de andamento (zero jargão) e a voz técnica (arquivo,
+teste, PR) são o resumo e o detalhe de um lado a lado, sobre os mesmos dados,
+para quem lê não ter que aprender o vocabulário do outro lado.
+
 ## O que torna a coisa segura de existir
 
 A rodada noturna roda sem ninguém acordado. Três propriedades sustentam isso:
@@ -81,16 +91,22 @@ Não precisa ser diária. Precisa ser **verdadeira**: documentação desatualiza
 é pior que ausente, porque engana. O gatilho é mudança significativa, não
 passagem de tempo — a lista está no `CLAUDE.md`.
 
-## O que falta ser desenhado
+## Inventário de projeto — já implementado
 
 **Inventário de projeto** — stack, contas, APIs e serviços usados em cada
-projeto, e onde cada um é administrado. Hoje não existe no modelo de dados; a
-seção de acessos do export é a única coisa que aponta para isso, e ela guarda
-valores de credencial no cliente, o que não pode ir para o produto.
+projeto, e onde cada um é administrado — existe no modelo de dados
+(`stack`, `servico`, migration `002`, aplicada) e aparece na tela de detalhe.
+A seção de acessos do export original, que guardava valor de credencial no
+cliente, foi removida — não sobrevive nenhum campo `valor` em lugar nenhum do
+app.
 
-A distinção que resolve: **inventário não é credencial.** Guardar "este projeto
-usa Neon, na conta X, administrado no painel da Vercel" é inventário e é útil.
-Guardar a connection string é credencial e está proibido pela regra 1.
+A distinção que resolveu o desenho: **inventário não é credencial.** Guardar
+"este projeto usa Neon, na conta X, administrado no painel da Vercel" é
+inventário e é útil. Guardar a connection string é credencial e está proibido
+pela regra 1. Nenhuma coluna de `stack`/`servico` é capaz de guardar segredo
+— isso é estrutural, não convenção: não existe `valor`, `chave` nem `token`,
+e um tripwire (`parece_credencial`) recusa o `INSERT`/`UPDATE` se um rótulo
+tiver cara de credencial mesmo assim.
 
 ## O teste final
 

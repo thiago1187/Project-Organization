@@ -38,10 +38,9 @@ A execução não é da rodada. Depois de aprovar, o dono gera um prompt no pain
 
 O código nasceu como um export estático do Claude Design, com dados mockados. O export está preservado em `design-original/` como referência visual.
 
-O alvo é um app Next.js (App Router) com:
-- o mesmo visual do export original
-- rotas de API para receber diagnóstico e servir contexto e aprovações
-- persistência em Postgres (Neon, pela Vercel)
+Hoje é um app Next.js (App Router) no ar, com Postgres (Neon, pela Vercel), rotas de API que a routine consome, servidor MCP, e sessão própria do dono. Nada mais é mock: o que a tela mostra vem do banco.
+
+O que ainda não existe está em `docs/proximos-passos.md`, e o que já foi decidido e por quê está em `docs/decisoes/`.
 
 ## Sobre o visual
 
@@ -59,19 +58,27 @@ A direção agora é: **intuitivo, maleável e futurista, sem perder eficiência
 ## Telas
 
 1. **Visão geral** — projetos agrupados por frequência de visita dos agentes (toda madrugada / dias alternados / uma vez por semana). Arrastar um card entre grupos muda a frequência daquele projeto.
-2. **Detalhe do projeto** — histórico das rodadas, o que cada agente encontrou, a **fila de sugestões** com aprovar/recusar, o **contexto do projeto** (editável), links de documentos e a seção de acessos.
+2. **Detalhe do projeto** — faixa de resumo no topo com a ação principal ("decidir N sugestões"), a **fila de sugestões** com aprovar/recusar, **onde estamos** (descrição e tarefas, editáveis no lugar), histórico das rodadas, a **esteira de agentes** com o sugestor, o **contexto do projeto** e o inventário. As seções de baixa frequência ficam recolhidas e abrem sozinhas quando têm motivo.
 3. **Configuração** — CRUD de projetos: cadastrar, editar, ativar e pausar.
+4. **Documento de andamento** (`/projeto/:id/documento`) — o mesmo período em duas vozes: técnica (para o dono e a equipe) e andamento (para sócio ou cliente, zero jargão). Sai em PDF pela impressão do navegador.
+
+A tela de detalhe segue o princípio das **duas velocidades**: o resumo é a porta, o detalhe abre a partir dele, os dois na mesma tela. O teste é `docs/visao.md`: cinco segundos para saber se algo precisa do dono.
 
 ## Modelo de dados
 
-Quatro entidades. Deliberadamente mínimo — não anteveja campo que talvez sirva um dia.
+Deliberadamente mínimo — não anteveja campo que talvez sirva um dia. Cada linha
+abaixo nasceu de uma necessidade que já existia.
 
 | Entidade | O que é |
 |---|---|
-| `projeto` | nome, repositório, frequência de visita, ativo/pausado |
+| `projeto` | nome, descrição, repositório (opcional — projeto que vive só num connector não tem), frequência de visita, ativo/pausado |
 | `relatorio` | diagnóstico de uma rodada: projeto, data/hora, status, resumo, agentes que rodaram, testes |
 | `sugestao` | proposta de um agente: projeto, agente que propôs, o que propõe, por quê, esforço, estado (pendente / aprovada / recusada / feita), link do PR quando executada |
-| `contexto` | material que o dono fornece por projeto: tipo, conteúdo ou arquivo, e a qual agente se destina |
+| `contexto` | material que o dono fornece por projeto: tipo, conteúdo ou arquivo, a qual agente se destina, e a **procedência** (tela ou MCP) |
+| `tarefa` | a worklist do dono: título, estado (aberta / fazendo / feita), ordem. **Não é `sugestao` e não vira `sugestao`** — ver `docs/decisoes/001-tarefa-nao-e-sugestao.md` |
+| `stack` / `servico` | o inventário: o que tem dentro do projeto e onde cada coisa é administrada. **Nenhuma coluna capaz de guardar segredo**, e isso é estrutural: não existe `valor`, `chave` nem `token`, e não há campo de notas que vire válvula de escape |
+| `projeto_agente` | a esteira: quais agentes rodam neste projeto, em que ordem, com que instrução |
+| `tentativa_entrada` | carimbos de tempo das tentativas de login que falharam, para a trava do `/entrar`. Sem IP, sem user agent — a trava é global, então esse dado não mudaria decisão nenhuma e só criaria um log de acesso para vazar |
 
 ## Rotas de API
 

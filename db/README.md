@@ -269,3 +269,44 @@ Reverter (apaga toda tarefa gravada em qualquer projeto):
 ```bash
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/009_tarefa.down.sql
 ```
+
+## 010 — `contexto.origem` passa a aceitar `'mcp'`
+
+**Escrita, ainda NÃO aplicada.** Antes desta migration, o `CHECK` de
+`contexto.origem` só aceitava `'painel'` — e o servidor MCP já grava contexto
+com a origem `'mcp'` (`docs/mcp.md`, `anexar_contexto`). Até esta migration
+ser aplicada, uma escrita de contexto pelo MCP **falha no banco** com erro de
+`CHECK` (não há degradação silenciosa aqui, ao contrário de 008/009/011 —
+ver o comentário no topo da migration).
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/010_contexto_origem_mcp.sql
+```
+
+Reverter (linhas já gravadas com `origem = 'mcp'` bloqueiam o revert — ver
+comentário no topo do `down`):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/010_contexto_origem_mcp.down.sql
+```
+
+## 011 — trava de tentativas no `/entrar` (`tentativa_entrada`)
+
+**Escrita, ainda NÃO aplicada.** Ver `docs/decisoes/003-trava-de-entrada-global.md`
+para o raciocínio completo (por que global, e não por IP; por que no banco, e
+não em memória).
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/011_tentativa_entrada.sql
+```
+
+Até aplicada, `/entrar` funciona sem trava nenhuma — a mesma degradação que
+vale se a consulta ao banco falhar depois de aplicada (ver o comentário no
+topo de `src/servidor/tentativasEntrada.ts`: "esta migration não pode ser
+pré-requisito para entrar").
+
+Reverter (apaga o histórico de tentativas falhas; não afeta senha nem sessão):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/011_tentativa_entrada.down.sql
+```
