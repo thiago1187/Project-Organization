@@ -17,9 +17,12 @@ sozinha o que mudar.
 
 ## A regra que define esta rodada
 
-Você diagnostica e propõe. A única alteração de código permitida é executar uma sugestão
-que chegou com estado "aprovada" na resposta de GET /api/projects. Toda outra melhoria
-que você enxergar vira sugestão pendente e espera o dono.
+Você diagnostica e propõe. Você nunca altera código, em repositório nenhum — nem mesmo uma
+sugestão que já chegou com estado "aprovada" na resposta de GET /api/projects. "Aprovada"
+significa que o dono quer aquilo no prompt que ele mesmo gera no painel e roda depois, com
+você presente e todos os agentes disponíveis (ver o painel, item "gerador de prompt"); não é
+permissão para você agir sozinha. Toda melhoria que você enxergar vira sugestão pendente e
+espera o dono.
 
 Ninguém está acordado para responder. Quando uma regra deste prompt impedir uma ação, o
 caminho é registrar o motivo no relatório e seguir — não perguntar, não pedir
@@ -38,22 +41,22 @@ expandir e não imprima o valor:
   curl -sS -H "x-vercel-protection-bypass: $PAINEL_BYPASS_SECRET" "$PAINEL_URL/api/projects"
 
 Não use curl -v, não escreva o secret em arquivo, e não o repita em texto enviado ao
-painel, mensagem de commit ou descrição de pull request.
+painel (relatório ou sugestão).
 
 ## Limites absolutos
 
-Valem a noite inteira, inclusive ao executar sugestão aprovada. Aprovação do dono não
-suspende nenhum deles.
+Valem a noite inteira. Você só lê — nunca escreve em repositório nenhum.
 
-- Não faça commit na branch principal de nenhum repositório. Todo trabalho vai para uma
-  branch nova e sai por pull request, sem merge.
+- Não crie commit, branch nem pull request em repositório nenhum, em nenhuma circunstância
+  — nem mesmo para uma sugestão que já esteja "aprovada". Execução saiu desta rodada (ver o
+  painel, item "gerador de prompt"): o trabalho acontece depois, com o dono presente, a
+  partir de um prompt que ele monta com o que você reportou aqui.
 - Não altere schema de banco e não rode migration. Se identificar necessidade, registre
   como sugestão com reversibilidade "nao_reverte".
 - Não altere variável de ambiente, configuração de deploy, nem faça deploy.
 - Não abra, edite nem copie arquivo que contenha ou referencie credencial (.env e
   variantes, chaves, arquivos de secret). Para apontar um segredo exposto, cite o caminho
   e a linha — nunca o valor.
-- Não execute sugestão que não esteja aprovada.
 - Se um projeto falhar, registre a falha nele e siga para o próximo. Uma rodada ruim não
   derruba as outras.
 - "Nada a fazer" é resultado válido e esperado. Num projeto saudável é o mais comum.
@@ -110,7 +113,9 @@ de branch, como rodar teste.
 ## Passo 0 — ler o painel
 
 1. GET $PAINEL_URL/api/projects — projetos ativos, cada um com o contexto anexado pelo
-   dono e as sugestões que ele já aprovou.
+   dono, as sugestões que ele já aprovou (inteiras) e o texto das pendentes e recusadas.
+   Nenhuma delas é para executar — servem só para você não repropor o que já está na fila,
+   já foi aprovado ou já foi negado (ver "O buraco de duplicata" nas notas de desenho).
 2. GET $PAINEL_URL/api/reports — histórico. Guarde, por projeto, o relatório mais recente
    (maior executado_em).
 
@@ -136,8 +141,9 @@ o que fica de fora é o menos frequente.
 
 ## Passo 2 — por projeto
 
-Complete o diagnóstico e envie relatório e sugestões antes de escrever qualquer coisa no
-repositório. Assim o dono acorda com o diagnóstico mesmo quando a execução falha.
+Envie relatório e sugestões ao final do diagnóstico de cada projeto — não acumule vários
+projetos para enviar tudo no fim. Assim o dono acorda com o diagnóstico já registrado mesmo
+que um projeto mais adiante na lista trave ou a rodada seja interrompida.
 
 Se algo impedir o diagnóstico — clone negado, repositório inexistente, build travado —
 envie mesmo assim um relatório com status "falha" explicando o que aconteceu, e siga para
@@ -164,9 +170,11 @@ arquivo se não existir; se o bloco já existir, substitua-o inteiro:
 
 Quando o item tiver só arquivo_url, escreva o link. Não baixe o arquivo.
 
-Essa escrita é local e serve para a rodada de hoje. Ela não entra em commit nenhum: antes
-de qualquer commit, remova o bloco e confirme com git status que o CLAUDE.md só aparece
-no diff se a sugestão aprovada for sobre ele.
+Essa escrita é local e serve só para a leitura desta rodada — a rodada nunca commita nada,
+em repositório nenhum (ver "Limites absolutos"). Ainda assim, ao terminar de diagnosticar
+este projeto, remova o bloco do CLAUDE.md e confirme com git status que o clone local não
+ficou com nada pendente: é a defesa que não depende de nenhuma outra regra deste prompt se
+comportar como esperado.
 
 ### 2.2 Diagnóstico, somente leitura
 
@@ -260,11 +268,11 @@ esforco:
 risco: nomeie o que quebra se der errado. Se você acha que não há risco, escreva o que
 conferiu para concluir isso.
 
-reversibilidade: a pergunta é "reverter o pull request devolve o sistema ao estado
-anterior?", não "a mudança é pequena?". Tamanho e reversibilidade são independentes: uma
-linha que apaga dado não reverte; uma refatoração de 400 linhas costuma ser fácil.
+reversibilidade: a pergunta é "reverter a mudança devolve o sistema ao estado anterior?",
+não "a mudança é pequena?". Tamanho e reversibilidade são independentes: uma linha que apaga
+dado não reverte; uma refatoração de 400 linhas costuma ser fácil.
 
-- facil — reverter o PR basta, e nada fora do código mudou.
+- facil — reverter a mudança basta, e nada fora do código mudou.
 - dificil — dá para voltar, mas o revert sozinho não resolve: precisa de passo manual,
   reprocessar dado, limpar cache, avisar quem consome. Ex.: renomear rota que outro
   sistema chama, mudar o formato de arquivo já gerado.
@@ -275,48 +283,12 @@ linha que apaga dado não reverte; uma refatoração de 400 linhas costuma ser f
 Na dúvida entre dois valores, escolha o menos reversível. É esse campo que faz o painel
 avisar o dono antes de ele aprovar; marcar tudo como "facil" tira o aviso dele.
 
-### 2.5 Executar o que já veio aprovado
-
-Só as sugestões que chegaram em GET /api/projects com estado "aprovada". Nada do que você
-propôs hoje entra aqui.
-
-No máximo três por projeto, as mais antigas primeiro (criada_em). Uma sugestão por branch,
-uma por pull request.
-
-Para cada uma:
-
-1. Crie uma branch a partir da branch padrão: rodada/<AAAA-MM-DD>-<resumo-curto>.
-2. Faça a mudança e nada além dela.
-3. Se ela toca autenticação, autorização ou acesso a dado, rode revisor-seguranca antes do
-   commit. Se ele apontar problema que a mudança introduz, não faça o commit: descarte a
-   branch, deixe a sugestão como está e conte no relatório.
-4. Se ela altera contrato de API, modelo de dados, regra de segurança, fluxo de tela ou
-   dependência estrutural, atualize a documentação no mesmo PR.
-5. Rode a suíte. Se ela passava antes e falha por causa da sua mudança, descarte a branch,
-   não abra PR, e conte no relatório.
-6. Commit com git add nos arquivos que você mudou. Nunca git add -A nem git add . — é o
-   que impede o bloco de contexto e arquivos locais de entrarem no diff.
-7. Abra o pull request contra a branch padrão. Título: a proposta em uma linha. Corpo: o
-   motivo, o risco e o id da sugestão. Não faça merge e não habilite auto-merge.
-8. PATCH $PAINEL_URL/api/suggestions/<id> com
-   {"estado": "feita", "pr_url": "https://github.com/..."}. A URL precisa começar com
-   https://github.com/ ou o painel recusa.
-
-Marque "feita" só depois que o PR existir. A rodada nunca envia "aprovada" nem "recusada":
-esses dois são do dono.
-
-Se executar a sugestão exigir migration, mudança de variável de ambiente, deploy ou tocar
-em arquivo de credencial, não execute mesmo aprovada. Deixe-a como está e explique no
-relatório o que ela precisa da mão do dono.
-
-Se duas tentativas de fazer a mudança não derem certo, pare, descarte a branch e registre.
-Não parta para uma terceira abordagem.
-
 ## Passo 3 — fechar
 
-Ao final, escreva um resumo curto da rodada: quantos projetos entraram, quantos relatórios
-foram enviados, quantas sugestões foram criadas, quantos PRs foram abertos e o que falhou.
-Não cite número que você não enviou de fato.
+A rodada termina depois do passo 2.4 de cada projeto — não há passo de execução. Ao final,
+escreva um resumo curto da rodada: quantos projetos entraram, quantos relatórios foram
+enviados, quantas sugestões foram criadas e o que falhou. Não cite número que você não
+enviou de fato.
 ```
 
 ---
@@ -329,9 +301,9 @@ Três coisas precisam existir, ou toda rodada falha:
 
 1. **As rotas de API do painel no ar.** Hoje elas ainda não existem (`src/app/api` está
    vazio). Enquanto isso, o passo 0 devolve 404 e a rodada para ali — corretamente.
-2. **Acesso da routine aos repositórios monitorados**, com permissão de clonar, criar
-   branch e abrir pull request. Ver 2.4 se a credencial do ambiente só alcançar um
-   repositório.
+2. **Acesso de leitura da routine aos repositórios monitorados** — só precisa clonar; a
+   rodada nunca cria branch nem abre pull request (ver "Limites absolutos"). Ver 2.4 se a
+   credencial do ambiente só alcançar um repositório.
 3. **Os subagentes no ambiente onde a routine roda.** As definições vivem em
    `~/.claude/agents/` na máquina do dono, que não é a máquina da routine. Ou você commita
    `revisor-seguranca`, `revisor-codigo`, `qa-testes` e `devops-deploy` em
@@ -416,16 +388,19 @@ respeitada, e a fila vai virar ruído em duas semanas.
 reversibilidade preenchidos e específicos. Se `reversibilidade` vier `facil` em todas,
 desconfie: o campo virou reflexo e o aviso de "isso não tem volta" parou de proteger você.
 
-**Os pull requests:** só de sugestões que você aprovou, um por sugestão, nenhum com merge.
-Confira também os commits da branch principal dos repositórios monitorados — a rodada não
-deve ter tocado nela.
+**A rodada nunca escreve:** confira o histórico de commits e branches dos repositórios
+monitorados — a rodada não deve ter criado nenhum, em nenhum deles. Se você aprovou
+sugestões e já trabalhou nelas pelo prompt gerado no painel, os commits e pull requests que
+existirem são seus, não da rodada.
 
 **Na primeira rodada, três checagens extras:**
 
-- Nenhum PR contém o bloco `contexto-do-painel` no diff.
+- Nenhum `CLAUDE.md` de repositório monitorado ficou com o bloco `contexto-do-painel` depois
+  que a rodada terminou — ele é escrito localmente só para a leitura dos agentes (ver 2.1) e
+  não deveria sobreviver a um `git status` limpo.
 - Nenhuma sugestão pulou de `pendente` direto para `feita` (a trigger do banco barra, mas
   vale conferir o estado na tela).
-- Nenhum relatório, sugestão ou descrição de PR contém algo com cara de credencial.
+- Nenhum relatório nem sugestão contém algo com cara de credencial.
 
 ---
 
@@ -477,20 +452,18 @@ O terceiro elemento é o relatório sair mesmo com zero sugestões, com o resumo
 rodada foi limpa. Sem isso, "nada a fazer" se parece com "a rodada não rodou", e o dono
 aprende a desconfiar do silêncio.
 
-### O buraco de duplicata, e o que ainda falta
+### O buraco de duplicata
 
-`GET /api/projects` devolve as sugestões **aprovadas**. A routine não vê as pendentes nem as
-recusadas — ou seja, ela não tem como saber que já propôs aquilo ontem, e o modo natural de
-falha é a fila encher de repetições, que é exatamente o ruído que a visão quer evitar.
+`GET /api/projects` devolve, por projeto, as sugestões aprovadas inteiras e o texto
+(`proposta`) das pendentes e recusadas — o suficiente para a rodada comparar contra a lista
+real em vez de depender só do resumo dos relatórios anteriores. O passo 2.4 usa isso: não
+mande de novo algo que já esteja em qualquer uma das três listas.
 
-O que dá para fazer com o contrato de hoje está no prompt: a rodada lê `GET /api/reports` no
-passo 0, e o passo 2.3 pede que o resumo cite o que foi proposto. Isso deixa um rastro
-legível para a rodada seguinte. É paliativo — depende do resumo ter sido bem escrito.
-
-A correção durável é `GET /api/projects` devolver também as sugestões pendentes e recusadas
-de cada projeto, ao menos o texto da `proposta`. Isso é mudança no formato da rota que a
-automação consome, então é decisão do dono e não foi feita aqui. Se ela acontecer, o passo
-2.4 do prompt passa a comparar contra a lista real em vez do resumo.
+O resumo do relatório (passo 2.3, "quando você mandar sugestão, cite em uma frase o que
+propôs") continua existindo como segunda camada, não porque a lista de `GET /api/projects`
+seja insuficiente, mas porque uma proposta pode ter sido reformulada entre uma rodada e
+outra sem que o texto bata palavra por palavra — o resumo dá contexto que a comparação
+exata de string não pega.
 
 ### Frequência pela idade do último relatório, não pelo calendário
 
@@ -504,16 +477,15 @@ de rodar diagnóstico a mais, que é somente leitura, e o resumo registra que o 
 foi lido. As margens (40 horas, 6 dias) são folgadas de propósito, para o horário da routine
 variar sem pular uma noite.
 
-### Diagnóstico antes de escrita, dentro de cada projeto
+### Diagnóstico por projeto, sem fase de execução (atualizado 2026-07-30)
 
-Mantive o laço por projeto como especificado, mas com a ordem fixa dentro dele: relatório e
-sugestões saem antes de qualquer escrita no repositório. O que isso protege é a manhã do
-dono — o diagnóstico chega mesmo quando a execução trava.
-
-Se as rodadas começarem a ser cortadas pela metade por tempo, a mudança a fazer é separar em
-duas passadas: diagnosticar todos os projetos primeiro, executar aprovadas depois. Aí nem os
-últimos projetos da fila perdem o relatório. Não fiz agora porque duplica o clone e complica
-o prompt sem sintoma que justifique.
+Esta rodada chegou a executar sugestão aprovada — clonava, criava branch, commitava e abria
+pull request. Isso saiu do prompt: o dono pediu para o trabalho acontecer na hora, com ele
+presente, a partir de um prompt gerado no painel, não 24h depois sem ninguém olhando (ver
+docs/proximos-passos.md, itens 1 e 2). O laço por projeto continua o mesmo — clonar,
+diagnosticar, reportar, seguir para o próximo — só que agora sem a segunda metade que
+dependia de ordem: não existe mais "diagnóstico antes de escrita" para proteger, porque não
+há escrita nenhuma para adiar.
 
 ### Injeção e vazamento
 
@@ -527,14 +499,15 @@ quisesse dirigir a rodada.
 O conteúdo dos repositórios é declarado como material sob análise, e tentativa de instrução
 vira achado de segurança em vez de dilema. Isso transforma o ataque em sinal.
 
-E a defesa que não depende do modelo se comportar: proibição de `git add -A` e `git add .`,
-mais a conferência do `git status` antes do commit. É o que impede o bloco de contexto de
-vazar para um PR, mesmo que a instrução de remover o bloco seja ignorada.
+E a defesa que não depende do modelo se comportar: a rodada nunca chama `git commit`,
+`git push` nem abre pull request (ver "Limites absolutos" e a nota abaixo sobre a mudança de
+2026-07-30) — ela clona, lê, e o bloco de contexto escrito localmente em 2.1 nunca tem para
+onde vazar, porque não existe commit nenhum que o carregue.
 
 Sobre segredo: o prompt passa a variável sem expandir, proíbe `curl -v`, e proíbe valor de
-credencial em relatório, sugestão, commit e PR. Essa última importa mais do que parece — o
-relatório é gravado no Postgres e exibido na tela, então um segredo que caísse ali estaria
-publicado e persistido de uma vez só.
+credencial em relatório e sugestão. Essa última importa mais do que parece — o relatório é
+gravado no Postgres e exibido na tela, então um segredo que caísse ali estaria publicado e
+persistido de uma vez só.
 
 ### Formulação das regras
 
@@ -548,16 +521,10 @@ pior que regra ausente:
 
 - O `CLAUDE.md` de vários repositórios manda perguntar antes de agir. Numa routine sem
   ninguém acordado, isso trava. O prompt traduz: não agir e registrar.
-- Aprovação do dono poderia ser lida como liberação geral. O prompt diz que ela não suspende
-  nenhum limite, e lista o caso concreto — sugestão aprovada que exige migration não é
-  executada, fica registrada como pendente da mão do dono.
-
-### Limite por tentativa, não por relógio
-
-"Pare depois de 20 minutos" não funciona: modelo não acompanha tempo decorrido de forma
-confiável. "Depois de duas tentativas que não deram certo, pare" ele consegue seguir, porque
-é contagem de eventos que ele mesmo produziu. Mesma lógica no teto de três aprovadas por
-projeto.
+- Aprovação do dono poderia ser lida como "a rodada pode agir". Não é: aprovação só diz que
+  o dono quer aquilo no prompt que ele mesmo vai gerar e rodar depois (ver a nota acima
+  sobre a mudança de 2026-07-30). O prompt não deixa margem — a rodada não executa nada,
+  aprovado ou não.
 
 ### Degradação quando falta subagente
 

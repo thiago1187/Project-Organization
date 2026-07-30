@@ -136,7 +136,14 @@ export default async function DetalheProjetoPage({
       >
         <div style={{ minWidth: 0 }}>
           <PainelEtapa etapa={atual.etapa} />
-          <FilaSugestoes projetoId={atual.id} fila={fila} />
+          <FilaSugestoes
+            projetoId={atual.id}
+            projetoNome={atual.nome}
+            repositorio={atual.repo}
+            fila={fila}
+            contextos={contextos}
+            ultimoRelatorio={relatorios[0] ?? null}
+          />
           <EditorContexto projetoId={atual.id} itens={contextos} />
           <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />
         </div>

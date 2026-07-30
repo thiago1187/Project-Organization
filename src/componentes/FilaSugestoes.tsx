@@ -1,16 +1,67 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import type { FilaSugestoesVM } from "@/dominio/visao";
+import type { Contexto, Relatorio } from "@/dominio/tipos";
+import { gerarTextoPrompt } from "@/dominio/prompt";
 import CartaoSugestao from "./CartaoSugestao";
+import GeradorPrompt from "./GeradorPrompt";
 
 // A fila de sugestões — o coração do produto (docs/visao.md: "sala de
-// controle", não relatório). Pendentes primeiro, sempre visíveis; decididas
-// (aprovada/recusada/feita) em bloco à parte, recolhido por padrão, para não
-// competir por atenção com o que ainda precisa de decisão — mas sem sumir,
-// porque histórico de decisão é útil.
+// controle", não relatório). Três blocos:
 //
-// Marcar como "feita" é da routine, não do painel — não há botão para isso
-// aqui (ver CLAUDE.md e src/servidor/sugestoes.ts).
-export default function FilaSugestoes({ projetoId, fila }: { projetoId: string; fila: FilaSugestoesVM }) {
-  const semNada = fila.pendentes.length === 0 && fila.decididas.length === 0;
+// - pendentes: precisa de decisão do dono agora (aprovar/recusar), sempre visível.
+// - aprovadas: o dono já quer, ainda não foi feito — continua visível, porque
+//   "marcar como feita" é ação do dono agora (ver CartaoSugestao), não mais da
+//   routine.
+// - histórico (recusada/feita): recolhido por padrão, não compete por atenção.
+//
+// É "use client" porque guarda a seleção de sugestões para o gerador de
+// prompt (docs/proximos-passos.md item 1) — pendentes e aprovadas podem ser
+// marcadas; decididas (histórico) não entram na seleção, porque recusada não
+// deveria ir para um prompt de trabalho e feita já foi feita.
+export default function FilaSugestoes({
+  projetoId,
+  projetoNome,
+  repositorio,
+  fila,
+  contextos,
+  ultimoRelatorio,
+}: {
+  projetoId: string;
+  projetoNome: string;
+  repositorio: string;
+  fila: FilaSugestoesVM;
+  contextos: Contexto[];
+  ultimoRelatorio: Relatorio | null;
+}) {
+  const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
+
+  const selecionaveis = useMemo(() => [...fila.pendentes, ...fila.aprovadas], [fila.pendentes, fila.aprovadas]);
+
+  function alternarSelecao(id: string) {
+    setSelecionadas((atual) => {
+      const proximo = new Set(atual);
+      if (proximo.has(id)) proximo.delete(id);
+      else proximo.add(id);
+      return proximo;
+    });
+  }
+
+  const marcadasParaPrompt = selecionaveis.filter((s) => selecionadas.has(s.id));
+  const temNaoReverte = marcadasParaPrompt.some((s) => s.naoReverte);
+  const semNada = fila.pendentes.length === 0 && fila.aprovadas.length === 0 && fila.historico.length === 0;
+
+  function gerarTexto(): string {
+    return gerarTextoPrompt({
+      projetoNome,
+      repositorio,
+      contextos,
+      ultimoRelatorio,
+      selecionadas: marcadasParaPrompt,
+      recusadas: fila.recusadas,
+    });
+  }
 
   return (
     <div style={{ marginBottom: 30 }}>
@@ -45,13 +96,53 @@ export default function FilaSugestoes({ projetoId, fila }: { projetoId: string; 
       {fila.pendentes.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {fila.pendentes.map((s) => (
-            <CartaoSugestao key={s.id} sugestao={s} projetoId={projetoId} />
+            <CartaoSugestao
+              key={s.id}
+              sugestao={s}
+              projetoId={projetoId}
+              selecionavel
+              selecionada={selecionadas.has(s.id)}
+              onToggleSelecao={alternarSelecao}
+            />
           ))}
         </div>
       )}
 
-      {fila.decididas.length > 0 && (
-        <details style={{ marginTop: fila.pendentes.length > 0 ? 18 : 0 }}>
+      {fila.aprovadas.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            marginTop: fila.pendentes.length > 0 ? 18 : 0,
+          }}
+        >
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+            {fila.aprovadas.length} {fila.aprovadas.length === 1 ? "aprovada, aguardando" : "aprovadas, aguardando"}
+          </div>
+          {fila.aprovadas.map((s) => (
+            <CartaoSugestao
+              key={s.id}
+              sugestao={s}
+              projetoId={projetoId}
+              selecionavel
+              selecionada={selecionadas.has(s.id)}
+              onToggleSelecao={alternarSelecao}
+            />
+          ))}
+        </div>
+      )}
+
+      {selecionaveis.length > 0 && (
+        <GeradorPrompt
+          quantidadeSelecionadas={marcadasParaPrompt.length}
+          temNaoReverte={temNaoReverte}
+          gerarTexto={gerarTexto}
+        />
+      )}
+
+      {fila.historico.length > 0 && (
+        <details style={{ marginTop: fila.pendentes.length > 0 || fila.aprovadas.length > 0 ? 18 : 0 }}>
           <summary
             style={{
               fontFamily: "'JetBrains Mono', monospace",
@@ -61,10 +152,10 @@ export default function FilaSugestoes({ projetoId, fila }: { projetoId: string; 
               userSelect: "none",
             }}
           >
-            {fila.decididas.length} já {fila.decididas.length === 1 ? "decidida" : "decididas"}
+            {fila.historico.length} já {fila.historico.length === 1 ? "decidida" : "decididas"}
           </summary>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
-            {fila.decididas.map((s) => (
+            {fila.historico.map((s) => (
               <CartaoSugestao key={s.id} sugestao={s} projetoId={projetoId} />
             ))}
           </div>

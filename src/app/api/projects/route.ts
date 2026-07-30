@@ -15,11 +15,19 @@ import type { Contexto, Sugestao } from "@/dominio/tipos";
 // Devolve os projetos ativos, cada um com:
 // - o contexto que o dono anexou (a routine escreve isso no CLAUDE.md do
 //   repositório alvo antes de acionar os agentes);
-// - as sugestões aprovadas, inteiras (a routine executa até três, as mais
-//   antigas primeiro, por isso `criada_em` e `id` vão junto);
+// - as sugestões aprovadas, inteiras — não são mais para a routine executar
+//   (isso acabou, ver docs/proximos-passos.md item 2, "tirar a execução da
+//   routine"); ficam aqui para a rodada saber o que o dono já decidiu que
+//   quer, e não sugerir de novo algo que já está aprovado e só esperando o
+//   dono gerar o prompt e fazer;
 // - só o texto (proposta) das sugestões pendentes e recusadas — o suficiente
 //   para a routine não repetir uma proposta já feita ou já negada (ver
 //   CLAUDE.md e docs/routine-noturna.md > "O buraco de duplicata").
+//
+// Formato inalterado por essa mudança de fluxo — só o significado de
+// "aprovada" mudou (de "a routine pode executar" para "o dono quer, vai
+// entrar no prompt"), não o contrato JSON. Ainda assim, qualquer mudança de
+// formato aqui continua exigindo aviso + escriba-docs.
 //
 // Projeto pausado (ativo = false) não entra: a routine não deve rodar nele.
 

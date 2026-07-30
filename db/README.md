@@ -83,6 +83,33 @@ apaga nenhum dado — ver comentário no topo do `down`):
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/003_tetos_tamanho.down.sql
 ```
 
+## 004 — `pr_url` opcional em `sugestao`
+
+Afrouxa `sugestao.pr_url`: deixa de ser obrigatório em `feita` e de exigir
+`https://github.com/`. Consequência de tirar a execução automática da routine
+(ver `docs/proximos-passos.md` item 2) — o trabalho agora acontece na hora,
+pelo prompt gerado no painel, e trabalho supervisionado pode ir direto para a
+branch principal, sem pull request. Quando `pr_url` é informado, ainda precisa
+começar com `https://`, mas aceita qualquer origem, não só GitHub. Ver o
+comentário no topo da migration para o raciocínio completo.
+
+**Esta migration está escrita e ainda NÃO foi aplicada.** Como em 002 e 003,
+não há nada para rodar aqui até o dono decidir aplicar. Até lá, marcar uma
+sugestão como "feita" sem link falha no banco com um erro claro — é o
+comportamento esperado, não um bug. Quando decidir aplicar:
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/004_pr_url_opcional.sql
+```
+
+Reverter (volta a exigir `pr_url` com link do GitHub em toda sugestão
+"feita" — pode falhar se já existir alguma "feita" sem link ou com link de
+outra origem; ver comentário no topo do `down`):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/004_pr_url_opcional.down.sql
+```
+
 ## Dado de demonstração (`seed.sql`)
 
 `db/seed.sql` popula o banco com um conjunto fictício de projetos, relatórios,

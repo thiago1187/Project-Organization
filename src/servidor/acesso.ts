@@ -32,12 +32,17 @@ export class AcessoNegado extends Error {
 }
 
 /**
- * Como o acesso foi concedido. Distinguir os dois importa para
- * `PATCH /api/suggestions/:id`: quem tem sessão é o dono (pode aprovar e
- * recusar); quem tem só o header de bypass é a routine (pode só marcar como
- * "feita", e apenas a partir de "aprovada"). Ver CLAUDE.md, rotas de API.
+ * Como o acesso foi concedido: sessão é o dono no navegador, bypass é a
+ * routine com o header de segredo. Desde que a routine parou de escrever em
+ * `sugestao` (docs/proximos-passos.md item 2, "tirar a execução da
+ * routine"), nenhuma rota mais decide *o quê* fazer a partir dessa
+ * distinção — todo caminho de escrita já exige sessão do dono
+ * (`exigirSessaoDoDono()`); bypass só abre os caminhos de leitura e os dois
+ * POSTs que a routine ainda usa (`/api/reports`, `/api/suggestions`), via
+ * `exigirAcesso()`. O tipo continua interno a este arquivo por isso — nada
+ * de fora precisa mais perguntar qual foi a origem, só se houve uma.
  */
-export type OrigemAcesso = "sessao" | "bypass";
+type OrigemAcesso = "sessao" | "bypass";
 
 /** Resolve a origem do acesso desta requisição, ou `null` se nenhuma bater. */
 async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
@@ -88,7 +93,7 @@ async function resolverOrigemAcesso(): Promise<OrigemAcesso | null> {
 
 /**
  * Exige que a origem seja a sessão do dono. Use em tudo que decide — aprovar,
- * recusar, e o CRUD de projeto.
+ * recusar, marcar como feita, e o CRUD de projeto.
  *
  * Existe porque a regra "só o dono decide" precisa morar num lugar só. Ela
  * estava duplicada em cada chamador, e o resultado foi previsível: a rota
@@ -108,16 +113,4 @@ export async function exigirSessaoDoDono(): Promise<void> {
 export async function exigirAcesso(): Promise<void> {
   const origem = await resolverOrigemAcesso();
   if (!origem) throw new AcessoNegado();
-}
-
-/**
- * Mesma checagem de `exigirAcesso()`, mas devolve também a origem do acesso
- * (sessão do dono ou bypass da routine) para rotas que precisam decidir *o
- * quê* cada chamador pode fazer, não só *se* pode chamar. Lança
- * `AcessoNegado` nas mesmas condições que `exigirAcesso()`.
- */
-export async function exigirAcessoComOrigem(): Promise<OrigemAcesso> {
-  const origem = await resolverOrigemAcesso();
-  if (!origem) throw new AcessoNegado();
-  return origem;
 }

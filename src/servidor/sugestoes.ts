@@ -7,10 +7,11 @@ import type { DadosSugestaoValidados } from "@/dominio/validacaoSugestao";
 
 // Camada de acesso a `sugestao`. A leitura serve tanto a fila de sugestões da
 // tela de detalhe quanto `temPr`/`prUrl` (ver `detalheProjeto` em
-// src/dominio/visao.ts) e `GET /api/projects` (routine). As escritas são:
-// criar (routine, `POST /api/suggestions`), aprovar e recusar (dono, painel)
-// e marcar como feita (routine, só a partir de "aprovada") — ver
-// `PATCH /api/suggestions/:id` e CLAUDE.md > "protocolo de sugestões".
+// src/dominio/visao.ts) e `GET /api/projects` (routine, só leitura). As
+// escritas são: criar (routine, `POST /api/suggestions`) e aprovar, recusar e
+// marcar como feita (as três do dono, pelo painel) — ver
+// `PATCH /api/suggestions/:id`, CLAUDE.md > "protocolo de sugestões" e
+// docs/proximos-passos.md item 2 ("tirar a execução da routine").
 //
 // As escritas que fazem transição de estado restringem o UPDATE ao estado de
 // origem esperado de propósito: isso garante que a trigger
@@ -181,14 +182,31 @@ export async function criarSugestao(dados: DadosSugestaoValidados): Promise<Suge
 }
 
 /**
- * aprovada → feita, com o link do PR. Chamada só por
- * `PATCH /api/suggestions/:id` quando quem chama tem o header de bypass (a
- * routine) — nunca a partir de sessão do dono (ver CLAUDE.md > "protocolo de
- * sugestões" e a trigger `sugestao_validar_transicao`, que só libera
- * aprovada→feita). Lança `ErroDados` se a sugestão não existir mais ou não
- * estiver aprovada (ainda pendente, já feita, ou recusada).
+ * aprovada → feita, com um link opcional do que foi feito. Chamada pela
+ * Server Action `marcarFeitaAction` (src/servidor/acoes-sugestao.ts) e por
+ * `PATCH /api/suggestions/:id`, sempre a partir de sessão do dono — a routine
+ * só lê, nunca escreve `sugestao` (docs/proximos-passos.md item 2, "tirar a
+ * execução da routine"). O trabalho agora acontece na hora, pelo prompt
+ * gerado (src/dominio/prompt.ts); é o dono quem sabe quando terminou, então é
+ * o dono quem marca. A trigger `sugestao_validar_transicao`
+ * (db/migrations/001_schema_inicial.sql) continua sendo a segunda linha de
+ * defesa da transição, só libera aprovada→feita.
+ *
+ * `prUrl` é opcional (`null` aceito) desde que o trabalho deixou de sair só
+ * por pull request automático — trabalho supervisionado pode ir direto para
+ * a branch principal (CLAUDE.md > Convenções de trabalho), sem PR nenhum. O
+ * banco só passa a aceitar `pr_url` nulo em "feita" depois que
+ * `db/migrations/004_pr_url_opcional.sql` for aplicada; até lá, chamar isto
+ * sem link falha com um erro claro em vez de gravar dado inconsistente.
+ * Lança `ErroDados` se a sugestão não existir mais ou não estiver aprovada
+ * (ainda pendente, já feita, ou recusada).
  */
-export async function marcarSugestaoFeita(id: string, prUrl: string): Promise<Sugestao> {
+export async function marcarSugestaoFeita(id: string, prUrl: string | null): Promise<Sugestao> {
+  // Só o dono decide quando o trabalho terminou — mesmo raciocínio de
+  // `aprovarSugestao`/`recusarSugestao` acima: a regra mora aqui, não só no
+  // chamador, para que nenhum caminho de escrita nasça sem essa checagem.
+  await exigirSessaoDoDono();
+
   try {
     const linhas = (await sql()`
       UPDATE sugestao
