@@ -13,7 +13,7 @@
 // outro lugar — se algo com cara de credencial estivesse em contexto ou
 // relatório, ele vazaria ali, fora do controle deste app.
 
-import { semCredencial } from "./pareceCredencial";
+import { semCredencial, urlSemSegredo } from "./pareceCredencial";
 import type { Contexto, Relatorio } from "./tipos";
 import type { SugestaoVM } from "./visao";
 
@@ -52,35 +52,6 @@ function secaoContexto(contextos: Contexto[]): string {
     .join("\n\n");
 }
 
-
-/**
- * URL de arquivo anexado, reduzida a origem + caminho.
- *
- * `contexto.arquivo_url` é o único campo do prompt que é uma URL, e o único
- * requisito do banco é começar com `https://`. Link assinado de S3, export do
- * Notion, compartilhamento do Google com chave na query, ou
- * `https://usuario:senha@host/spec.md` — todos passariam inteiros para a área
- * de transferência, que é um caminho de saída sem volta.
- *
- * `semCredencial` sozinho não resolve bem aqui: ele apagaria a URL inteira e o
- * dono perderia a informação de onde o arquivo está. Descartar `userinfo` e
- * query string preserva o que ele quer ver e joga fora exatamente a parte
- * onde o segredo viaja.
- */
-function urlSemSegredo(bruta: string): string {
-  try {
-    const u = new URL(bruta);
-    u.username = "";
-    u.password = "";
-    u.search = "";
-    u.hash = "";
-    return u.toString();
-  } catch {
-    // Não parseou: não é URL reconhecível, então não dá para reduzir com
-    // segurança. Cai no tripwire genérico.
-    return semCredencial(bruta);
-  }
-}
 
 function secaoDiagnostico(r: Relatorio | null): string {
   if (!r) return "Nenhuma rodada registrada ainda para este projeto.";

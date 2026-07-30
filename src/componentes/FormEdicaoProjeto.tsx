@@ -44,8 +44,7 @@ export default function FormEdicaoProjeto({
         <input
           name="repositorio"
           defaultValue={estado.campos.repositorio ?? repositorioAtual}
-          required
-          maxLength={140}
+                    maxLength={140}
           style={estiloCampo}
         />
       </label>

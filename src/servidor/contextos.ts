@@ -1,7 +1,7 @@
 import "server-only";
 import { sql } from "./db";
 import { ErroDados, traduzirErroDeBanco } from "./erros";
-import { exigirSessaoDoDono } from "./acesso";
+import { exigirDonoOuMcp, exigirSessaoDoDono } from "./acesso";
 import type { Contexto, OrigemContexto } from "@/dominio/tipos";
 import type { DadosContextoValidados } from "@/dominio/validacaoContexto";
 
@@ -14,11 +14,26 @@ import type { DadosContextoValidados } from "@/dominio/validacaoContexto";
 // routine (ver CLAUDE.md, regra 4, exceção deliberada, e o comentário da
 // coluna `contexto.origem` na migration).
 //
-// `exigirSessaoDoDono()` mora aqui dentro, e não só na rota/action que chama
-// — mesmo raciocínio do comentário em `aprovarSugestao`/`recusarSugestao`
+// O guard mora aqui dentro, e não só na rota/action que chama — mesmo
+// raciocínio do comentário em `aprovarSugestao`/`recusarSugestao`
 // (src/servidor/sugestoes.ts): a regra "só o dono escreve contexto" precisa
 // valer em todo caminho de escrita, mesmo um que apareça depois e esqueça de
 // checar sozinho.
+//
+// `upsertContexto` usa `exigirDonoOuMcp()` desde o servidor MCP
+// (src/servidor/mcp.ts, docs/mcp.md): "o dono" passou a incluir o Claude Code
+// dele, identificado por `PAINEL_MCP_SECRET`. A routine continua recusada —
+// ela só tem o bypass — então a razão original da exceção ("um agente
+// comprometido escreveria as próprias instruções para a rodada seguinte")
+// segue valendo inteira. `deletarContexto` ficou em `exigirSessaoDoDono()`:
+// o MCP não tem ferramenta de apagar, e não é para ganhar uma sem alguém
+// decidir isso de propósito.
+//
+// Repare que só a porta nova afrouxou: `PUT /api/context/:projeto` e
+// `salvarContextoAction` continuam chamando `exigirSessaoDoDono()` antes de
+// chegar aqui, então o contrato daquelas duas está literalmente igual ao que
+// era. O único chamador que se beneficia de `exigirDonoOuMcp()` é a
+// ferramenta `anexar_contexto`.
 
 interface LinhaContexto {
   id: string;
@@ -92,7 +107,7 @@ export async function upsertContexto(
   projetoId: string,
   dados: DadosContextoValidados,
 ): Promise<Contexto> {
-  await exigirSessaoDoDono();
+  await exigirDonoOuMcp();
 
   try {
     const linhas = (await sql()`

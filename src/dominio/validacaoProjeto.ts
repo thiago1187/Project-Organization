@@ -33,7 +33,8 @@ function temSegmentoDeTravessia(repositorio: string): boolean {
 
 export interface DadosProjetoValidados {
   nome: string;
-  repositorio: string;
+  /** `null` quando o projeto vive num connector e não tem repositório. */
+  repositorio: string | null;
 }
 
 export interface DadosProjetoComFrequenciaValidados extends DadosProjetoValidados {
@@ -58,7 +59,13 @@ export function validarDadosProjeto(input: {
   if (nome.length > NOME_TAMANHO_MAXIMO) {
     return { ok: false, erro: `Nome muito longo — no máximo ${NOME_TAMANHO_MAXIMO} caracteres.` };
   }
-  if (!repositorio) return { ok: false, erro: "Informe o repositório." };
+  // Repositório vazio é válido: o projeto vive num connector (n8n, Notion,
+  // Supabase) e não tem código em lugar nenhum. A rodada trata esse caso — ver
+  // "Connectors: leia à vontade, nunca escreva" em docs/routine-noturna.md.
+  //
+  // Vazio vira null, nunca string vazia. Duas formas de dizer "não tem" é como
+  // o dado fica ambíguo, e quem consulta passa a ter que testar as duas.
+  if (!repositorio) return { ok: true, dados: { nome, repositorio: null } };
   if (repositorio.length > REPOSITORIO_TAMANHO_MAXIMO) {
     return {
       ok: false,

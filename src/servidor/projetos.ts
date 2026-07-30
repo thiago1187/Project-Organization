@@ -11,7 +11,7 @@ import type { PatchCadencia } from "@/dominio/cadencia";
 interface LinhaProjeto {
   id: string;
   nome: string;
-  repositorio: string;
+  repositorio: string | null;
   frequencia: Frequencia;
   ativo: boolean;
   criado_em: string | Date;
@@ -64,7 +64,7 @@ export async function obterProjetoPorId(id: string): Promise<Projeto | null> {
 
 export async function criarProjeto(dados: {
   nome: string;
-  repositorio: string;
+  repositorio: string | null;
   frequencia: Frequencia;
 }): Promise<Projeto> {
   try {
@@ -82,7 +82,7 @@ export async function criarProjeto(dados: {
 /** Edita nome e repositório. Não muda frequência nem ativo — isso é sempre via `atualizarCadenciaProjeto`. */
 export async function atualizarDadosProjeto(
   id: string,
-  dados: { nome: string; repositorio: string },
+  dados: { nome: string; repositorio: string | null },
 ): Promise<Projeto> {
   try {
     const linhas = (await sql()`
