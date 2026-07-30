@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
 import { ORDEM_FAIXAS, patchParaFaixa, type Faixa } from "@/dominio/cadencia";
 import { validarDadosProjeto, validarDadosProjetoComFrequencia } from "@/dominio/validacaoProjeto";
 import { atualizarCadenciaProjeto, atualizarDadosProjeto, criarProjeto } from "./projetos";
-import { AcessoNegado, exigirAcesso } from "./acesso";
+import { AcessoNegado, exigirSessaoDoDono } from "./acesso";
 
 function revalidarTelasDeProjeto(projetoId?: string) {
   revalidatePath("/");
@@ -26,7 +26,10 @@ function revalidarTelasDeProjeto(projetoId?: string) {
  */
 async function verificarAcesso(): Promise<string | null> {
   try {
-    await exigirAcesso();
+    // CRUD de projeto é do painel. A routine não cadastra nem edita projeto —
+    // mudar o campo `repositorio` redirecionaria para onde a própria rodada
+    // escreve contexto e abre PR.
+    await exigirSessaoDoDono();
     return null;
   } catch (erro) {
     if (erro instanceof AcessoNegado) return "Acesso negado.";

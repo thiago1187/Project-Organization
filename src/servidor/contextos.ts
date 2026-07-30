@@ -34,6 +34,23 @@ function linhaParaContexto(l: LinhaContexto): Contexto {
   };
 }
 
+/**
+ * Todo o contexto, de todos os projetos — o que `GET /api/projects` precisa
+ * para anexar, a cada projeto ativo, o material que o dono forneceu. Escala
+ * pessoal: sem paginação, mesmo padrão de `listarRelatorios`.
+ */
+export async function listarContextos(): Promise<Contexto[]> {
+  try {
+    const linhas = (await sql()`
+      SELECT id, projeto_id, agente_destino, tipo, conteudo, arquivo_url, origem, criado_em, atualizado_em
+      FROM contexto
+    `) as unknown as LinhaContexto[];
+    return linhas.map(linhaParaContexto);
+  } catch (erro) {
+    throw traduzirErroDeBanco(erro, "listarContextos");
+  }
+}
+
 /** Mesmo padrão de acesso do índice único de contexto (prefixo projeto_id). */
 export async function listarContextosDoProjeto(projetoId: string): Promise<Contexto[]> {
   try {

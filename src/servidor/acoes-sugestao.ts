@@ -9,11 +9,11 @@
 
 import { revalidatePath } from "next/cache";
 import { aprovarSugestao, recusarSugestao } from "./sugestoes";
-import { AcessoNegado, exigirAcesso } from "./acesso";
+import { AcessoNegado, exigirSessaoDoDono } from "./acesso";
 
 async function verificarAcesso(): Promise<string | null> {
   try {
-    await exigirAcesso();
+    await exigirSessaoDoDono();
     return null;
   } catch (erro) {
     if (erro instanceof AcessoNegado) return "Acesso negado.";

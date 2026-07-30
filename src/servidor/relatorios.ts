@@ -2,10 +2,11 @@ import "server-only";
 import { sql } from "./db";
 import { traduzirErroDeBanco } from "./erros";
 import type { AchadoAgente, Relatorio, StatusRelatorio } from "@/dominio/tipos";
+import type { DadosRelatorioValidados } from "@/dominio/validacaoRelatorio";
 
-// Camada de leitura de `relatorio` — só SELECT. Criar relatório é
-// `POST /api/reports`, chamado pela routine; fora do escopo desta entrega
-// (ver CLAUDE.md, rotas de API).
+// Camada de acesso a `relatorio`. A leitura serve as telas; a escrita
+// (`criarRelatorio`) é usada só por `POST /api/reports`, chamado pela
+// routine — o painel nunca cria relatório.
 
 interface LinhaRelatorio {
   id: string;
@@ -65,5 +66,32 @@ export async function listarRelatoriosDoProjeto(projetoId: string): Promise<Rela
     return linhas.map(linhaParaRelatorio);
   } catch (erro) {
     throw traduzirErroDeBanco(erro, "listarRelatoriosDoProjeto");
+  }
+}
+
+/**
+ * Grava o diagnóstico de uma rodada — chamada só por `POST /api/reports`. O
+ * `projeto_id` já foi conferido pela rota (o projeto existe) antes de chegar
+ * aqui; um `projeto_id` que não existe mais ainda assim falharia pela FK, e
+ * viraria `ErroDados` de "dados inválidos" via `traduzirErroDeBanco`.
+ * `achados_por_agente` já chega validado item a item por
+ * `validarRelatorio` (src/dominio/validacaoRelatorio.ts) — aqui só grava.
+ */
+export async function criarRelatorio(dados: DadosRelatorioValidados): Promise<Relatorio> {
+  try {
+    const linhas = (await sql()`
+      INSERT INTO relatorio (projeto_id, status, resumo, testes_passaram, achados_por_agente)
+      VALUES (
+        ${dados.projeto_id},
+        ${dados.status},
+        ${dados.resumo},
+        ${dados.testes_passaram},
+        ${JSON.stringify(dados.achados_por_agente)}::jsonb
+      )
+      RETURNING id, projeto_id, executado_em, status, resumo, testes_passaram, achados_por_agente
+    `) as unknown as LinhaRelatorio[];
+    return linhaParaRelatorio(linhas[0]);
+  } catch (erro) {
+    throw traduzirErroDeBanco(erro, "criarRelatorio");
   }
 }
