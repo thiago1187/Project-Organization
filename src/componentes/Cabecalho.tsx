@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Relogio from "./Relogio";
 import { usePathname } from "next/navigation";
 import BotaoTema from "./BotaoTema";
 import { sairAction } from "@/servidor/acoes-sessao";
 
-// "agora" fica fixo nesta etapa — calcular no servidor divergiria na
-// hidratação e mostraria hora errada (plano §6, risco "agora e saudação fixos").
-const AGORA = "29 jul 2026 · 07:40";
 
 export default function Cabecalho() {
   const pathname = usePathname();
@@ -39,9 +37,9 @@ export default function Cabecalho() {
       >
         Acompanhamento noturno
       </Link>
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "var(--mut2)" }}>
-        {AGORA}
-      </div>
+      <Relogio
+        style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "var(--mut2)" }}
+      />
       <div style={{ flex: 1 }} />
       <BotaoTema />
       <div style={{ display: "flex", gap: 2 }}>

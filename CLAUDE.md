@@ -22,8 +22,8 @@ manhã      dono abre o painel  →  lê o diagnóstico
                                →  aprova ou recusa cada sugestão
                                →  ajusta o contexto do projeto
 
-depois     routine (agendada ou sob demanda) lê as sugestões aprovadas
-           →  executa apenas essas  →  abre pull request  →  reporta de volta
+depois     dono marca o que quer  →  [gerar prompt] no painel
+           →  cola no Claude Code  →  o trabalho acontece com ele presente
 ```
 
 ## A regra que define o sistema
@@ -32,7 +32,7 @@ depois     routine (agendada ou sob demanda) lê as sugestões aprovadas
 
 Nenhuma sugestão vira trabalho sem aprovação explícita do dono pelo painel. Isso não é preferência de processo — é o que torna o sistema seguro de rodar sem ninguém acordado, e é o que faz "reverter" ser barato: se nada foi feito sem aprovação, quase nunca há o que desfazer.
 
-Quando a execução acontece, depois da aprovação, ela sempre vai por pull request. Nunca merge direto.
+A execução não é da rodada. Depois de aprovar, o dono gera um prompt no painel e faz o trabalho com o Claude Code, presente. Se quiser revisão antes de valer, ele escolhe passar por pull request — mas é escolha dele, na hora, não regra da automação.
 
 ## Estado atual e alvo
 
@@ -77,11 +77,11 @@ Quatro entidades. Deliberadamente mínimo — não anteveja campo que talvez sir
 
 | Rota | Uso |
 |---|---|
-| `GET /api/projects` | Projetos ativos com o contexto de cada um, as **sugestões aprovadas** (para executar) e o **texto das pendentes e recusadas** (para não propor de novo o que já está na fila ou já foi negado). A routine lê daqui — mudar o formato quebra a automação. |
+| `GET /api/projects` | Projetos ativos com o contexto de cada um, as **sugestões aprovadas** (para não repropor o que o dono já decidiu que quer) e o **texto das pendentes e recusadas** (para não propor de novo o que já está na fila ou já foi negado). A routine lê daqui — mudar o formato quebra a automação. |
 | `POST /api/reports` | Recebe o diagnóstico de uma rodada. Chamado pela routine. |
 | `GET /api/reports` | Alimenta as telas. |
 | `POST /api/suggestions` | Recebe as sugestões que os agentes levantaram. Chamado pela routine. |
-| `PATCH /api/suggestions/:id` | Aprovar, recusar ou marcar como feita. Chamado pelo painel e pela routine. |
+| `PATCH /api/suggestions/:id` | Aprovar, recusar ou marcar como feita. **Só com sessão do dono** — as três transições. A routine não muda estado de sugestão. |
 | `GET /api/context/:projeto` | Contexto de um projeto. |
 | `PUT /api/context/:projeto` | Grava contexto. Chamado pelo painel. |
 
@@ -143,7 +143,9 @@ Dois são obrigatórios em situações específicas:
 - `revisor-seguranca` antes de qualquer commit que toque autenticação, autorização ou acesso a dado
 - `escriba-docs` quando a mudança for significativa (ver abaixo)
 
-Ordem esperada numa rodada: os somente-leitura levantam o diagnóstico primeiro; só depois os que escrevem agem sobre o que foi **aprovado**.
+**A rodada só aciona agentes de diagnóstico.** Agente de escrita não entra nela — nem para executar sugestão aprovada, porque execução automática não existe mais. Quais agentes rodam em cada projeto é configurado na esteira, na tela do projeto, e a esteira só oferece os de leitura.
+
+O trabalho de escrita acontece depois, com o dono presente, a partir do prompt que ele gera no painel.
 
 ## Documentação
 
