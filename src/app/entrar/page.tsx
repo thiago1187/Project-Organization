@@ -1,4 +1,5 @@
 import FormEntrar from "@/componentes/FormEntrar";
+import { destinoSeguro } from "@/dominio/destinoSeguro";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function EntrarPage({
   searchParams: Promise<{ proximo?: string }>;
 }) {
   const { proximo } = await searchParams;
-  const destino = typeof proximo === "string" && proximo.startsWith("/") && !proximo.startsWith("//") ? proximo : "/";
+  const destino = destinoSeguro(proximo);
 
   return (
     <div

@@ -1,3 +1,4 @@
+import { destinoSeguro } from "@/dominio/destinoSeguro";
 "use server";
 
 // Entrada e saída da sessão própria do dono (pendência 1 da revisão de
@@ -21,18 +22,6 @@ export interface EstadoEntrar {
 }
 
 /** Caminho padrão depois de entrar, e único fallback aceito para `proximo`. */
-const DESTINO_PADRAO = "/";
-
-/**
- * Só aceita caminhos internos (`/algo`), nunca uma URL completa — `proximo`
- * vem de um campo de formulário e um valor como `https://phish.example` faria
- * o `redirect()` sair do painel logo depois de confirmar o segredo do dono.
- */
-function destinoSeguro(proximo: FormDataEntryValue | null): string {
-  if (typeof proximo !== "string") return DESTINO_PADRAO;
-  if (!proximo.startsWith("/") || proximo.startsWith("//")) return DESTINO_PADRAO;
-  return proximo;
-}
 
 /** Confere o segredo enviado pelo formulário de /entrar e, se bater, grava o cookie de sessão. */
 export async function entrarAction(_estadoAnterior: EstadoEntrar, formData: FormData): Promise<EstadoEntrar> {
