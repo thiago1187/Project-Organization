@@ -43,7 +43,18 @@ O alvo é um app Next.js (App Router) com:
 - rotas de API para receber diagnóstico e servir contexto e aprovações
 - persistência em Postgres (Neon, pela Vercel)
 
-Ao migrar, **preserve o CSS, a tipografia e o layout do export**. O visual já foi aprovado; a mudança é estrutural, não estética.
+## Sobre o visual
+
+O export do Claude Design foi o ponto de partida, e a migração para Next.js o preservou fielmente. **Essa fase acabou.** O visual do export não é mais o alvo — ele é a linha de base a partir da qual o painel deve evoluir.
+
+A direção agora é: **intuitivo, maleável e futurista, sem perder eficiência.**
+
+- **Intuitivo** — o dono não deve precisar aprender a tela. O que ele quer fazer está onde ele procuraria.
+- **Maleável** — a interface responde. Editar no lugar em vez de abrir formulário; arrastar em vez de escolher em lista; atalho de teclado para quem já sabe o caminho.
+- **Futurista** — não é gradiente nem brilho. É a sensação de comandar um sistema que já entendeu o que você quer. Densidade alta, resposta imediata, zero cerimônia entre intenção e ação.
+- **Sem perder eficiência** — é ferramenta de uso diário, não vitrine. Animação que atrasa é defeito. Espaço que obriga a rolar é defeito.
+
+`design-original/` continua servindo como referência do que já funcionava — tipografia, densidade, paleta. Não é mais um contrato.
 
 ## Telas
 
@@ -66,7 +77,7 @@ Quatro entidades. Deliberadamente mínimo — não anteveja campo que talvez sir
 
 | Rota | Uso |
 |---|---|
-| `GET /api/projects` | Projetos ativos **com o contexto e as sugestões aprovadas de cada um**. A routine lê daqui — mudar o formato quebra a automação. |
+| `GET /api/projects` | Projetos ativos com o contexto de cada um, as **sugestões aprovadas** (para executar) e o **texto das pendentes e recusadas** (para não propor de novo o que já está na fila ou já foi negado). A routine lê daqui — mudar o formato quebra a automação. |
 | `POST /api/reports` | Recebe o diagnóstico de uma rodada. Chamado pela routine. |
 | `GET /api/reports` | Alimenta as telas. |
 | `POST /api/suggestions` | Recebe as sugestões que os agentes levantaram. Chamado pela routine. |
