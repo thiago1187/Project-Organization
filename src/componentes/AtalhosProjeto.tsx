@@ -61,8 +61,7 @@ export default function AtalhosProjeto({
           className="h-txt"
           title={`${anterior.nome} (atalho: [)`}
           style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut3)",
             maxWidth: 160,
             overflow: "hidden",
@@ -79,8 +78,7 @@ export default function AtalhosProjeto({
           className="h-txt"
           title={`${proximo.nome} (atalho: ])`}
           style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut3)",
             maxWidth: 160,
             overflow: "hidden",

@@ -4,29 +4,11 @@ import { useEffect, useState } from "react";
 import type { SugestaoAgenteVM } from "@/dominio/sugestorAgentes";
 import { chipDoAgente } from "@/dominio/visao";
 import { alternarAgenteAction } from "@/servidor/acoes-agentes";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
-const estiloBotaoTexto = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  color: "var(--mut3)",
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  padding: "2px 4px",
-  whiteSpace: "nowrap",
-} as const;
+const estiloBotaoTexto = estiloBotao("texto");
 
-const estiloBotaoLigar = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  color: "var(--atn)",
-  background: "none",
-  border: "1px solid var(--borda)",
-  borderRadius: 4,
-  cursor: "pointer",
-  padding: "3px 8px",
-  whiteSpace: "nowrap",
-} as const;
+const estiloBotaoLigar = { ...estiloBotao("secundaria"), color: "var(--atn)", borderColor: "var(--atn)" } as const;
 
 /**
  * A faixa do sugestor de agentes (docs/plano-gerenciador-de-projeto.md § 4) —
@@ -82,14 +64,14 @@ export default function FaixaSugestorAgentes({
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
           sugerido para este projeto
         </div>
         <div style={{ flex: 1, height: 1, background: "var(--linha3)" }} />
       </div>
 
       {erro && (
-        <div style={{ fontSize: 11, color: "var(--fal)", marginBottom: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ fontSize: "var(--fs-sm)", color: "var(--fal)", marginBottom: 8, fontWeight: "var(--fw-medium)" }}>
           {erro}
         </div>
       )}
@@ -121,8 +103,8 @@ export default function FaixaSugestorAgentes({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 9,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--fs-2xs)",
                   background: chip.bg,
                   color: chip.fg,
                   border: `1px solid ${chip.borda}`,
@@ -133,8 +115,8 @@ export default function FaixaSugestorAgentes({
                 {chip.mono}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{s.agente}</div>
-                <div style={{ fontSize: 11, color: "var(--mut3)", textWrap: "pretty", marginTop: 2 }}>{s.porque}</div>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--txt)" }}>{s.agente}</div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", textWrap: "pretty", marginTop: 2 }}>{s.porque}</div>
               </div>
               <div style={{ display: "flex", gap: 6, flex: "none" }}>
                 <button
@@ -186,8 +168,8 @@ export default function FaixaSugestorAgentes({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 9,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--fs-2xs)",
                   background: chip.bg,
                   color: chip.fg,
                   border: `1px solid ${chip.borda}`,
@@ -198,14 +180,13 @@ export default function FaixaSugestorAgentes({
                 {chip.mono}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{s.agente}</div>
-                <div style={{ fontSize: 11, color: "var(--mut3)", textWrap: "pretty", marginTop: 2 }}>{s.porque}</div>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--txt)" }}>{s.agente}</div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", textWrap: "pretty", marginTop: 2 }}>{s.porque}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
                 <span
                   style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 9,
+                    fontSize: "var(--fs-2xs)",
                     color: "var(--mut3)",
                     border: "1px solid var(--borda)",
                     borderRadius: 3,

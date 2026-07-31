@@ -66,12 +66,12 @@ export default function FilaSugestoes({
   return (
     <div style={{ marginBottom: 30 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
           fila de sugestões
         </div>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
         {fila.pendentes.length > 0 && (
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--atn)" }}>
+          <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--atn)" }}>
             {fila.pendentes.length} {fila.pendentes.length === 1 ? "esperando" : "esperando decisão"}
           </div>
         )}
@@ -84,8 +84,7 @@ export default function FilaSugestoes({
             borderRadius: 8,
             padding: "18px 12px",
             textAlign: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut3)",
           }}
         >
@@ -117,7 +116,7 @@ export default function FilaSugestoes({
             marginTop: fila.pendentes.length > 0 ? 18 : 0,
           }}
         >
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+          <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
             {fila.aprovadas.length} {fila.aprovadas.length === 1 ? "aprovada, aguardando" : "aprovadas, aguardando"}
           </div>
           {fila.aprovadas.map((s) => (
@@ -145,9 +144,9 @@ export default function FilaSugestoes({
         <details style={{ marginTop: fila.pendentes.length > 0 || fila.aprovadas.length > 0 ? 18 : 0 }}>
           <summary
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: "var(--mut3)",
+              fontSize: "var(--fs-xs)",
+              fontWeight: "var(--fw-semibold)",
+              color: "var(--mut2)",
               cursor: "pointer",
               userSelect: "none",
             }}

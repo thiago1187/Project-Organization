@@ -16,9 +16,9 @@ import type { ReactNode } from "react";
 
 function Titulo({ nivel, children }: { nivel: 1 | 2 | 3; children: ReactNode }) {
   const estilos = {
-    1: { fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, marginTop: 0, marginBottom: 6 },
-    2: { fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, marginTop: 26, marginBottom: 8 },
-    3: { fontSize: 14, fontWeight: 600, marginTop: 16, marginBottom: 6, color: "var(--txt2)" },
+    1: { fontSize: "var(--fs-3xl)", fontWeight: "var(--fw-bold)", marginTop: 0, marginBottom: 6 },
+    2: { fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", marginTop: 26, marginBottom: 8 },
+    3: { fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", marginTop: 16, marginBottom: 6, color: "var(--txt2)" },
   } as const;
   const props = { style: estilos[nivel] };
   if (nivel === 1) return <h1 {...props}>{children}</h1>;
@@ -40,7 +40,7 @@ export default function DocumentoMarkdown({ markdown }: { markdown: string }) {
             <li key={i} style={{ marginBottom: item.extra.length ? 6 : 2 }}>
               {item.texto}
               {item.extra.map((linha, j) => (
-                <span key={j} style={{ display: "block", color: "var(--mut3)", fontSize: 12.5 }}>
+                <span key={j} style={{ display: "block", color: "var(--mut3)", fontSize: "var(--fs-2xs)" }}>
                   {linha}
                 </span>
               ))}
@@ -90,5 +90,5 @@ export default function DocumentoMarkdown({ markdown }: { markdown: string }) {
   }
   fecharLista();
 
-  return <div style={{ fontSize: 14, lineHeight: 1.6, color: "var(--txt)" }}>{blocos}</div>;
+  return <div style={{ fontSize: "var(--fs-sm)", lineHeight: "var(--lh-relaxed)", color: "var(--txt)" }}>{blocos}</div>;
 }

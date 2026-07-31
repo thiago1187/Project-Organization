@@ -61,10 +61,11 @@ export default function CardProjeto({
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <div
           style={{
-            fontFamily: "'Instrument Serif', Georgia, serif",
-            fontSize: 19,
-            lineHeight: 1.15,
-            letterSpacing: "-0.01em",
+            fontWeight: "var(--fw-bold)",
+            fontSize: "var(--fs-lg)",
+            lineHeight: "var(--lh-tight)",
+            letterSpacing: "var(--ls-tight)",
+            color: "var(--txt)",
           }}
         >
           {card.nome}
@@ -72,8 +73,8 @@ export default function CardProjeto({
         <div style={{ flex: 1 }} />
         <div
           style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
+            fontWeight: "var(--fw-semibold)",
+            fontSize: "var(--fs-2xs)",
             color: card.cor,
             whiteSpace: "nowrap",
           }}
@@ -81,20 +82,20 @@ export default function CardProjeto({
           {card.statusLabel}
         </div>
       </div>
-      <div style={{ fontSize: 12.5, color: "var(--txt2)", textWrap: "pretty" }}>{card.resumo}</div>
-      <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+      <div style={{ fontSize: "var(--fs-sm)", color: "var(--txt2)", textWrap: "pretty" }}>{card.resumo}</div>
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
         {card.strip.map((s, i) => (
           <div
             key={i}
             style={{
-              width: 19,
-              height: 19,
+              width: 22,
+              height: 22,
               borderRadius: 4,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 8.5,
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--fs-2xs)",
               background: s.bg,
               color: s.fg,
               border: `1px solid ${s.borda}`,
@@ -111,14 +112,14 @@ export default function CardProjeto({
           gap: 8,
           borderTop: "1px solid var(--linha3)",
           paddingTop: 9,
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 9.5,
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--fs-2xs)",
           color: "var(--mut3)",
         }}
       >
         <span>{card.ultimaRodadaLabel}</span>
         <div style={{ flex: 1 }} />
-        <span style={{ color: card.corTestes }}>{card.testesCurto}</span>
+        <span style={{ color: card.corTestes, fontWeight: "var(--fw-medium)" }}>{card.testesCurto}</span>
       </div>
     </div>
   );

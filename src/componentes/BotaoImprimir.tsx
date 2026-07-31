@@ -1,5 +1,7 @@
 "use client";
 
+import { classeBotao, estiloBotao } from "./estiloBotao";
+
 // Botão de exportação do documento de andamento — item 4 de
 // docs/proximos-passos.md. "PDF via impressão do navegador sobre uma página
 // de estilo próprio": zero dependência nova, zero binário, e o resultado
@@ -10,16 +12,8 @@ export default function BotaoImprimir() {
     <button
       type="button"
       onClick={() => window.print()}
-      className="h-borda"
-      style={{
-        border: "1px solid var(--borda-forte)",
-        borderRadius: 4,
-        background: "var(--rodada-fundo)",
-        color: "var(--txt)",
-        padding: "6px 14px",
-        fontSize: 12,
-        cursor: "pointer",
-      }}
+      className={classeBotao("secundaria")}
+      style={estiloBotao("secundaria")}
     >
       imprimir / salvar como PDF
     </button>

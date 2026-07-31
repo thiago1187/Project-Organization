@@ -103,19 +103,19 @@ export default async function DocumentoAndamentoPage({
         <Link
           href={`/projeto/${id}`}
           className="h-txt"
-          style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}
+          style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}
         >
           ← voltar ao projeto
         </Link>
         <div style={{ flex: 1 }} />
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
           {PERIODO_LABEL[periodo]}
         </div>
         <Link
           href={linkPara("andamento")}
           className="h-borda"
           style={{
-            fontSize: 11,
+            fontSize: "var(--fs-xs)",
             color: voz === "andamento" ? "var(--txt)" : "var(--mut3)",
             border: "1px solid var(--borda)",
             borderRadius: 4,
@@ -128,7 +128,7 @@ export default async function DocumentoAndamentoPage({
           href={linkPara("tecnica")}
           className="h-borda"
           style={{
-            fontSize: 11,
+            fontSize: "var(--fs-xs)",
             color: voz === "tecnica" ? "var(--txt)" : "var(--mut3)",
             border: "1px solid var(--borda)",
             borderRadius: 4,

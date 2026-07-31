@@ -5,12 +5,12 @@ export default function ListaDocumentos({ docs }: { docs: DocVM[] }) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>documentos</div>
+        <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>documentos</div>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
       </div>
 
       {docs.length === 0 ? (
-        <div style={{ fontSize: 11, color: "var(--mut3)" }}>Nenhum documento anexado ainda.</div>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>Nenhum documento anexado ainda.</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {docs.map((d) => (
@@ -30,12 +30,12 @@ export default function ListaDocumentos({ docs }: { docs: DocVM[] }) {
                 padding: "11px 13px",
               }}
             >
-              <span style={{ fontSize: 13, minWidth: 0, overflowWrap: "anywhere" }}>{d.nome}</span>
+              <span style={{ fontSize: "var(--fs-xs)", minWidth: 0, overflowWrap: "anywhere" }}>{d.nome}</span>
               <span style={{ flex: 1 }} />
               <span
                 style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--fs-2xs)",
                   color: "var(--mut3)",
                   whiteSpace: "nowrap",
                   flex: "none",
@@ -47,7 +47,7 @@ export default function ListaDocumentos({ docs }: { docs: DocVM[] }) {
           ))}
         </div>
       )}
-      <div style={{ fontSize: 11, color: "var(--mut3)", marginTop: 8 }}>
+      <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", marginTop: 8 }}>
         Links para onde o documento já vive — o app não guarda arquivos.
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Painel do gerador de prompt (item 1 de docs/proximos-passos.md). Puramente
 // de apresentação: quem monta o texto é `gerarTextoPrompt`
@@ -50,7 +51,7 @@ export default function GeradorPrompt({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>
           {quantidadeSelecionadas === 0
             ? "marque sugestões acima para gerar um prompt"
             : `${quantidadeSelecionadas} ${quantidadeSelecionadas === 1 ? "sugestão marcada" : "sugestões marcadas"}`}
@@ -60,17 +61,8 @@ export default function GeradorPrompt({
           type="button"
           onClick={gerar}
           disabled={quantidadeSelecionadas === 0}
-          className="h-borda"
-          style={{
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 4,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "6px 14px",
-            fontSize: 12,
-            cursor: quantidadeSelecionadas === 0 ? "default" : "pointer",
-            opacity: quantidadeSelecionadas === 0 ? 0.5 : 1,
-          }}
+          className={classeBotao("primaria")}
+          style={estiloBotao("primaria")}
         >
           gerar prompt para o Claude Code
         </button>
@@ -85,7 +77,7 @@ export default function GeradorPrompt({
                 borderRadius: 6,
                 padding: "8px 10px",
                 marginBottom: 10,
-                fontSize: 12,
+                fontSize: "var(--fs-2xs)",
                 color: "var(--fal)",
               }}
             >
@@ -100,9 +92,9 @@ export default function GeradorPrompt({
             style={{
               width: "100%",
               boxSizing: "border-box",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 12,
-              lineHeight: 1.5,
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--fs-2xs)",
+              lineHeight: "var(--lh-relaxed)",
               color: "var(--txt2)",
               background: "var(--painel)",
               border: "1px solid var(--linha3)",
@@ -116,33 +108,16 @@ export default function GeradorPrompt({
             <button
               type="button"
               onClick={copiar}
-              className="h-borda"
-              style={{
-                border: "1px solid var(--borda-forte)",
-                borderRadius: 4,
-                background: "var(--rodada-fundo)",
-                color: "var(--txt)",
-                padding: "6px 14px",
-                fontSize: 12,
-                cursor: "pointer",
-              }}
+              className={classeBotao("secundaria")}
+              style={estiloBotao("secundaria")}
             >
               {copiado ? "copiado ✓" : "copiar para a área de transferência"}
             </button>
             <button
               type="button"
               onClick={() => setAberto(false)}
-              className="h-txt"
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 11,
-                color: "var(--mut3)",
-                background: "none",
-                border: "1px solid var(--borda)",
-                borderRadius: 4,
-                padding: "6px 14px",
-                cursor: "pointer",
-              }}
+              className={classeBotao("texto")}
+              style={estiloBotao("texto")}
             >
               fechar
             </button>

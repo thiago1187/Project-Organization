@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { CATEGORIAS_SERVICO_ORDEM, CATEGORIA_SERVICO_LABEL } from "@/dominio/inventario";
 import { salvarServicoAction, type EstadoFormServico } from "@/servidor/acoes-inventario";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const ESTADO_INICIAL: EstadoFormServico = { ok: false, erro: null, campos: {} };
 
@@ -36,7 +37,7 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
       <input type="hidden" name="projeto_id" value={projetoId} />
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 140px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>categoria</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>categoria</span>
           <select name="categoria" defaultValue={estado.campos.categoria ?? "banco"} style={estiloCampo}>
             {CATEGORIAS_SERVICO_ORDEM.map((c) => (
               <option key={c} value={c}>
@@ -46,7 +47,7 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
           </select>
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 140px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>nome</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>nome</span>
           <input
             name="nome"
             defaultValue={estado.campos.nome ?? ""}
@@ -57,7 +58,7 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
           />
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 140px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>conta</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>conta</span>
           <input
             name="conta"
             defaultValue={estado.campos.conta ?? ""}
@@ -70,7 +71,7 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
       </div>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 140px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>papel (opcional)</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>papel (opcional)</span>
           <input
             name="papel"
             defaultValue={estado.campos.papel ?? ""}
@@ -80,7 +81,7 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
           />
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 220px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>administrado em (opcional)</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>administrado em (opcional)</span>
           <input
             name="administrado_url"
             defaultValue={estado.campos.administrado_url ?? ""}
@@ -93,17 +94,8 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
         <button
           type="submit"
           disabled={pendente}
-          className="h-borda"
-          style={{
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 4,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "7px 14px",
-            fontSize: 12,
-            cursor: pendente ? "default" : "pointer",
-            opacity: pendente ? 0.6 : 1,
-          }}
+          className={classeBotao("secundaria")}
+          style={estiloBotao("secundaria")}
         >
           {pendente ? "salvando…" : "adicionar"}
         </button>
@@ -111,20 +103,13 @@ export default function FormNovoServico({ projetoId, aoFechar }: { projetoId: st
           type="button"
           onClick={aoFechar}
           disabled={pendente}
-          className="h-txt"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
-            color: "var(--mut3)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
+          className={classeBotao("texto")}
+          style={estiloBotao("texto")}
         >
           cancelar
         </button>
       </div>
-      {estado.erro && <div style={{ fontSize: 11, color: "var(--fal)" }}>{estado.erro}</div>}
+      {estado.erro && <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)" }}>{estado.erro}</div>}
     </form>
   );
 }

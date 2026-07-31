@@ -5,18 +5,9 @@ import type { Stack } from "@/dominio/tipos";
 import { CATEGORIAS_STACK_ORDEM, CATEGORIA_STACK_LABEL } from "@/dominio/inventario";
 import { removerStackAction, salvarStackAction, type EstadoFormStack } from "@/servidor/acoes-inventario";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const ESTADO_INICIAL: EstadoFormStack = { ok: false, erro: null, campos: {} };
-
-const estiloBotaoTexto = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 9,
-  color: "var(--mut3)",
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  padding: "2px 4px",
-} as const;
 
 /** Um item de `stack`: chip compacto por padrão, forma de edição no lugar sob demanda. */
 export default function CartaoStack({ item, projetoId }: { item: Stack; projetoId: string }) {
@@ -90,24 +81,15 @@ export default function CartaoStack({ item, projetoId }: { item: Stack; projetoI
         <button
           type="submit"
           disabled={pendenteSalvar}
-          className="h-borda"
-          style={{
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 4,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "6px 10px",
-            fontSize: 11,
-            cursor: pendenteSalvar ? "default" : "pointer",
-            opacity: pendenteSalvar ? 0.6 : 1,
-          }}
+          className={classeBotao("secundaria")}
+          style={estiloBotao("secundaria")}
         >
           {pendenteSalvar ? "salvando…" : "salvar"}
         </button>
-        <button type="button" onClick={() => setEditando(false)} disabled={pendenteSalvar} className="h-txt" style={estiloBotaoTexto}>
+        <button type="button" onClick={() => setEditando(false)} disabled={pendenteSalvar} className={classeBotao("texto")} style={estiloBotao("texto")}>
           cancelar
         </button>
-        {estado.erro && <div style={{ width: "100%", fontSize: 11, color: "var(--fal)" }}>{estado.erro}</div>}
+        {estado.erro && <div style={{ width: "100%", fontSize: "var(--fs-xs)", color: "var(--fal)" }}>{estado.erro}</div>}
       </form>
     );
   }
@@ -125,14 +107,14 @@ export default function CartaoStack({ item, projetoId }: { item: Stack; projetoI
         padding: "5px 5px 5px 10px",
       }}
     >
-      <span style={{ fontSize: 12, color: "var(--txt)" }}>{item.nome}</span>
-      <button type="button" onClick={() => setEditando(true)} className="h-txt" style={estiloBotaoTexto}>
+      <span style={{ fontSize: "var(--fs-2xs)", color: "var(--txt)" }}>{item.nome}</span>
+      <button type="button" onClick={() => setEditando(true)} className={classeBotao("texto")} style={estiloBotao("texto")}>
         editar
       </button>
-      <button type="button" onClick={remover} disabled={pendenteRemocao} className="h-txt" style={estiloBotaoTexto}>
+      <button type="button" onClick={remover} disabled={pendenteRemocao} className={classeBotao("texto")} style={estiloBotao("texto")} aria-label="remover">
         {pendenteRemocao ? "…" : "×"}
       </button>
-      {erroRemocao && <div style={{ fontSize: 10, color: "var(--fal)" }}>{erroRemocao}</div>}
+      {erroRemocao && <div style={{ fontSize: "var(--fs-2xs)", color: "var(--fal)" }}>{erroRemocao}</div>}
     </div>
   );
 }

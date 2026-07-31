@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { PeriodoChave } from "@/dominio/documentoAndamento";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Botão "gerar documento de andamento" na tela do projeto — item 4 de
 // docs/proximos-passos.md. Puramente de apresentação: quem monta o texto é
@@ -63,7 +64,7 @@ export default function AbrirDocumentoAndamento({ projetoId }: { projetoId: stri
         padding: "12px 14px",
       }}
     >
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)", marginBottom: 8 }}>
+      <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)", marginBottom: 8 }}>
         documento de andamento
       </div>
 
@@ -76,7 +77,7 @@ export default function AbrirDocumentoAndamento({ projetoId }: { projetoId: stri
           border: "1px solid var(--borda)",
           borderRadius: 5,
           padding: "8px 10px",
-          fontSize: 12,
+          fontSize: "var(--fs-2xs)",
           color: "var(--txt)",
           fontFamily: "inherit",
           marginBottom: 10,
@@ -93,34 +94,16 @@ export default function AbrirDocumentoAndamento({ projetoId }: { projetoId: stri
         <button
           type="button"
           onClick={() => abrir("andamento")}
-          className="h-borda"
-          style={{
-            flex: 1,
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 4,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "7px 10px",
-            fontSize: 12,
-            cursor: "pointer",
-          }}
+          className={classeBotao("secundaria")}
+          style={{ ...estiloBotao("secundaria"), flex: 1 }}
         >
           para sócio/cliente
         </button>
         <button
           type="button"
           onClick={() => abrir("tecnica")}
-          className="h-borda"
-          style={{
-            flex: 1,
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 4,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "7px 10px",
-            fontSize: 12,
-            cursor: "pointer",
-          }}
+          className={classeBotao("secundaria")}
+          style={{ ...estiloBotao("secundaria"), flex: 1 }}
         >
           para a equipe
         </button>

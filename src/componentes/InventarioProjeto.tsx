@@ -7,6 +7,7 @@ import CartaoStack from "./CartaoStack";
 import FormNovaStack from "./FormNovaStack";
 import CartaoServico from "./CartaoServico";
 import FormNovoServico from "./FormNovoServico";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Inventário do projeto — stack (linguagem/framework/runtime) e serviços
 // externos (banco, hospedagem, modelo, autenticação, storage, e-mail), com
@@ -49,9 +50,9 @@ export default function InventarioProjeto({
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <div
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: "var(--mut3)",
+              fontSize: "var(--fs-xs)",
+              fontWeight: "var(--fw-semibold)",
+              color: "var(--mut2)",
               whiteSpace: "nowrap",
               flex: "none",
             }}
@@ -63,18 +64,8 @@ export default function InventarioProjeto({
             <button
               type="button"
               onClick={() => setAdicionandoStack(true)}
-              className="h-txt"
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
-                color: "var(--atn)",
-                background: "none",
-                border: "1px solid var(--borda)",
-                borderRadius: 4,
-                padding: "4px 10px",
-                cursor: "pointer",
-                flex: "none",
-              }}
+              className={classeBotao("texto")}
+              style={{ ...estiloBotao("texto"), color: "var(--atn)", border: "1px solid var(--borda)" }}
             >
               + adicionar
             </button>
@@ -88,8 +79,7 @@ export default function InventarioProjeto({
               borderRadius: 8,
               padding: "14px 12px",
               textAlign: "center",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
+              fontSize: "var(--fs-xs)",
               color: "var(--mut3)",
             }}
           >
@@ -102,8 +92,7 @@ export default function InventarioProjeto({
             <div key={grupo.categoria} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span
                 style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 9,
+                  fontSize: "var(--fs-2xs)",
                   color: "var(--mut3)",
                   flex: "none",
                 }}
@@ -123,9 +112,9 @@ export default function InventarioProjeto({
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
           <div
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: "var(--mut3)",
+              fontSize: "var(--fs-xs)",
+              fontWeight: "var(--fw-semibold)",
+              color: "var(--mut2)",
               whiteSpace: "nowrap",
               flex: "none",
             }}
@@ -137,18 +126,8 @@ export default function InventarioProjeto({
             <button
               type="button"
               onClick={() => setAdicionandoServico(true)}
-              className="h-txt"
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
-                color: "var(--atn)",
-                background: "none",
-                border: "1px solid var(--borda)",
-                borderRadius: 4,
-                padding: "4px 10px",
-                cursor: "pointer",
-                flex: "none",
-              }}
+              className={classeBotao("texto")}
+              style={{ ...estiloBotao("texto"), color: "var(--atn)", border: "1px solid var(--borda)" }}
             >
               + adicionar
             </button>
@@ -156,7 +135,7 @@ export default function InventarioProjeto({
         </div>
 
         {servico.length === 0 && !adicionandoServico ? (
-          <div style={{ fontSize: 11, color: "var(--mut3)", marginTop: 8 }}>
+          <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", marginTop: 8 }}>
             Nenhum serviço registrado para este projeto.
           </div>
         ) : (
@@ -165,8 +144,7 @@ export default function InventarioProjeto({
               <div key={grupo.categoria}>
                 <div
                   style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 9,
+                    fontSize: "var(--fs-2xs)",
                     color: "var(--mut3)",
                     marginBottom: 6,
                   }}
@@ -194,7 +172,7 @@ export default function InventarioProjeto({
             marginTop: 10,
             borderLeft: "2px solid var(--borda)",
             padding: "2px 0 2px 10px",
-            fontSize: 11,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut2)",
             textWrap: "pretty",
           }}

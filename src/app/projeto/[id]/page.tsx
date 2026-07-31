@@ -76,8 +76,8 @@ export default async function DetalheProjetoPage({
           className="h-txt"
           style={{
             display: "inline-block",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
+            fontWeight: "var(--fw-medium)",
             color: "var(--mut3)",
             cursor: "pointer",
           }}
@@ -102,16 +102,16 @@ export default async function DetalheProjetoPage({
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: atual.cor, flex: "none" }} />
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: atual.cor }}>
+            <div style={{ fontWeight: "var(--fw-semibold)", fontSize: "var(--fs-xs)", color: atual.cor }}>
               {atual.statusLabel}
             </div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
               {atual.repo}
             </div>
             <div
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
+                fontSize: "var(--fs-2xs)",
+                fontWeight: "var(--fw-medium)",
                 color: "var(--mut3)",
                 border: "1px solid var(--borda)",
                 borderRadius: 3,
@@ -123,11 +123,12 @@ export default async function DetalheProjetoPage({
           </div>
           <div
             style={{
-              fontFamily: "'Instrument Serif', Georgia, serif",
-              fontSize: 42,
-              lineHeight: 1.05,
-              letterSpacing: "-0.02em",
+              fontWeight: "var(--fw-bold)",
+              fontSize: "var(--fs-5xl)",
+              lineHeight: "var(--lh-tight)",
+              letterSpacing: "var(--ls-tight)",
               marginTop: 8,
+              color: "var(--txt)",
             }}
           >
             {atual.nome}
@@ -142,9 +143,10 @@ export default async function DetalheProjetoPage({
             className="h-fundo"
             style={{
               border: "1px solid var(--atn)",
-              borderRadius: 5,
-              padding: "9px 16px",
-              fontSize: 13,
+              borderRadius: "var(--btn-radius)",
+              padding: "var(--btn-pad-y-secundaria) var(--btn-pad-x-secundaria)",
+              fontSize: "var(--fs-sm)",
+              fontWeight: "var(--fw-semibold)",
               color: "var(--atn)",
               whiteSpace: "nowrap",
             }}

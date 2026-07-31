@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { salvarContextoAction, type EstadoFormContexto } from "@/servidor/acoes-contexto";
 import { AGENTES_CONHECIDOS } from "@/dominio/agentesConhecidos";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const ESTADO_INICIAL: EstadoFormContexto = { ok: false, erro: null, campos: {} };
 
@@ -41,7 +42,7 @@ export default function FormNovoContexto({ projetoId, aoFechar }: { projetoId: s
       <input type="hidden" name="projeto_id" value={projetoId} />
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 180px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>agente</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>agente</span>
           <input
             name="agente_destino"
             list="agentes-conhecidos"
@@ -58,7 +59,7 @@ export default function FormNovoContexto({ projetoId, aoFechar }: { projetoId: s
           </datalist>
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 180px" }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>tipo</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>tipo</span>
           <input
             name="tipo"
             defaultValue={estado.campos.tipo ?? ""}
@@ -70,7 +71,7 @@ export default function FormNovoContexto({ projetoId, aoFechar }: { projetoId: s
         </label>
       </div>
       <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontSize: 10, color: "var(--mut2)" }}>conteúdo</span>
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>conteúdo</span>
         <textarea
           name="conteudo"
           defaultValue={estado.campos.conteudo ?? ""}
@@ -81,7 +82,7 @@ export default function FormNovoContexto({ projetoId, aoFechar }: { projetoId: s
         />
       </label>
       <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontSize: 10, color: "var(--mut2)" }}>ou link de arquivo</span>
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>ou link de arquivo</span>
         <input
           name="arquivo_url"
           defaultValue={estado.campos.arquivo_url ?? ""}
@@ -93,17 +94,8 @@ export default function FormNovoContexto({ projetoId, aoFechar }: { projetoId: s
         <button
           type="submit"
           disabled={pendente}
-          className="h-borda"
-          style={{
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 4,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "7px 14px",
-            fontSize: 12,
-            cursor: pendente ? "default" : "pointer",
-            opacity: pendente ? 0.6 : 1,
-          }}
+          className={classeBotao("secundaria")}
+          style={estiloBotao("secundaria")}
         >
           {pendente ? "salvando…" : "adicionar"}
         </button>
@@ -111,20 +103,13 @@ export default function FormNovoContexto({ projetoId, aoFechar }: { projetoId: s
           type="button"
           onClick={aoFechar}
           disabled={pendente}
-          className="h-txt"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
-            color: "var(--mut3)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
+          className={classeBotao("texto")}
+          style={estiloBotao("texto")}
         >
           cancelar
         </button>
       </div>
-      {estado.erro && <div style={{ fontSize: 11, color: "var(--fal)" }}>{estado.erro}</div>}
+      {estado.erro && <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)" }}>{estado.erro}</div>}
     </form>
   );
 }

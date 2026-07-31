@@ -4,28 +4,9 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import type { AgenteEsteiraVM } from "@/dominio/esteiraAgentes";
 import { salvarInstrucaoAgenteAction, type EstadoFormAgente } from "@/servidor/acoes-agentes";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const ESTADO_INICIAL: EstadoFormAgente = { ok: false, erro: null, campos: {} };
-
-const estiloBotaoTexto = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  color: "var(--mut3)",
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  padding: "2px 4px",
-  whiteSpace: "nowrap",
-} as const;
-
-const estiloBotaoPrimario = {
-  border: "1px solid var(--borda-forte)",
-  borderRadius: 4,
-  background: "var(--rodada-fundo)",
-  color: "var(--txt)",
-  padding: "6px 12px",
-  fontSize: 12,
-} as const;
 
 /**
  * Um card da faixa de diagnóstico da esteira — sempre habilitado (a versão
@@ -95,19 +76,19 @@ export default function CartaoAgenteEsteira({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--mut3)", flex: "none" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-2xs)", color: "var(--mut3)", flex: "none" }}>
           {String(index + 1).padStart(2, "0")}
         </span>
         <div
           style={{
-            width: 24,
-            height: 24,
+            width: 26,
+            height: 26,
             borderRadius: 5,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--fs-2xs)",
             background: agente.bg,
             color: agente.fg,
             border: `1px solid ${agente.borda}`,
@@ -117,21 +98,31 @@ export default function CartaoAgenteEsteira({
           {agente.mono}
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, overflowWrap: "anywhere" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", overflowWrap: "anywhere", color: "var(--txt)" }}>
             {agente.agente}
           </div>
-          <div style={{ fontSize: 10, color: "var(--mut3)" }}>{agente.papel}</div>
+          <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>{agente.papel}</div>
         </div>
-        <button type="button" onClick={() => setEditando((v) => !v)} className="h-txt" style={estiloBotaoTexto}>
+        <button
+          type="button"
+          onClick={() => setEditando((v) => !v)}
+          className={classeBotao("texto")}
+          style={{ ...estiloBotao("texto"), whiteSpace: "nowrap" }}
+        >
           {editando ? "fechar" : agente.instrucao ? "editar" : "+ instrução"}
         </button>
-        <button type="button" onClick={() => onDesligar(agente.agente)} className="h-txt" style={estiloBotaoTexto}>
+        <button
+          type="button"
+          onClick={() => onDesligar(agente.agente)}
+          className={classeBotao("destrutiva")}
+          style={{ ...estiloBotao("destrutiva"), whiteSpace: "nowrap" }}
+        >
           desligar
         </button>
       </div>
 
       {!editando && agente.instrucao && (
-        <div style={{ fontSize: 12, color: "var(--txt2)", marginTop: 8, textWrap: "pretty" }}>{agente.instrucao}</div>
+        <div style={{ fontSize: "var(--fs-sm)", color: "var(--txt2)", marginTop: 8, textWrap: "pretty" }}>{agente.instrucao}</div>
       )}
 
       {editando && (
@@ -139,7 +130,7 @@ export default function CartaoAgenteEsteira({
           <input type="hidden" name="projeto_id" value={projetoId} />
           <input type="hidden" name="agente" value={agente.agente} />
           <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ fontSize: 10, color: "var(--mut2)" }}>
+            <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>
               instrução para este agente, neste projeto — o que fazer aqui, não o que ler
             </span>
             <textarea
@@ -152,7 +143,7 @@ export default function CartaoAgenteEsteira({
             />
           </label>
           <label style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 260 }}>
-            <span style={{ fontSize: 10, color: "var(--mut2)" }}>teto de sugestões desta rodada</span>
+            <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>teto de sugestões desta rodada</span>
             <select
               name="teto_sugestoes"
               defaultValue={estado.campos.teto_sugestoes ?? (agente.tetoSugestoes ?? "")}
@@ -169,12 +160,8 @@ export default function CartaoAgenteEsteira({
             <button
               type="submit"
               disabled={pendenteSalvar}
-              className="h-borda"
-              style={{
-                ...estiloBotaoPrimario,
-                cursor: pendenteSalvar ? "default" : "pointer",
-                opacity: pendenteSalvar ? 0.6 : 1,
-              }}
+              className={classeBotao("primaria")}
+              style={estiloBotao("primaria")}
             >
               {pendenteSalvar ? "salvando…" : "salvar"}
             </button>
@@ -182,14 +169,14 @@ export default function CartaoAgenteEsteira({
               type="button"
               onClick={() => setEditando(false)}
               disabled={pendenteSalvar}
-              className="h-txt"
-              style={estiloBotaoTexto}
+              className={classeBotao("texto")}
+              style={estiloBotao("texto")}
             >
               cancelar
             </button>
           </div>
-          {estado.erro && <div style={{ fontSize: 11, color: "var(--fal)" }}>{estado.erro}</div>}
-          <div style={{ fontSize: 10, color: "var(--mut3)", textWrap: "pretty" }}>
+          {estado.erro && <div style={{ fontSize: "var(--fs-sm)", color: "var(--fal)", fontWeight: "var(--fw-medium)" }}>{estado.erro}</div>}
+          <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", textWrap: "pretty" }}>
             Isto vai para a chamada deste agente, nunca para o CLAUDE.md do repositório — para anexar
             material de consulta, use o contexto do projeto, abaixo.
           </div>

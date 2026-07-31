@@ -54,8 +54,7 @@ export default function PainelAtencao({
           borderRadius: 8,
           border: "1px solid var(--borda)",
           background: "var(--faixa-fundo)",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 12,
+          fontSize: "var(--fs-sm)",
           color: "var(--mut3)",
         }}
       >
@@ -86,8 +85,8 @@ export default function PainelAtencao({
       <div
         style={{
           padding: "12px 18px 10px",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11,
+          fontWeight: "var(--fw-semibold)",
+          fontSize: "var(--fs-sm)",
           color: "var(--atn)",
         }}
       >
@@ -115,13 +114,14 @@ export default function PainelAtencao({
             <span
               aria-hidden
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--fs-2xs)",
+                fontWeight: "var(--fw-medium)",
                 color: "var(--mut3)",
                 border: "1px solid var(--borda)",
                 borderRadius: 4,
-                width: 18,
-                height: 18,
+                width: 20,
+                height: 20,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -133,20 +133,21 @@ export default function PainelAtencao({
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: item.cor, flex: "none" }} />
             <span
               style={{
-                fontFamily: "'Instrument Serif', Georgia, serif",
-                fontSize: 15,
+                fontWeight: "var(--fw-bold)",
+                fontSize: "var(--fs-md)",
                 whiteSpace: "nowrap",
                 flex: "none",
                 maxWidth: 220,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
+                color: "var(--txt)",
               }}
             >
               {item.nome}
             </span>
             <span
               style={{
-                fontSize: 12.5,
+                fontSize: "var(--fs-sm)",
                 color: "var(--txt2)",
                 flex: 1,
                 minWidth: 0,
@@ -159,8 +160,8 @@ export default function PainelAtencao({
             </span>
             <span
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
+                fontWeight: "var(--fw-semibold)",
+                fontSize: "var(--fs-xs)",
                 color: item.cor,
                 whiteSpace: "nowrap",
                 flex: "none",
@@ -177,8 +178,7 @@ export default function PainelAtencao({
           style={{
             padding: "8px 18px",
             borderTop: "1px solid var(--linha3)",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut3)",
           }}
         >

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Relogio from "./Relogio";
 import { usePathname } from "next/navigation";
 import BotaoTema from "./BotaoTema";
+import ControleDensidade from "./ControleDensidade";
 import { sairAction } from "@/servidor/acoes-sessao";
 
 
@@ -30,28 +31,31 @@ export default function Cabecalho() {
       <Link
         href="/"
         style={{
-          fontFamily: "'Instrument Serif', Georgia, serif",
-          fontSize: 20,
-          letterSpacing: "-0.01em",
+          fontSize: "var(--fs-lg)",
+          fontWeight: "var(--fw-bold)",
+          letterSpacing: "var(--ls-tight)",
+          color: "var(--txt)",
           cursor: "pointer",
         }}
       >
         Acompanhamento noturno
       </Link>
       <Relogio
-        style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "var(--mut2)" }}
+        style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-xs)", color: "var(--mut2)" }}
       />
       <div style={{ flex: 1 }} />
+      <ControleDensidade />
       <BotaoTema />
       <div style={{ display: "flex", gap: 2 }}>
         <Link
           href="/"
           className="h-fundo"
           style={{
-            padding: "6px 12px",
-            borderRadius: 4,
+            padding: "8px 12px",
+            borderRadius: "var(--btn-radius)",
             cursor: "pointer",
-            fontSize: 13,
+            fontSize: "var(--fs-sm)",
+            fontWeight: emHome ? "var(--fw-semibold)" : "var(--fw-regular)",
             color: emHome ? "var(--txt)" : "var(--mut2)",
           }}
         >
@@ -61,10 +65,11 @@ export default function Cabecalho() {
           href="/configuracao"
           className="h-fundo"
           style={{
-            padding: "6px 12px",
-            borderRadius: 4,
+            padding: "8px 12px",
+            borderRadius: "var(--btn-radius)",
             cursor: "pointer",
-            fontSize: 13,
+            fontSize: "var(--fs-sm)",
+            fontWeight: emConfig ? "var(--fw-semibold)" : "var(--fw-regular)",
             color: emConfig ? "var(--txt)" : "var(--mut2)",
           }}
         >
@@ -78,10 +83,11 @@ export default function Cabecalho() {
           style={{
             border: "none",
             background: "transparent",
-            padding: "6px 12px",
-            borderRadius: 4,
+            padding: "8px 12px",
+            borderRadius: "var(--btn-radius)",
             cursor: "pointer",
-            fontSize: 13,
+            fontSize: "var(--fs-sm)",
+            fontWeight: "var(--fw-regular)",
             color: "var(--mut2)",
           }}
         >

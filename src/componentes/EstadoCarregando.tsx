@@ -10,8 +10,7 @@ export default function EstadoCarregando({ texto }: { texto: string }) {
         borderRadius: 8,
         padding: "18px 12px",
         textAlign: "center",
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 10,
+        fontSize: "var(--fs-xs)",
         color: "var(--mut3)",
       }}
     >

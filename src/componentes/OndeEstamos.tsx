@@ -9,16 +9,7 @@ import {
   moverEstadoTarefaAction,
   reordenarTarefasAction,
 } from "@/servidor/acoes-tarefa";
-
-const estiloBotaoTexto = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  color: "var(--mut3)",
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  padding: "2px 4px",
-} as const;
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 /**
  * "Onde estamos" com dado real (docs/plano-gerenciador-de-projeto.md § 5.2):
@@ -123,12 +114,12 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
   return (
     <div style={{ marginBottom: 30 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
           onde estamos
         </div>
         <div style={{ flex: 1, height: 1, background: "var(--linha3)" }} />
         {!adicionando && (
-          <button type="button" onClick={() => setAdicionando(true)} className="h-txt" style={estiloBotaoTexto}>
+          <button type="button" onClick={() => setAdicionando(true)} className={classeBotao("texto")} style={estiloBotao("texto")}>
             + adicionar tarefa
           </button>
         )}
@@ -138,10 +129,11 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           <div
             style={{
-              fontFamily: "'Instrument Serif', Georgia, serif",
-              fontSize: 26,
-              lineHeight: 1.15,
-              letterSpacing: "-0.01em",
+              fontWeight: "var(--fw-bold)",
+              fontSize: "var(--fs-2xl)",
+              lineHeight: "var(--lh-tight)",
+              letterSpacing: "var(--ls-tight)",
+              color: "var(--txt)",
             }}
           >
             {ondeEstamos.fazendoAgora.titulo}
@@ -149,16 +141,16 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
           <button
             type="button"
             onClick={() => concluir(ondeEstamos.fazendoAgora!.id)}
-            className="h-txt"
-            style={estiloBotaoTexto}
+            className={classeBotao("texto")}
+            style={estiloBotao("texto")}
           >
             concluir
           </button>
           <button
             type="button"
             onClick={() => voltarParaAberta(ondeEstamos.fazendoAgora!.id)}
-            className="h-txt"
-            style={estiloBotaoTexto}
+            className={classeBotao("texto")}
+            style={estiloBotao("texto")}
           >
             voltar para aberta
           </button>
@@ -176,7 +168,7 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
             placeholder="o que precisa ser feito"
             style={{
               flex: 1,
-              fontSize: 13,
+              fontSize: "var(--fs-xs)",
               padding: "6px 8px",
               borderRadius: 5,
               border: "1px solid var(--borda)",
@@ -188,16 +180,8 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
             type="button"
             onClick={adicionar}
             disabled={criando}
-            className="h-borda"
-            style={{
-              border: "1px solid var(--borda-forte)",
-              borderRadius: 4,
-              background: "var(--rodada-fundo)",
-              color: "var(--txt)",
-              padding: "6px 12px",
-              fontSize: 12,
-              cursor: criando ? "default" : "pointer",
-            }}
+            className={classeBotao("primaria")}
+            style={estiloBotao("primaria")}
           >
             {criando ? "criando…" : "adicionar"}
           </button>
@@ -207,8 +191,8 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
               setAdicionando(false);
               setNovoTitulo("");
             }}
-            className="h-txt"
-            style={estiloBotaoTexto}
+            className={classeBotao("texto")}
+            style={estiloBotao("texto")}
           >
             cancelar
           </button>
@@ -216,7 +200,7 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
       )}
 
       {erro && (
-        <div style={{ fontSize: 11, color: "var(--fal)", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)", marginBottom: 10 }}>
           {erro}
         </div>
       )}
@@ -228,8 +212,7 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
             borderRadius: 8,
             padding: "18px 12px",
             textAlign: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut3)",
           }}
         >
@@ -240,7 +223,7 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
       <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
         {itens.map((item) => (
           <div key={item.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)", flex: "none", paddingTop: 2 }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-2xs)", color: "var(--mut3)", flex: "none", paddingTop: 2 }}>
               {item.num}
             </div>
 
@@ -263,7 +246,7 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
                     autoFocus
                     style={{
                       flex: 1,
-                      fontSize: 13,
+                      fontSize: "var(--fs-xs)",
                       padding: "2px 6px",
                       borderRadius: 4,
                       border: "1px solid var(--borda)",
@@ -277,22 +260,22 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
                       setEditandoId(item.id);
                       setTituloEditado(item.texto);
                     }}
-                    style={{ fontSize: 13, color: "var(--txt3)", textWrap: "pretty", flex: 1, cursor: "text" }}
+                    style={{ fontSize: "var(--fs-xs)", color: "var(--txt3)", textWrap: "pretty", flex: 1, cursor: "text" }}
                   >
                     {item.texto}
                   </div>
                 )}
                 <div style={{ display: "flex", gap: 2, flex: "none" }}>
-                  <button type="button" onClick={() => mover(item.id, -1)} className="h-txt" style={estiloBotaoTexto} title="mover para cima">
+                  <button type="button" onClick={() => mover(item.id, -1)} className={classeBotao("texto")} style={estiloBotao("texto")} title="mover para cima">
                     ▲
                   </button>
-                  <button type="button" onClick={() => mover(item.id, 1)} className="h-txt" style={estiloBotaoTexto} title="mover para baixo">
+                  <button type="button" onClick={() => mover(item.id, 1)} className={classeBotao("texto")} style={estiloBotao("texto")} title="mover para baixo">
                     ▼
                   </button>
-                  <button type="button" onClick={() => comecarAgora(item.id)} className="h-txt" style={estiloBotaoTexto}>
+                  <button type="button" onClick={() => comecarAgora(item.id)} className={classeBotao("texto")} style={estiloBotao("texto")}>
                     começar agora
                   </button>
-                  <button type="button" onClick={() => apagar(item.id)} className="h-txt" style={estiloBotaoTexto}>
+                  <button type="button" onClick={() => apagar(item.id)} className={classeBotao("texto")} style={estiloBotao("texto")}>
                     apagar
                   </button>
                 </div>
@@ -308,8 +291,8 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 8,
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--fs-2xs)",
                       background: item.chip.bg,
                       color: item.chip.fg,
                       border: `1px solid ${item.chip.borda}`,
@@ -321,11 +304,10 @@ export default function OndeEstamos({ projetoId, ondeEstamos }: { projetoId: str
                     {item.chip.mono}
                   </div>
                 )}
-                <div style={{ fontSize: 13, color: "var(--txt3)", textWrap: "pretty", flex: 1 }}>{item.texto}</div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--txt3)", textWrap: "pretty", flex: 1 }}>{item.texto}</div>
                 <div
                   style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 9,
+                    fontSize: "var(--fs-2xs)",
                     color: "var(--mut3)",
                     flex: "none",
                     border: "1px solid var(--borda)",

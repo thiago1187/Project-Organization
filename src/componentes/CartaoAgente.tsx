@@ -24,8 +24,9 @@ export default function CartaoAgente({ agente }: { agente: AgenteAchadoVM }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--fs-2xs)",
+            fontWeight: "var(--fw-medium)",
             background: agente.bg,
             color: agente.fg,
             border: `1px solid ${agente.borda}`,
@@ -35,13 +36,13 @@ export default function CartaoAgente({ agente }: { agente: AgenteAchadoVM }) {
           {agente.mono}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, overflowWrap: "anywhere" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", overflowWrap: "anywhere", color: "var(--txt)" }}>
             {agente.nome}
           </div>
-          <div style={{ fontSize: 10, color: "var(--mut3)", marginTop: 2 }}>{agente.papel}</div>
+          <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", marginTop: 2 }}>{agente.papel}</div>
         </div>
       </div>
-      <div style={{ fontSize: 13, color: "var(--txt2)", textWrap: "pretty" }}>{agente.acao}</div>
+      <div style={{ fontSize: "var(--fs-sm)", color: "var(--txt2)", textWrap: "pretty" }}>{agente.acao}</div>
       <div
         style={{
           display: "flex",
@@ -50,11 +51,10 @@ export default function CartaoAgente({ agente }: { agente: AgenteAchadoVM }) {
           marginTop: "auto",
           paddingTop: 8,
           borderTop: "1px solid var(--linha3)",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 10,
+          fontSize: "var(--fs-xs)",
         }}
       >
-        <span style={{ color: agente.corTipo }}>{agente.tipoLabel}</span>
+        <span style={{ color: agente.corTipo, fontWeight: "var(--fw-semibold)" }}>{agente.tipoLabel}</span>
         <div style={{ flex: 1 }} />
         <span style={{ color: "var(--mut3)" }}>{agente.metrica}</span>
       </div>

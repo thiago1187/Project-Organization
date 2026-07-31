@@ -29,12 +29,12 @@ export default function BotaoTema() {
       onClick={alternar}
       className="h-txt"
       style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 10,
+        fontSize: "var(--fs-xs)",
+        fontWeight: "var(--fw-medium)",
         color: "var(--mut2)",
         border: "1px solid var(--borda)",
-        borderRadius: 4,
-        padding: "5px 10px",
+        borderRadius: "var(--btn-radius)",
+        padding: "7px 12px",
         cursor: "pointer",
       }}
     >

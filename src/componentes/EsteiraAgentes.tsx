@@ -118,22 +118,22 @@ export default function EsteiraAgentes({
   return (
     <details className="dobravel" open={sugeridos.length > 0} style={{ marginBottom: 30 }}>
       <summary style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <span className="chevron" aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <span className="chevron" aria-hidden="true" style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
           ▸
         </span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <span style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
           esteira de agentes
         </span>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
         {sugeridos.length > 0 && (
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--atn)" }}>
+          <span style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--atn)" }}>
             {sugeridos.length} {sugeridos.length === 1 ? "sugestão de agente" : "sugestões de agente"}
           </span>
         )}
       </summary>
 
       {erro && (
-        <div style={{ fontSize: 11, color: "var(--fal)", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ fontSize: "var(--fs-sm)", color: "var(--fal)", marginBottom: 10, fontWeight: "var(--fw-medium)" }}>
           {erro}
         </div>
       )}
@@ -165,10 +165,10 @@ export default function EsteiraAgentes({
           }}
         >
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 17, lineHeight: 1.2 }}>
+            <div style={{ fontWeight: "var(--fw-bold)", fontSize: "var(--fs-lg)", lineHeight: "var(--lh-tight)", color: "var(--txt)" }}>
               Diagnóstico
             </div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--mut3)" }}>
+            <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
               configurável — arraste para ligar e ordenar
             </div>
           </div>
@@ -198,8 +198,7 @@ export default function EsteiraAgentes({
                   borderRadius: 8,
                   padding: "16px 10px",
                   textAlign: "center",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 10,
+                  fontSize: "var(--fs-sm)",
                   color: "var(--mut3)",
                 }}
               >
@@ -211,7 +210,7 @@ export default function EsteiraAgentes({
           {nomesInativos.length > 0 && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "14px 0 8px" }}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--mut3)" }}>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
                   desligados
                 </div>
                 <div style={{ flex: 1, height: 1, background: "var(--linha3)" }} />
@@ -252,7 +251,7 @@ export default function EsteiraAgentes({
                         background: "var(--painel)",
                       }}
                     >
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
                         {nome}
                       </span>
                       <button
@@ -260,13 +259,13 @@ export default function EsteiraAgentes({
                         onClick={() => moverParaAtivos(nome, nomesAtivos.length)}
                         className="h-txt"
                         style={{
-                          fontFamily: "'JetBrains Mono', monospace",
-                          fontSize: 9,
+                          fontSize: "var(--fs-xs)",
+                          fontWeight: "var(--fw-semibold)",
                           color: "var(--atn)",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          padding: "2px 4px",
+                          padding: "4px 6px",
                         }}
                       >
                         + ligar
@@ -291,11 +290,10 @@ export default function EsteiraAgentes({
             flexDirection: "column",
           }}
         >
-          <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 17, lineHeight: 1.2 }}>Você</div>
+          <div style={{ fontWeight: "var(--fw-bold)", fontSize: "var(--fs-lg)", lineHeight: "var(--lh-tight)", color: "var(--txt)" }}>Você</div>
           <div
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 9,
+              fontSize: "var(--fs-xs)",
               color: "var(--mut3)",
               marginBottom: 16,
             }}
@@ -304,15 +302,15 @@ export default function EsteiraAgentes({
           </div>
           {pendentesCount > 0 ? (
             <>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, color: "var(--atn)" }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-4xl)", color: "var(--atn)" }}>
                 {pendentesCount}
               </div>
-              <div style={{ fontSize: 12, color: "var(--txt2)" }}>
+              <div style={{ fontSize: "var(--fs-sm)", color: "var(--txt2)" }}>
                 {pendentesCount === 1 ? "sugestão aguardando" : "sugestões aguardando"} sua decisão, na fila acima
               </div>
             </>
           ) : (
-            <div style={{ fontSize: 12, color: "var(--mut3)" }}>nada esperando decisão agora</div>
+            <div style={{ fontSize: "var(--fs-sm)", color: "var(--mut3)" }}>nada esperando decisão agora</div>
           )}
         </div>
 
@@ -326,13 +324,12 @@ export default function EsteiraAgentes({
             minHeight: 200,
           }}
         >
-          <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 17, lineHeight: 1.2 }}>
+          <div style={{ fontWeight: "var(--fw-bold)", fontSize: "var(--fs-lg)", lineHeight: "var(--lh-tight)", color: "var(--txt)" }}>
             Execução
           </div>
           <div
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 9,
+              fontSize: "var(--fs-xs)",
               color: "var(--mut3)",
               marginBottom: 16,
               textWrap: "pretty",
@@ -341,21 +338,21 @@ export default function EsteiraAgentes({
             espelho, não configurável — mostra o que já foi aprovado, esperando você gerar o prompt e fazer
           </div>
           {aprovadas.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--mut3)" }}>nada aprovado na fila agora</div>
+            <div style={{ fontSize: "var(--fs-sm)", color: "var(--mut3)" }}>nada aprovado na fila agora</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {aprovadas.map((s) => (
                 <div key={s.id} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                   <div
                     style={{
-                      width: 20,
-                      height: 20,
+                      width: 22,
+                      height: 22,
                       borderRadius: 4,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: 8,
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--fs-2xs)",
                       background: s.chip.bg,
                       color: s.chip.fg,
                       border: `1px solid ${s.chip.borda}`,
@@ -365,7 +362,7 @@ export default function EsteiraAgentes({
                   >
                     {s.chip.mono}
                   </div>
-                  <div style={{ fontSize: 12, color: "var(--txt2)", textWrap: "pretty" }}>{s.proposta}</div>
+                  <div style={{ fontSize: "var(--fs-sm)", color: "var(--txt2)", textWrap: "pretty" }}>{s.proposta}</div>
                 </div>
               ))}
             </div>

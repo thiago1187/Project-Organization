@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { SugestaoVM } from "@/dominio/visao";
 import { aprovarSugestaoAction, marcarFeitaAction, recusarSugestaoAction } from "@/servidor/acoes-sugestao";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Uma linha da fila de sugestões. Resumo sempre visível (agente, proposta,
 // esforço, reversibilidade, estado); motivo e risco só aparecem expandidos —
@@ -161,8 +162,8 @@ export default function CartaoSugestao({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--fs-2xs)",
             background: s.chip.bg,
             color: s.chip.fg,
             border: `1px solid ${s.chip.borda}`,
@@ -174,18 +175,18 @@ export default function CartaoSugestao({
 
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 10, color: "var(--mut3)", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "var(--fs-2xs)", color: "var(--mut3)", fontFamily: "var(--font-mono)" }}>
               {s.chip.papel}
             </div>
-            <div style={{ fontSize: 10, color: "var(--mut3)" }}>·</div>
-            <div style={{ fontSize: 10, color: "var(--mut3)", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "var(--fs-2xs)", color: "var(--mut3)" }}>·</div>
+            <div style={{ fontSize: "var(--fs-2xs)", color: "var(--mut3)", fontFamily: "var(--font-mono)" }}>
               {s.criadaEmLabel}
             </div>
           </div>
 
           <div
             onClick={() => setAberto((v) => !v)}
-            style={{ fontSize: 14, color: "var(--txt)", marginTop: 4, textWrap: "pretty", cursor: "pointer" }}
+            style={{ fontSize: "var(--fs-sm)", color: "var(--txt)", marginTop: 4, textWrap: "pretty", cursor: "pointer" }}
           >
             {s.proposta}
           </div>
@@ -193,8 +194,8 @@ export default function CartaoSugestao({
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
             <span
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
+                fontSize: "var(--fs-2xs)",
+                fontWeight: "var(--fw-medium)",
                 color: "var(--mut3)",
                 border: "1px solid var(--borda)",
                 borderRadius: 3,
@@ -205,19 +206,18 @@ export default function CartaoSugestao({
             </span>
             <span
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
+                fontSize: "var(--fs-2xs)",
                 color: s.reversibilidadeCor,
                 border: `1px solid ${s.reversibilidadeCor}`,
                 borderRadius: 3,
                 padding: "2px 7px",
-                fontWeight: s.naoReverte ? 700 : 400,
+                fontWeight: s.naoReverte ? "var(--fw-bold)" : "var(--fw-medium)",
               }}
             >
               {s.naoReverte ? "⚠ não reverte" : s.reversibilidadeLabel}
             </span>
             {s.estado !== "pendente" && (
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: s.estadoCor }}>
+              <span style={{ fontSize: "var(--fs-2xs)", fontWeight: "var(--fw-semibold)", color: s.estadoCor }}>
                 {s.decisaoLabel ?? s.estadoLabel}
               </span>
             )}
@@ -225,16 +225,8 @@ export default function CartaoSugestao({
             <button
               type="button"
               onClick={() => setAberto((v) => !v)}
-              className="h-txt"
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 10,
-                color: "var(--mut3)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "2px 4px",
-              }}
+              className={classeBotao("texto")}
+              style={estiloBotao("texto")}
             >
               {aberto ? "fechar detalhe" : "ver detalhe"}
             </button>
@@ -252,24 +244,24 @@ export default function CartaoSugestao({
               }}
             >
               <div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+                <div style={{ fontSize: "var(--fs-2xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
                   por quê
                 </div>
-                <div style={{ fontSize: 13, color: "var(--txt2)", marginTop: 3, textWrap: "pretty" }}>{s.motivo}</div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--txt2)", marginTop: 3, textWrap: "pretty" }}>{s.motivo}</div>
               </div>
               <div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+                <div style={{ fontSize: "var(--fs-2xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
                   risco
                 </div>
-                <div style={{ fontSize: 13, color: "var(--txt2)", marginTop: 3, textWrap: "pretty" }}>{s.risco}</div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--txt2)", marginTop: 3, textWrap: "pretty" }}>{s.risco}</div>
               </div>
               {s.prUrl && (
                 <a
                   href={s.prUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="h-txt"
-                  style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--atn)" }}
+                  className={classeBotao("texto")}
+                  style={{ ...estiloBotao("texto"), color: "var(--atn)" }}
                 >
                   ver link do que foi feito ↗
                 </a>
@@ -287,7 +279,7 @@ export default function CartaoSugestao({
                 background: "var(--faixa-fundo)",
               }}
             >
-              <div style={{ fontSize: 13, color: "var(--fal)", textWrap: "pretty" }}>
+              <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)", textWrap: "pretty" }}>
                 Esta sugestão não reverte. Toca migration, configuração externa ou dado apagado — se
                 der errado depois de aprovada e executada, não há desfazer fácil.
               </div>
@@ -296,16 +288,8 @@ export default function CartaoSugestao({
                   type="button"
                   onClick={aprovar}
                   disabled={pendente}
-                  style={{
-                    border: "1px solid var(--fal)",
-                    borderRadius: 4,
-                    background: "var(--fal)",
-                    color: "var(--bg)",
-                    padding: "6px 12px",
-                    fontSize: 12,
-                    cursor: pendente ? "default" : "pointer",
-                    opacity: pendente ? 0.6 : 1,
-                  }}
+                  className={classeBotao("destrutiva-forte")}
+                  style={estiloBotao("destrutiva-forte")}
                 >
                   {pendente ? "aprovando…" : "sim, entendo — aprovar mesmo assim"}
                 </button>
@@ -313,15 +297,8 @@ export default function CartaoSugestao({
                   type="button"
                   onClick={() => setConfirmandoNaoReverte(false)}
                   disabled={pendente}
-                  className="h-txt"
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10,
-                    color: "var(--mut3)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
+                  className={classeBotao("texto")}
+                  style={estiloBotao("texto")}
                 >
                   cancelar
                 </button>
@@ -335,17 +312,8 @@ export default function CartaoSugestao({
                 type="button"
                 onClick={() => (s.naoReverte ? setConfirmandoNaoReverte(true) : aprovar())}
                 disabled={pendente}
-                className="h-borda"
-                style={{
-                  border: "1px solid var(--borda-forte)",
-                  borderRadius: 4,
-                  background: "var(--rodada-fundo)",
-                  color: "var(--txt)",
-                  padding: "6px 14px",
-                  fontSize: 12,
-                  cursor: pendente ? "default" : "pointer",
-                  opacity: pendente ? 0.6 : 1,
-                }}
+                className={classeBotao("primaria")}
+                style={estiloBotao("primaria")}
               >
                 {pendente ? "aprovando…" : "aprovar · a"}
               </button>
@@ -353,18 +321,8 @@ export default function CartaoSugestao({
                 type="button"
                 onClick={recusar}
                 disabled={pendente}
-                className="h-txt"
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
-                  color: "var(--mut3)",
-                  background: "none",
-                  border: "1px solid var(--borda)",
-                  borderRadius: 4,
-                  padding: "6px 14px",
-                  cursor: pendente ? "default" : "pointer",
-                  opacity: pendente ? 0.6 : 1,
-                }}
+                className={classeBotao("destrutiva")}
+                style={estiloBotao("destrutiva")}
               >
                 {pendente ? "recusando…" : "recusar · x"}
               </button>
@@ -377,17 +335,8 @@ export default function CartaoSugestao({
                 type="button"
                 onClick={() => setMarcandoFeita(true)}
                 disabled={pendente}
-                className="h-borda"
-                style={{
-                  border: "1px solid var(--borda-forte)",
-                  borderRadius: 4,
-                  background: "var(--rodada-fundo)",
-                  color: "var(--txt)",
-                  padding: "6px 14px",
-                  fontSize: 12,
-                  cursor: pendente ? "default" : "pointer",
-                  opacity: pendente ? 0.6 : 1,
-                }}
+                className={classeBotao("secundaria")}
+                style={estiloBotao("secundaria")}
               >
                 marcar como feita
               </button>
@@ -403,7 +352,7 @@ export default function CartaoSugestao({
                 padding: "10px 12px",
               }}
             >
-              <div style={{ fontSize: 12, color: "var(--mut3)", marginBottom: 6 }}>
+              <div style={{ fontSize: "var(--fs-2xs)", color: "var(--mut3)", marginBottom: 6 }}>
                 Link do que foi feito, se houver (pull request, commit) — opcional.
               </div>
               <input
@@ -414,7 +363,7 @@ export default function CartaoSugestao({
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
-                  fontSize: 13,
+                  fontSize: "var(--fs-xs)",
                   padding: "6px 8px",
                   border: "1px solid var(--linha3)",
                   borderRadius: 4,
@@ -427,17 +376,8 @@ export default function CartaoSugestao({
                   type="button"
                   onClick={marcarFeita}
                   disabled={pendente}
-                  className="h-borda"
-                  style={{
-                    border: "1px solid var(--borda-forte)",
-                    borderRadius: 4,
-                    background: "var(--rodada-fundo)",
-                    color: "var(--txt)",
-                    padding: "6px 14px",
-                    fontSize: 12,
-                    cursor: pendente ? "default" : "pointer",
-                    opacity: pendente ? 0.6 : 1,
-                  }}
+                  className={classeBotao("primaria")}
+                  style={estiloBotao("primaria")}
                 >
                   {pendente ? "salvando…" : "confirmar"}
                 </button>
@@ -448,15 +388,8 @@ export default function CartaoSugestao({
                     setLinkFeita("");
                   }}
                   disabled={pendente}
-                  className="h-txt"
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10,
-                    color: "var(--mut3)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
+                  className={classeBotao("texto")}
+                  style={estiloBotao("texto")}
                 >
                   cancelar
                 </button>
@@ -465,7 +398,7 @@ export default function CartaoSugestao({
           )}
 
           {erro && (
-            <div style={{ fontSize: 11, color: "var(--fal)", marginTop: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)", marginTop: 8 }}>
               {erro}
             </div>
           )}

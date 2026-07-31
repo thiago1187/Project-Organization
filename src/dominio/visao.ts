@@ -77,12 +77,16 @@ function partesISO(iso: string) {
   return { ano: Number(m[1]), mes: Number(m[2]), dia: Number(m[3]), hora: m[4], minuto: m[5] };
 }
 
-function formatarHora(iso: string): string {
+/** Exportado para src/dominio/mapaAgentes.ts reaproveitar — mesmo parser de
+ * timestamp, mesma regra de "mostra a hora gravada, não converte fuso". */
+export function formatarHora(iso: string): string {
   const p = partesISO(iso);
   return `${p.hora}:${p.minuto}`;
 }
 
-function formatarDataCurta(iso: string): string {
+/** Exportado para src/dominio/agentes.ts reaproveitar (mesma formatação de data
+ * usada em toda a tela de detalhe, agora também na ficha de agente). */
+export function formatarDataCurta(iso: string): string {
   const p = partesISO(iso);
   return `${p.dia} ${MESES[p.mes - 1]}`;
 }
@@ -538,14 +542,16 @@ const REVERSIBILIDADE_COR: Record<Reversibilidade, string> = {
   nao_reverte: "var(--fal)",
 };
 
-const ESTADO_SUGESTAO_LABEL: Record<EstadoSugestao, string> = {
+/** Exportados para src/dominio/agentes.ts reaproveitar (mesmo rótulo/cor de
+ * estado de sugestão, agora também no histórico da ficha de agente). */
+export const ESTADO_SUGESTAO_LABEL: Record<EstadoSugestao, string> = {
   pendente: "aguardando decisão",
   aprovada: "aprovada",
   recusada: "recusada",
   feita: "feita",
 };
 
-const ESTADO_SUGESTAO_COR: Record<EstadoSugestao, string> = {
+export const ESTADO_SUGESTAO_COR: Record<EstadoSugestao, string> = {
   pendente: "var(--atn)",
   aprovada: "var(--ok)",
   recusada: "var(--mut3)",

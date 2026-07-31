@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { editarProjetoAction, type EstadoFormProjeto } from "@/servidor/acoes-projeto";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const ESTADO_INICIAL: EstadoFormProjeto = { ok: false, erro: null, campos: {} };
 
@@ -36,11 +37,11 @@ export default function FormEdicaoProjeto({
     >
       <input type="hidden" name="id" value={id} />
       <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 160px" }}>
-        <span style={{ fontSize: 10, color: "var(--mut2)" }}>nome</span>
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>nome</span>
         <input name="nome" defaultValue={estado.campos.nome ?? nomeAtual} required maxLength={200} style={estiloCampo} />
       </label>
       <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 200px" }}>
-        <span style={{ fontSize: 10, color: "var(--mut2)" }}>repositório</span>
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>repositório</span>
         <input
           name="repositorio"
           defaultValue={estado.campos.repositorio ?? repositorioAtual}
@@ -51,18 +52,8 @@ export default function FormEdicaoProjeto({
       <button
         type="submit"
         disabled={pendente}
-        className="h-borda"
-        style={{
-          border: "1px solid var(--borda-forte)",
-          borderRadius: 4,
-          background: "var(--rodada-fundo)",
-          color: "var(--txt)",
-          padding: "7px 12px",
-          fontSize: 12,
-          cursor: pendente ? "default" : "pointer",
-          opacity: pendente ? 0.6 : 1,
-          whiteSpace: "nowrap",
-        }}
+        className={classeBotao("secundaria")}
+        style={estiloBotao("secundaria")}
       >
         {pendente ? "salvando…" : "salvar"}
       </button>
@@ -70,20 +61,12 @@ export default function FormEdicaoProjeto({
         type="button"
         onClick={aoFechar}
         disabled={pendente}
-        className="h-txt"
-        style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 10,
-          color: "var(--mut3)",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "7px 4px",
-        }}
+        className={classeBotao("texto")}
+        style={estiloBotao("texto")}
       >
         cancelar
       </button>
-      {estado.erro && <div style={{ width: "100%", fontSize: 11, color: "var(--fal)" }}>{estado.erro}</div>}
+      {estado.erro && <div style={{ width: "100%", fontSize: "var(--fs-xs)", color: "var(--fal)" }}>{estado.erro}</div>}
     </form>
   );
 }

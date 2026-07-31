@@ -16,8 +16,116 @@ body {
 }
 
 body {
-  font-family: "Helvetica Neue", Helvetica, system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Repasse de tipografia — reforma de outubro/2026 (dono rejeitou a serifada
+   e os rótulos de 9–11px: "vibe de escritor e fino", letra pequena demais,
+   contraste fraco). Uma família só (Inter, via next/font/google — baixada
+   em build, servida do próprio domínio, zero CDN em runtime) para título e
+   corpo; a mono (JetBrains Mono, idem) fica reservada a dado técnico —
+   repositório, hora, sha, contador. Nunca em rótulo de seção nem em texto
+   de leitura: ver docs, "mono só onde é dado técnico".
+
+   `--font-sans`/`--font-mono` são as CSS custom properties que o
+   next/font injeta no <html> (layout.tsx). Piso de 12px para todo texto de
+   interface — nenhum token de tamanho abaixo disso, em nenhuma densidade.
+   ─────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --font-sans: "Helvetica Neue", Helvetica, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", ui-monospace, Menlo, monospace;
+}
+
+/* Escala de tamanho. Cada token passa por max(12px, …) para o piso valer em
+   toda densidade — ver bloco de densidade abaixo, que só multiplica
+   `--densidade`. */
+:root {
+  --densidade: 1;
+
+  --fs-2xs: max(12px, calc(12px * var(--densidade)));
+  --fs-xs: max(12px, calc(13px * var(--densidade)));
+  --fs-sm: max(12px, calc(14px * var(--densidade)));
+  --fs-base: max(12px, calc(15px * var(--densidade)));
+  --fs-md: max(12px, calc(16px * var(--densidade)));
+  --fs-lg: max(12px, calc(18px * var(--densidade)));
+  --fs-xl: max(12px, calc(20px * var(--densidade)));
+  --fs-2xl: max(12px, calc(24px * var(--densidade)));
+  --fs-3xl: max(12px, calc(28px * var(--densidade)));
+  --fs-4xl: max(12px, calc(34px * var(--densidade)));
+  --fs-5xl: max(12px, calc(40px * var(--densidade)));
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --lh-tight: 1.15;
+  --lh-normal: 1.45;
+  --lh-relaxed: 1.6;
+
+  --ls-tight: -0.01em;
+
+  /* Escala de espaçamento — os mesmos passos que já apareciam soltos nos
+     componentes (4/8/12/16/24/32), agora nomeados e sensíveis à
+     densidade. Migrar todo padding/gap do app para estes tokens é trabalho
+     contínuo; onde um componente já foi tocado nesta rodada ele usa os
+     tokens, o resto continua com o número solto até ser tocado de novo. */
+  --space-1: calc(4px * var(--densidade));
+  --space-2: calc(8px * var(--densidade));
+  --space-3: calc(12px * var(--densidade));
+  --space-4: calc(16px * var(--densidade));
+  --space-5: calc(24px * var(--densidade));
+  --space-6: calc(32px * var(--densidade));
+}
+
+/* compacto/normal/confortável — controlado por ControleDensidade.tsx,
+   persistido em localStorage("densidade"), aplicado por atributo no <html>
+   antes da primeira pintura (script anti-flash em layout.tsx, mesma ideia
+   já usada para o tema). "normal" é o valor padrão (--densidade: 1, já
+   declarado acima) e não precisa de seletor próprio. */
+[data-densidade="compacto"] {
+  --densidade: 0.875;
+}
+[data-densidade="confortavel"] {
+  --densidade: 1.125;
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Botão — três níveis (primária, secundária, texto) + destrutiva, pedido
+   explícito do dono: "quero bater o olho e ver que aquilo é um botão
+   importante". Definidos como tokens porque a decisão é sistêmica (afeta
+   toda tela); os componentes usam src/componentes/estiloBotao.ts, que lê
+   estes tokens em vez de números soltos.
+   ─────────────────────────────────────────────────────────────────────── */
+:root {
+  --btn-radius: 7px;
+  --btn-pad-y-primaria: 11px;
+  --btn-pad-x-primaria: 20px;
+  --btn-pad-y-secundaria: 9px;
+  --btn-pad-x-secundaria: 16px;
+  --btn-pad-y-texto: 8px;
+  --btn-pad-x-texto: 10px;
+
+  /* Primária: fundo/texto invertidos em relação ao corpo (var(--txt) vira o
+     fundo do botão, var(--bg) vira o texto) — contraste alto nos dois temas
+     por construção, sem depender do verde de acento (que, sozinho, não
+     alcança 4.5:1 com texto claro nem escuro em cima em tema claro — testado
+     na reforma de tipografia). É o "bater o olho e ver que é um botão
+     importante" pedido pelo dono: nenhum outro elemento da tela usa fundo
+     sólido dessa cor, então ela só aparece na ação principal. */
+  --btn-primaria-bg: var(--txt);
+  --btn-primaria-fg: var(--bg);
+
+  /* Destrutiva (recusar, apagar) — tratamento próprio: nunca preenchida por
+     engano com a mesma força da primária, para não competir por atenção
+     com a ação principal da tela; preenchida só na confirmação de "não
+     reverte", onde a força visual é proposital. */
+  --btn-destrutiva-fg: var(--fal);
 }
 
 a {
@@ -78,6 +186,39 @@ details.dobravel[open] > summary .chevron {
 
 .h-borda:hover {
   border-color: var(--borda-hover);
+}
+
+/* ───────────────────────────────────────────────────────────────────────
+   Botão — hover/active dos três níveis (src/componentes/estiloBotao.ts monta
+   o resto do estilo inline; aqui só o que precisa de pseudo-classe, pela
+   mesma razão do bloco .h-*: acima). Nenhuma delas é a única pista de estado
+   — foco e disabled continuam por :focus-visible e :disabled.
+   ─────────────────────────────────────────────────────────────────────── */
+.botao-primaria:hover:not(:disabled) {
+  opacity: 0.88;
+}
+.botao-primaria:active:not(:disabled) {
+  opacity: 0.78;
+}
+.botao-secundaria:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: var(--borda-hover);
+}
+.botao-texto:hover:not(:disabled) {
+  color: var(--txt);
+  background: var(--hover);
+}
+.botao-destrutiva:hover:not(:disabled) {
+  background: var(--faixa-fundo);
+  border-color: var(--fal);
+}
+.botao-destrutiva-forte:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 
 /* ───────────────────────────────────────────────────────────────────────

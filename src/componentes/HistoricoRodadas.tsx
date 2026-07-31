@@ -20,7 +20,7 @@ export default function HistoricoRodadas({
   return (
     <>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
           rodadas noturnas
         </div>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
@@ -55,14 +55,15 @@ export default function HistoricoRodadas({
               />
               <div
                 style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 11,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--fs-xs)",
+                  fontWeight: "var(--fw-medium)",
                   color: selecionada ? "var(--txt)" : "var(--mut2)",
                 }}
               >
                 {r.data}
               </div>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+              <div style={{ fontSize: "var(--fs-2xs)", color: "var(--mut3)" }}>
                 {r.qtdAgentes}
               </div>
             </div>
@@ -77,15 +78,15 @@ export default function HistoricoRodadas({
         // "erro" é exatamente o caso em que o detalhe importa sem pedir.
         <details className="dobravel" open={atual.cor === "var(--fal)"} key={idx}>
           <summary style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
-            <span className="chevron" aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+            <span className="chevron" aria-hidden="true" style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
               ▸
             </span>
-            <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22 }}>{atual.tituloLongo}</div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+            <div style={{ fontWeight: "var(--fw-bold)", fontSize: "var(--fs-2xl)", color: "var(--txt)" }}>{atual.tituloLongo}</div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
               {atual.concluida}
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: atual.cor }}>
+            <div style={{ fontWeight: "var(--fw-semibold)", fontSize: "var(--fs-xs)", color: atual.cor }}>
               {atual.testes}
             </div>
           </summary>
@@ -105,8 +106,7 @@ export default function HistoricoRodadas({
             borderRadius: 8,
             padding: "18px 12px",
             textAlign: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-sm)",
             color: "var(--mut3)",
           }}
         >

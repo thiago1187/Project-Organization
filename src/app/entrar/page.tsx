@@ -34,14 +34,16 @@ export default async function EntrarPage({
       <div style={{ textAlign: "center" }}>
         <div
           style={{
-            fontFamily: "'Instrument Serif', Georgia, serif",
-            fontSize: 28,
-            letterSpacing: "-0.015em",
+            fontWeight: "var(--fw-bold)",
+            fontSize: "var(--fs-3xl)",
+            lineHeight: "var(--lh-tight)",
+            letterSpacing: "var(--ls-tight)",
+            color: "var(--txt)",
           }}
         >
           Entrar
         </div>
-        <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: 13 }}>
+        <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: "var(--fs-sm)" }}>
           Informe o segredo do painel para continuar.
         </div>
       </div>

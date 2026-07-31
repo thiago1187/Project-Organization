@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import type { Contexto } from "@/dominio/tipos";
 import { removerContextoAction, salvarContextoAction, type EstadoFormContexto } from "@/servidor/acoes-contexto";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const ESTADO_INICIAL: EstadoFormContexto = { ok: false, erro: null, campos: {} };
 
@@ -25,25 +26,6 @@ function hostnameCurto(url: string): string {
     return url;
   }
 }
-
-const estiloBotaoTexto = {
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: 10,
-  color: "var(--mut3)",
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  padding: "2px 4px",
-} as const;
-
-const estiloBotaoPrimario = {
-  border: "1px solid var(--borda-forte)",
-  borderRadius: 4,
-  background: "var(--rodada-fundo)",
-  color: "var(--txt)",
-  padding: "7px 14px",
-  fontSize: 12,
-} as const;
 
 /** Um item de `contexto`: visualização por padrão, edição no lugar sob demanda. */
 export default function CartaoContexto({ item, projetoId }: { item: Contexto; projetoId: string }) {
@@ -108,8 +90,8 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--fs-2xs)",
               color: "var(--mut3)",
               border: "1px solid var(--borda)",
               borderRadius: 3,
@@ -118,10 +100,10 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
           >
             {item.agente_destino}
           </span>
-          <span style={{ fontSize: 13, color: "var(--txt)" }}>{item.tipo}</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--txt)" }}>{item.tipo}</span>
         </div>
         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>conteúdo</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>conteúdo</span>
           <textarea
             name="conteudo"
             defaultValue={estado.campos.conteudo ?? item.conteudo ?? ""}
@@ -131,7 +113,7 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
           />
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontSize: 10, color: "var(--mut2)" }}>ou link de arquivo</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>ou link de arquivo</span>
           <input
             name="arquivo_url"
             defaultValue={estado.campos.arquivo_url ?? item.arquivo_url ?? ""}
@@ -143,16 +125,16 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
           <button
             type="submit"
             disabled={pendenteSalvar}
-            className="h-borda"
-            style={{ ...estiloBotaoPrimario, cursor: pendenteSalvar ? "default" : "pointer", opacity: pendenteSalvar ? 0.6 : 1 }}
+            className={classeBotao("primaria")}
+            style={estiloBotao("primaria")}
           >
             {pendenteSalvar ? "salvando…" : "salvar"}
           </button>
-          <button type="button" onClick={() => setEditando(false)} disabled={pendenteSalvar} className="h-txt" style={estiloBotaoTexto}>
+          <button type="button" onClick={() => setEditando(false)} disabled={pendenteSalvar} className={classeBotao("texto")} style={estiloBotao("texto")}>
             cancelar
           </button>
         </div>
-        {estado.erro && <div style={{ fontSize: 11, color: "var(--fal)" }}>{estado.erro}</div>}
+        {estado.erro && <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)" }}>{estado.erro}</div>}
       </form>
     );
   }
@@ -165,8 +147,8 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <span
           style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--fs-2xs)",
             color: "var(--mut3)",
             border: "1px solid var(--borda)",
             borderRadius: 3,
@@ -175,18 +157,18 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
         >
           {item.agente_destino}
         </span>
-        <span style={{ fontSize: 13, color: "var(--txt)" }}>{item.tipo}</span>
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--txt)" }}>{item.tipo}</span>
         <div style={{ flex: 1 }} />
-        <button type="button" onClick={() => setEditando(true)} className="h-txt" style={estiloBotaoTexto}>
+        <button type="button" onClick={() => setEditando(true)} className={classeBotao("texto")} style={estiloBotao("texto")}>
           editar
         </button>
-        <button type="button" onClick={() => setConfirmandoRemocao(true)} className="h-txt" style={estiloBotaoTexto}>
+        <button type="button" onClick={() => setConfirmandoRemocao(true)} className={classeBotao("texto")} style={estiloBotao("texto")}>
           remover
         </button>
       </div>
 
       {item.conteudo && (
-        <div style={{ fontSize: 13, color: "var(--txt2)", marginTop: 8, textWrap: "pretty", whiteSpace: "pre-wrap" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--txt2)", marginTop: 8, textWrap: "pretty", whiteSpace: "pre-wrap" }}>
           {item.conteudo}
         </div>
       )}
@@ -195,19 +177,13 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
           href={item.arquivo_url}
           target="_blank"
           rel="noreferrer"
-          className="h-txt"
-          style={{
-            display: "inline-block",
-            marginTop: 8,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
-            color: "var(--atn)",
-          }}
+          className={classeBotao("texto")}
+          style={{ ...estiloBotao("texto"), display: "inline-flex", marginTop: 8, fontFamily: "var(--font-mono)", color: "var(--atn)" }}
         >
           {hostnameCurto(item.arquivo_url)} ↗
         </a>
       )}
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)", marginTop: 8 }}>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-2xs)", color: "var(--mut3)", marginTop: 8 }}>
         atualizado {formatarDataCurta(item.atualizado_em)}
       </div>
 
@@ -221,7 +197,7 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
             background: "var(--faixa-fundo)",
           }}
         >
-          <div style={{ fontSize: 12, color: "var(--fal)" }}>
+          <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)" }}>
             Remover este item? A próxima rodada não vai mais lê-lo.
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
@@ -229,16 +205,8 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
               type="button"
               onClick={remover}
               disabled={pendenteRemocao}
-              style={{
-                border: "1px solid var(--fal)",
-                borderRadius: 4,
-                background: "var(--fal)",
-                color: "var(--bg)",
-                padding: "6px 12px",
-                fontSize: 12,
-                cursor: pendenteRemocao ? "default" : "pointer",
-                opacity: pendenteRemocao ? 0.6 : 1,
-              }}
+              className={classeBotao("destrutiva-forte")}
+              style={estiloBotao("destrutiva-forte")}
             >
               {pendenteRemocao ? "removendo…" : "sim, remover"}
             </button>
@@ -246,8 +214,8 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
               type="button"
               onClick={() => setConfirmandoRemocao(false)}
               disabled={pendenteRemocao}
-              className="h-txt"
-              style={estiloBotaoTexto}
+              className={classeBotao("texto")}
+              style={estiloBotao("texto")}
             >
               cancelar
             </button>
@@ -255,7 +223,7 @@ export default function CartaoContexto({ item, projetoId }: { item: Contexto; pr
         </div>
       )}
       {erroRemocao && (
-        <div style={{ fontSize: 11, color: "var(--fal)", marginTop: 8, fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--fal)", marginTop: 8 }}>
           {erroRemocao}
         </div>
       )}

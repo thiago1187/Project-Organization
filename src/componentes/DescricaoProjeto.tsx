@@ -47,7 +47,7 @@ export default function DescricaoProjeto({
           boxSizing: "border-box",
           resize: "vertical",
           fontFamily: "inherit",
-          fontSize: 14,
+          fontSize: "var(--fs-sm)",
           color: "var(--txt2)",
           background: "transparent",
           border: "1px solid transparent",
@@ -59,12 +59,12 @@ export default function DescricaoProjeto({
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
         {salvando && (
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--mut3)" }}>
+          <span style={{ fontSize: "var(--fs-2xs)", color: "var(--mut3)" }}>
             salvando…
           </span>
         )}
         {erro && (
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: "var(--fal)" }}>{erro}</span>
+          <span style={{ fontSize: "var(--fs-2xs)", color: "var(--fal)" }}>{erro}</span>
         )}
       </div>
     </div>

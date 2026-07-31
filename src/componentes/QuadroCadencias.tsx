@@ -85,8 +85,8 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
         <div
           style={{
             marginBottom: 10,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 11,
+            fontSize: "var(--fs-sm)",
+            fontWeight: "var(--fw-medium)",
             color: "var(--fal)",
           }}
         >
@@ -110,9 +110,9 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
           }}
           placeholder="buscar projeto… (/)"
           aria-label="Buscar projeto por nome"
-          style={{ ...estiloCampo, width: 220, padding: "6px 10px", fontSize: 12 }}
+          style={{ ...estiloCampo, width: 220, padding: "8px 10px", fontSize: "var(--fs-sm)" }}
         />
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
           arraste um card para mudar com que frequência os agentes visitam o projeto
         </div>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
@@ -125,8 +125,7 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
             borderRadius: 8,
             padding: "24px 12px",
             textAlign: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 11,
+            fontSize: "var(--fs-sm)",
             color: "var(--mut3)",
           }}
         >
@@ -178,15 +177,15 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
                   borderBottom: "1px solid var(--linha2)",
                 }}
               >
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, lineHeight: 1.2 }}>
+                <div style={{ fontWeight: "var(--fw-bold)", fontSize: "var(--fs-lg)", lineHeight: "var(--lh-tight)", color: "var(--txt)" }}>
                   {f.titulo}
                 </div>
                 <div style={{ flex: 1 }} />
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
                   {qtd}
                 </div>
               </div>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)", padding: "0 4px" }}>
+              <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", padding: "0 4px" }}>
                 {f.nota}
               </div>
 
@@ -207,8 +206,7 @@ export default function QuadroCadencias({ cards }: { cards: ProjetoCardVM[] }) {
                     borderRadius: 8,
                     padding: "18px 12px",
                     textAlign: "center",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10,
+                    fontSize: "var(--fs-xs)",
                     color: "var(--mut3)",
                   }}
                 >

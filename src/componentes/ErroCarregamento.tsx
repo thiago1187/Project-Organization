@@ -10,6 +10,8 @@
 // detalhe de verdade já foi para o log do servidor antes do erro chegar
 // aqui (ver src/servidor/erros.ts). `digest` é só a referência para
 // encontrar esse log, não é sensível.
+import { classeBotao, estiloBotao } from "./estiloBotao";
+
 export default function ErroCarregamento({
   titulo,
   reset,
@@ -28,26 +30,17 @@ export default function ErroCarregamento({
         maxWidth: 560,
       }}
     >
-      <div style={{ fontSize: 13, color: "var(--txt2)" }}>{titulo}</div>
+      <div style={{ fontSize: "var(--fs-xs)", color: "var(--txt2)" }}>{titulo}</div>
       <button
         type="button"
         onClick={reset}
-        className="h-borda"
-        style={{
-          marginTop: 12,
-          border: "1px solid var(--borda-forte)",
-          borderRadius: 5,
-          background: "var(--rodada-fundo)",
-          color: "var(--txt)",
-          padding: "7px 14px",
-          fontSize: 12,
-          cursor: "pointer",
-        }}
+        className={classeBotao("secundaria")}
+        style={{ ...estiloBotao("secundaria"), marginTop: 12 }}
       >
         tentar novamente
       </button>
       {digest && (
-        <div style={{ marginTop: 10, fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <div style={{ marginTop: 10, fontFamily: "var(--font-mono)", fontSize: "var(--fs-2xs)", color: "var(--mut3)" }}>
           referência: {digest}
         </div>
       )}

@@ -9,8 +9,7 @@ export default function ProjetoNaoEncontrado() {
           borderRadius: 8,
           padding: "22px 18px",
           textAlign: "center",
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11,
+          fontSize: "var(--fs-xs)",
           color: "var(--mut3)",
         }}
       >

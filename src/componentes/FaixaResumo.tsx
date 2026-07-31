@@ -1,4 +1,5 @@
 import type { TiraEstadoVM } from "@/dominio/visao";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // A resposta ao teste de cinco segundos de docs/visao.md ("em cinco segundos
 // sabe se algo precisa dele"). Fica logo abaixo do cabeçalho, largura cheia,
@@ -34,23 +35,15 @@ export default function FaixaResumo({
         background: "var(--faixa-fundo)",
       }}
     >
-      <div style={{ fontSize: 13, color: "var(--txt2)", flex: 1, minWidth: 220, textWrap: "pretty" }}>
+      <div style={{ fontSize: "var(--fs-base)", color: "var(--txt2)", flex: 1, minWidth: 220, textWrap: "pretty" }}>
         {tira.texto}
       </div>
 
       {ultimaRodadaOk === false && (
         <a
           href="#historico-rodadas"
-          className="h-txt"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 11,
-            color: "var(--fal)",
-            border: "1px solid var(--fal)",
-            borderRadius: 5,
-            padding: "6px 12px",
-            whiteSpace: "nowrap",
-          }}
+          className={classeBotao("destrutiva")}
+          style={{ ...estiloBotao("destrutiva"), whiteSpace: "nowrap" }}
         >
           ⚠ última rodada falhou
         </a>
@@ -59,21 +52,13 @@ export default function FaixaResumo({
       {pendentesCount > 0 ? (
         <a
           href="#fila-sugestoes"
-          className="h-fundo"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 12,
-            color: "var(--atn)",
-            border: "1px solid var(--atn)",
-            borderRadius: 5,
-            padding: "8px 16px",
-            whiteSpace: "nowrap",
-          }}
+          className={classeBotao("primaria")}
+          style={{ ...estiloBotao("primaria"), whiteSpace: "nowrap" }}
         >
           decidir {pendentesCount} {pendentesCount === 1 ? "sugestão" : "sugestões"} →
         </a>
       ) : (
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: "var(--mut3)" }}>
+        <span style={{ fontSize: "var(--fs-sm)", color: "var(--mut3)" }}>
           nada esperando decisão
         </span>
       )}

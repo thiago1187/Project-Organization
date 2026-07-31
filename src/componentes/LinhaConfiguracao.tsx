@@ -5,6 +5,7 @@ import { ORDEM_FAIXAS, FAIXA_LABEL_CURTO, type Faixa } from "@/dominio/cadencia"
 import type { ConfigLinhaVM } from "@/dominio/visao";
 import { definirCadenciaAction } from "@/servidor/acoes-projeto";
 import FormEdicaoProjeto from "./FormEdicaoProjeto";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Portado do export, linhas 269-279, agora persistindo de verdade: escolher
 // um botão chama `definirCadenciaAction`, que passa por `patchParaFaixa`
@@ -56,30 +57,24 @@ export default function LinhaConfiguracao({ linha }: { linha: ConfigLinhaVM }) {
           <div style={{ minWidth: 180, flex: 1 }}>
             <div
               style={{
-                fontFamily: "'Instrument Serif', Georgia, serif",
-                fontSize: 19,
+                fontWeight: "var(--fw-bold)",
+                fontSize: "var(--fs-md)",
+                lineHeight: "var(--lh-tight)",
+                letterSpacing: "var(--ls-tight)",
                 color: pausado ? "var(--mut2)" : "var(--txt)",
               }}
             >
               {linha.nome}
             </div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)", marginTop: 3 }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "var(--fs-2xs)", color: "var(--mut3)", marginTop: 3 }}>
               {linha.repo} · {linha.ultimaRodadaLabel}
             </div>
           </div>
           <button
             type="button"
             onClick={() => setEditando(true)}
-            className="h-txt"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: "var(--mut3)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "4px 2px",
-            }}
+            className={classeBotao("texto")}
+            style={estiloBotao("texto")}
           >
             editar
           </button>
@@ -96,8 +91,8 @@ export default function LinhaConfiguracao({ linha }: { linha: ConfigLinhaVM }) {
                 onClick={() => escolherFaixa(opcao)}
                 className="h-borda"
                 style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 10,
+                  fontSize: "var(--fs-2xs)",
+                  fontWeight: "var(--fw-medium)",
                   color: on ? "var(--txt)" : "var(--mut3)",
                   border: `1px solid ${on ? "var(--borda-forte)" : "var(--borda)"}`,
                   background: on ? "var(--rodada-fundo)" : "var(--painel)",
@@ -116,7 +111,7 @@ export default function LinhaConfiguracao({ linha }: { linha: ConfigLinhaVM }) {
       )}
 
       {erro && (
-        <div style={{ width: "100%", fontSize: 11, color: "var(--fal)", fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ width: "100%", fontSize: "var(--fs-xs)", color: "var(--fal)" }}>
           {erro}
         </div>
       )}

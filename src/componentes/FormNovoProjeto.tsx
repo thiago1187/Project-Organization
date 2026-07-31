@@ -6,6 +6,7 @@ import type { Frequencia } from "@/dominio/tipos";
 import { importarRepositorioGithubAction } from "@/servidor/acoes-github";
 import { criarProjetoAction, type EstadoFormProjeto } from "@/servidor/acoes-projeto";
 import { estiloCampo } from "./estiloCampo";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 const OPCOES_FREQUENCIA: { valor: Frequencia; rotulo: string }[] = [
   { valor: "toda_madrugada", rotulo: "toda madrugada" },
@@ -56,7 +57,7 @@ function ImportarDoGithub({
     <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: "1px dashed var(--borda)" }}>
       <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 260px", minWidth: 200 }}>
-          <span style={{ fontSize: 11, color: "var(--mut2)" }}>importar do GitHub · opcional</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>importar do GitHub · opcional</span>
           <input
             value={entrada}
             onChange={(e) => setEntrada(e.target.value)}
@@ -75,25 +76,15 @@ function ImportarDoGithub({
           type="button"
           onClick={importar}
           disabled={pendente || !entrada.trim()}
-          className="h-borda"
-          style={{
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 5,
-            background: "transparent",
-            color: "var(--txt)",
-            padding: "9px 16px",
-            fontSize: 13,
-            cursor: pendente ? "default" : "pointer",
-            opacity: pendente || !entrada.trim() ? 0.6 : 1,
-            whiteSpace: "nowrap",
-          }}
+          className={classeBotao("secundaria")}
+          style={{ ...estiloBotao("secundaria"), whiteSpace: "nowrap" }}
         >
           {pendente ? "importando…" : "importar"}
         </button>
       </div>
-      {erro && <div style={{ marginTop: 8, fontSize: 12, color: "var(--fal)" }}>{erro}</div>}
+      {erro && <div style={{ marginTop: 8, fontSize: "var(--fs-2xs)", color: "var(--fal)" }}>{erro}</div>}
       {resumo && (
-        <div style={{ marginTop: 8, fontSize: 11, color: "var(--mut2)", lineHeight: 1.6 }}>
+        <div style={{ marginTop: 8, fontSize: "var(--fs-xs)", color: "var(--mut2)", lineHeight: 1.6 }}>
           <div>
             nome e descrição preenchidos abaixo — confira antes de cadastrar.
           </div>
@@ -157,13 +148,13 @@ export default function FormNovoProjeto() {
         marginBottom: 22,
       }}
     >
-      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)", marginBottom: 12 }}>
+      <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)", marginBottom: 12 }}>
         novo projeto
       </div>
       <ImportarDoGithub onImportado={preencherComGithub} />
       <form ref={formRef} action={acao} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 200px", minWidth: 160 }}>
-          <span style={{ fontSize: 11, color: "var(--mut2)" }}>nome</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>nome</span>
           <input
             ref={nomeRef}
             name="nome"
@@ -175,7 +166,7 @@ export default function FormNovoProjeto() {
           />
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 220px", minWidth: 180 }}>
-          <span style={{ fontSize: 11, color: "var(--mut2)" }}>repositório · opcional</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>repositório · opcional</span>
           <input
             ref={repositorioRef}
             name="repositorio"
@@ -186,7 +177,7 @@ export default function FormNovoProjeto() {
           />
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "0 0 170px" }}>
-          <span style={{ fontSize: 11, color: "var(--mut2)" }}>cadência</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>cadência</span>
           <select name="frequencia" defaultValue={estado.campos.frequencia || "toda_madrugada"} style={estiloCampo}>
             {OPCOES_FREQUENCIA.map((o) => (
               <option key={o.valor} value={o.valor}>
@@ -196,7 +187,7 @@ export default function FormNovoProjeto() {
           </select>
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 100%" }}>
-          <span style={{ fontSize: 11, color: "var(--mut2)" }}>descrição · opcional</span>
+          <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut2)" }}>descrição · opcional</span>
           <textarea
             ref={descricaoRef}
             name="descricao"
@@ -210,23 +201,13 @@ export default function FormNovoProjeto() {
         <button
           type="submit"
           disabled={pendente}
-          className="h-borda"
-          style={{
-            border: "1px solid var(--borda-forte)",
-            borderRadius: 5,
-            background: "var(--rodada-fundo)",
-            color: "var(--txt)",
-            padding: "9px 16px",
-            fontSize: 13,
-            cursor: pendente ? "default" : "pointer",
-            opacity: pendente ? 0.6 : 1,
-            whiteSpace: "nowrap",
-          }}
+          className={classeBotao("primaria")}
+          style={{ ...estiloBotao("primaria"), whiteSpace: "nowrap" }}
         >
           {pendente ? "cadastrando…" : "cadastrar projeto"}
         </button>
       </form>
-      {estado.erro && <div style={{ marginTop: 10, fontSize: 12, color: "var(--fal)" }}>{estado.erro}</div>}
+      {estado.erro && <div style={{ marginTop: 10, fontSize: "var(--fs-2xs)", color: "var(--fal)" }}>{estado.erro}</div>}
     </div>
   );
 }

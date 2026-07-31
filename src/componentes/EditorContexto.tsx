@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Contexto } from "@/dominio/tipos";
 import CartaoContexto from "./CartaoContexto";
 import FormNovoContexto from "./FormNovoContexto";
+import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Editor de contexto da tela de detalhe — o que faltava para a tela deixar
 // de ser só leitura (ver CLAUDE.md, "Como o contexto chega aos agentes", e
@@ -19,13 +20,13 @@ export default function EditorContexto({ projetoId, itens }: { projetoId: string
   return (
     <details className="dobravel" style={{ marginBottom: 30 }}>
       <summary style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <span className="chevron" aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <span className="chevron" aria-hidden="true" style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
           ▸
         </span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <span style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)" }}>
           contexto do projeto
         </span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "var(--mut3)" }}>
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)" }}>
           {itens.length === 0 ? "nenhum ainda" : itens.length}
         </span>
         <div style={{ flex: 1, height: 1, background: "var(--linha2)" }} />
@@ -37,17 +38,8 @@ export default function EditorContexto({ projetoId, itens }: { projetoId: string
               setAdicionando(true);
               (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.setAttribute("open", "");
             }}
-            className="h-txt"
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              color: "var(--atn)",
-              background: "none",
-              border: "1px solid var(--borda)",
-              borderRadius: 4,
-              padding: "4px 10px",
-              cursor: "pointer",
-            }}
+            className={classeBotao("texto")}
+            style={{ ...estiloBotao("texto"), color: "var(--atn)", border: "1px solid var(--borda)" }}
           >
             + adicionar
           </button>
@@ -61,8 +53,7 @@ export default function EditorContexto({ projetoId, itens }: { projetoId: string
             borderRadius: 8,
             padding: "18px 12px",
             textAlign: "center",
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
+            fontSize: "var(--fs-xs)",
             color: "var(--mut3)",
           }}
         >
@@ -77,7 +68,7 @@ export default function EditorContexto({ projetoId, itens }: { projetoId: string
         {adicionando && <FormNovoContexto projetoId={projetoId} aoFechar={() => setAdicionando(false)} />}
       </div>
 
-      <div style={{ fontSize: 11, color: "var(--mut3)", marginTop: 8 }}>
+      <div style={{ fontSize: "var(--fs-xs)", color: "var(--mut3)", marginTop: 8 }}>
         Isto é lido pela routine e escrito no CLAUDE.md do repositório alvo antes de acionar os
         agentes — é dado, não instrução, e nunca é editado por ela.
       </div>

@@ -25,15 +25,16 @@ export default async function VisaoGeralPage() {
       <div>
         <div
           style={{
-            fontFamily: "'Instrument Serif', Georgia, serif",
-            fontSize: 34,
-            lineHeight: 1.1,
-            letterSpacing: "-0.015em",
+            fontWeight: "var(--fw-bold)",
+            fontSize: "var(--fs-4xl)",
+            lineHeight: "var(--lh-tight)",
+            letterSpacing: "var(--ls-tight)",
+            color: "var(--txt)",
           }}
         >
           {SAUDACAO}
         </div>
-        <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: 13 }}>{totais.resumoNoite}</div>
+        <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: "var(--fs-sm)" }}>{totais.resumoNoite}</div>
       </div>
 
       {/* O bloco de números (em acompanhamento / PRs na fila / com falha) saiu

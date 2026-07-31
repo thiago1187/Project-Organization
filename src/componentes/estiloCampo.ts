@@ -18,7 +18,7 @@ export const estiloCampo: CSSProperties = {
   border: "1px solid var(--borda)",
   borderRadius: 5,
   padding: "8px 10px",
-  fontSize: 13,
+  fontSize: "var(--fs-xs)",
   color: "var(--txt)",
   fontFamily: "inherit",
   minWidth: 0,
