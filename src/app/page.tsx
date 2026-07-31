@@ -3,16 +3,13 @@ import { listarProjetos } from "@/servidor/projetos";
 import { listarRelatorios } from "@/servidor/relatorios";
 import QuadroCadencias from "@/componentes/QuadroCadencias";
 import PainelAtencao from "@/componentes/PainelAtencao";
+import Saudacao from "@/componentes/Saudacao";
 
 // Server Component: lê direto do banco a cada requisição — nunca cacheado
 // pelo Next (a tela de controle precisa refletir toda ação imediatamente,
 // inclusive a de outra aba). Ver src/servidor/db.ts sobre por que isso
 // também importa para o driver HTTP da Neon.
 export const dynamic = "force-dynamic";
-
-// "Bom dia" fica fixo nesta etapa, junto com o resto do texto de "agora" no
-// cabeçalho — ver o comentário em Cabecalho.tsx e o plano §6.
-const SAUDACAO = "Bom dia";
 
 export default async function VisaoGeralPage() {
   const [projetos, relatorios] = await Promise.all([listarProjetos(), listarRelatorios()]);
@@ -32,7 +29,7 @@ export default async function VisaoGeralPage() {
             color: "var(--txt)",
           }}
         >
-          {SAUDACAO}
+          <Saudacao />
         </div>
         <div style={{ color: "var(--mut2)", marginTop: 6, fontSize: "var(--fs-sm)" }}>{totais.resumoNoite}</div>
       </div>
