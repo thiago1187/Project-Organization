@@ -59,17 +59,47 @@ const STATUS_COR: Record<StatusRelatorio, string> = {
 const STATUS_PESO: Record<StatusRelatorio, number> = { falha: 0, atencao: 1, ok: 2 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Datas: "agora" fica fixo em 29 jul 2026 nesta etapa (plano §6, risco
-// "agora e saudação fixos") — calcular no servidor traria divergência de
-// hidratação. Os timestamps do mock usam o formato ISO com offset
-// "-03:00"; o parser abaixo lê os dígitos direto da string em vez de
-// passar por Date/getHours(), que devolveria a hora local do processo que
-// renderiza (o servidor pode rodar em outro fuso) — o objetivo aqui é
-// mostrar exatamente a hora gravada, não convertê-la.
+// Datas.
+//
+// Os timestamps vêm em ISO com offset "-03:00", e o parser abaixo lê os
+// dígitos direto da string em vez de passar por Date/getHours(): o objetivo é
+// mostrar exatamente a hora gravada, não convertê-la para o fuso do processo
+// que renderiza — a Vercel roda em UTC, e "03:12" viraria "06:12".
+//
+// "Hoje" era `{ dia: 29, mes: 7 }`, escrito à mão na conversão do export e
+// nunca trocado. Enquanto ficou parado ali, toda rodada de qualquer outro dia
+// aparecia com a data colada na hora, e a de 29 de julho aparecia como se
+// tivesse acontecido hoje — para sempre.
+//
+// Agora vem do relógio, resolvido em America/Sao_Paulo, que é o fuso dos
+// timestamps gravados e o do dono. Isto roda só em Server Component com
+// `force-dynamic`, então não há render no cliente para divergir — diferente da
+// saudação e do relógio do cabeçalho, que precisam ser calculados no navegador
+// justamente por aparecerem em componente que hidrata (ver Saudacao.tsx).
 // ─────────────────────────────────────────────────────────────────────────
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-const HOJE = { dia: 29, mes: 7 };
+
+const FUSO_DO_DONO = "America/Sao_Paulo";
+
+/**
+ * Dia e mês de hoje no fuso em que os timestamps foram gravados.
+ *
+ * Exportado com `agora` injetável porque data que vem do relógio é a coisa
+ * mais chata de testar que existe — sem o parâmetro, o teste de "hoje mostra
+ * só a hora" passaria a falhar amanhã.
+ */
+export function hojeNoFusoDoDono(agora: Date = new Date()): { dia: number; mes: number } {
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO_DO_DONO,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(agora);
+  // en-CA devolve "2026-07-30", que é o formato mais barato de fatiar.
+  const [, mes, dia] = partes.split("-");
+  return { dia: Number(dia), mes: Number(mes) };
+}
 
 function partesISO(iso: string) {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
@@ -91,10 +121,11 @@ export function formatarDataCurta(iso: string): string {
   return `${p.dia} ${MESES[p.mes - 1]}`;
 }
 
-/** "03:12" se for hoje (29 jul), senão "12 jul, 03:02" — igual ao p.ultimaRodada do export. */
-function formatarUltimaRodada(iso: string): string {
+/** "03:12" quando é de hoje, senão "12 jul, 03:02". */
+function formatarUltimaRodada(iso: string, agora?: Date): string {
   const p = partesISO(iso);
-  if (p.dia === HOJE.dia && p.mes === HOJE.mes) return formatarHora(iso);
+  const hoje = hojeNoFusoDoDono(agora);
+  if (p.dia === hoje.dia && p.mes === hoje.mes) return formatarHora(iso);
   return `${formatarDataCurta(iso)}, ${formatarHora(iso)}`;
 }
 

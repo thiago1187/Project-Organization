@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { chipDoAgente, detalheProjeto, ondeEstamos, type SugestaoVM } from "@/dominio/visao";
+import {
+  chipDoAgente,
+  detalheProjeto,
+  hojeNoFusoDoDono,
+  ondeEstamos,
+  type SugestaoVM,
+} from "@/dominio/visao";
 import type { Projeto, Relatorio, Sugestao, Tarefa } from "@/dominio/tipos";
 
 function projetoFixture(overrides: Partial<Projeto> = {}): Projeto {
@@ -164,5 +170,26 @@ describe("ondeEstamos", () => {
     expect(resultado.itens.map((i) => i.num)).toEqual(["01", "02"]);
     expect(resultado.itens[0].origem).toBe("tarefa");
     expect(resultado.itens[1].origem).toBe("sugestao");
+  });
+});
+
+describe("hojeNoFusoDoDono", () => {
+  // "Hoje" ficou escrito à mão como { dia: 29, mes: 7 } na conversão do export
+  // e nunca foi trocado. O efeito era silencioso e permanente: rodada de 29 de
+  // julho aparecia como se fosse de hoje, para sempre, e toda outra aparecia
+  // com a data colada na hora. Ninguém percebe porque a tela continua bonita.
+
+  it("resolve no fuso do dono, não no do processo", () => {
+    // 30/07 às 02:00 UTC ainda é 29/07 em São Paulo (-03:00). É o caso que
+    // pega o erro de usar getDate() direto: a Vercel roda em UTC.
+    expect(hojeNoFusoDoDono(new Date("2026-07-30T02:00:00Z"))).toEqual({ dia: 29, mes: 7 });
+  });
+
+  it("vira o dia no horário certo", () => {
+    expect(hojeNoFusoDoDono(new Date("2026-07-30T03:00:00Z"))).toEqual({ dia: 30, mes: 7 });
+  });
+
+  it("atravessa a virada de mês", () => {
+    expect(hojeNoFusoDoDono(new Date("2026-08-01T05:00:00Z"))).toEqual({ dia: 1, mes: 8 });
   });
 });
