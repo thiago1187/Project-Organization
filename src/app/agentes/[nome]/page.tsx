@@ -5,6 +5,8 @@ import { listarProjetos } from "@/servidor/projetos";
 import { listarRelatorios } from "@/servidor/relatorios";
 import { listarSugestoes } from "@/servidor/sugestoes";
 import { listarAgentesProjeto } from "@/servidor/agentesProjeto";
+import { obterAgentePadrao } from "@/servidor/agentesPadrao";
+import EditorAgentePadrao from "@/componentes/EditorAgentePadrao";
 
 export const dynamic = "force-dynamic";
 
@@ -25,11 +27,12 @@ export default async function FichaAgentePage({
 }) {
   const { nome } = await params;
 
-  const [projetos, relatorios, sugestoes, agentesProjeto] = await Promise.all([
+  const [projetos, relatorios, sugestoes, agentesProjeto, padrao] = await Promise.all([
     listarProjetos(),
     listarRelatorios(),
     listarSugestoes(),
     listarAgentesProjeto(),
+    obterAgentePadrao(nome),
   ]);
 
   const ficha = fichaDetalheDoAgente(nome, projetos, relatorios, sugestoes, agentesProjeto);
@@ -145,8 +148,27 @@ export default async function FichaAgentePage({
         </div>
       </div>
 
+      {/* O padrão do agente vem antes de "onde atua agora", e a ordem é
+          deliberada: o que o dono escreve aqui passa a valer em todos os
+          projetos listados logo abaixo. Ver a seção na tela, e
+          docs/decisoes/ sobre precedência — projeto sobrescreve padrão,
+          nunca soma. */}
+      <section style={{ marginTop: "var(--space-5)" }} aria-labelledby="secao-padrao">
+        <h2
+          id="secao-padrao"
+          style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)", margin: "0 0 var(--space-3)" }}
+        >
+          padrão deste agente
+        </h2>
+        <EditorAgentePadrao
+          agente={nome}
+          instrucaoAtual={padrao?.instrucao ?? null}
+          tetoAtual={padrao?.teto_sugestoes ?? null}
+        />
+      </section>
+
       {/* Onde atua agora. */}
-      <section style={{ marginTop: "var(--space-5)" }} aria-labelledby="secao-projetos">
+      <section style={{ marginTop: "var(--space-6)" }} aria-labelledby="secao-projetos">
         <h2
           id="secao-projetos"
           style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--mut2)", margin: "0 0 var(--space-3)" }}

@@ -126,8 +126,9 @@ export async function upsertContexto(
   } catch (erro) {
     if (erro && typeof erro === "object" && "code" in erro && erro.code === "23503") {
       // foreign_key_violation em projeto_id — projeto apagado entre a checagem
-      // da rota e esta escrita (não há rota de apagar projeto hoje, mas a
-      // mensagem clara vale a defesa).
+      // da rota e esta escrita — o mais provável hoje é o dono apagar o
+      // projeto pela tela de Configuração (`apagarProjeto`,
+      // src/servidor/projetos.ts) entre as duas.
       throw new ErroDados("Este projeto não existe mais — pode ter sido removido em outra aba.");
     }
     throw traduzirErroDeBanco(erro, "upsertContexto");

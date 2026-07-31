@@ -5,10 +5,12 @@ import { listarContextos } from "@/servidor/contextos";
 import { listarSugestoes } from "@/servidor/sugestoes";
 import { listarAgentesProjeto } from "@/servidor/agentesProjeto";
 import { listarTarefas } from "@/servidor/tarefas";
+import { listarAgentesPadrao } from "@/servidor/agentesPadrao";
+import { mapaAgentesPadrao, resolverConfiguracaoAgente } from "@/dominio/agentePadrao";
 import { agentesAtivosOrdenados } from "@/dominio/esteiraAgentes";
 import { tarefasEmAberto } from "@/dominio/tarefas";
 import { respostaErro } from "@/servidor/respostaApi";
-import type { Contexto, ProjetoAgente, Sugestao, Tarefa } from "@/dominio/tipos";
+import type { AgentePadrao, Contexto, ProjetoAgente, Sugestao, Tarefa } from "@/dominio/tipos";
 
 // GET /api/projects — lido pela routine noturna (ver CLAUDE.md, "Rotas de
 // API", e docs/routine-noturna.md, "Passo 0"). Contrato sensível: mudar o
@@ -108,8 +110,27 @@ interface AgenteParaRoutine {
   teto_sugestoes: number | null;
 }
 
-function agenteParaRoutine(a: ProjetoAgente): AgenteParaRoutine {
-  return { agente: a.agente, ordem: a.ordem, instrucao: a.instrucao, teto_sugestoes: a.teto_sugestoes };
+/**
+ * A routine recebe a configuração **efetiva** do agente, já resolvida — nunca
+ * o padrão global ao lado do valor do projeto para ela escolher.
+ *
+ * A precedência (projeto sobrescreve padrão, nunca soma) é regra do painel, e
+ * mandar as duas pontas seria delegar a regra a um modelo que roda às 3h sem
+ * ninguém para corrigir se ele decidir concatenar. Resolver aqui mantém o
+ * contrato igual ao de antes de `agente_padrao` existir: um `instrucao` e um
+ * `teto_sugestoes` por agente, e ponto.
+ */
+function agenteParaRoutine(
+  a: ProjetoAgente,
+  padroes: Map<string, AgentePadrao>,
+): AgenteParaRoutine {
+  const efetiva = resolverConfiguracaoAgente(a.instrucao, a.teto_sugestoes, padroes.get(a.agente));
+  return {
+    agente: a.agente,
+    ordem: a.ordem,
+    instrucao: efetiva.instrucao,
+    teto_sugestoes: efetiva.tetoSugestoes,
+  };
 }
 
 interface TarefaParaRoutine {
@@ -129,13 +150,16 @@ export async function GET() {
     throw erro;
   }
 
-  const [projetos, contextos, sugestoes, agentesProjeto, tarefas] = await Promise.all([
+  const [projetos, contextos, sugestoes, agentesProjeto, tarefas, padroes] = await Promise.all([
     listarProjetos(),
     listarContextos(),
     listarSugestoes(),
     listarAgentesProjeto(),
     listarTarefas(),
+    listarAgentesPadrao(),
   ]);
+
+  const mapaPadroes = mapaAgentesPadrao(padroes);
 
   const projetosAtivos = projetos.filter((p) => p.ativo);
 
@@ -158,7 +182,7 @@ export async function GET() {
           .map(sugestaoAprovadaParaRoutine),
         sugestoes_pendentes: sugestoesDoProjeto.filter((s) => s.estado === "pendente").map((s) => s.proposta),
         sugestoes_recusadas: sugestoesDoProjeto.filter((s) => s.estado === "recusada").map((s) => s.proposta),
-        agentes: agentesAtivosOrdenados(agentesDoProjeto).map(agenteParaRoutine),
+        agentes: agentesAtivosOrdenados(agentesDoProjeto).map((a) => agenteParaRoutine(a, mapaPadroes)),
         tarefas: tarefasEmAberto(tarefasDoProjeto).map(tarefaParaRoutine),
       };
     }),

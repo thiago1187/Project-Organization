@@ -14,7 +14,9 @@ import {
   validarDadosProjetoComFrequencia,
   validarDescricaoProjeto,
 } from "@/dominio/validacaoProjeto";
+import { confirmacaoDeNomeValida } from "@/dominio/exclusaoProjeto";
 import {
+  apagarProjeto,
   atualizarCadenciaProjeto,
   atualizarDadosProjeto,
   atualizarDescricaoProjeto,
@@ -160,6 +162,58 @@ export async function editarProjetoAction(
 
   revalidarTelasDeProjeto(id);
   return { ok: true, erro: null, campos: {} };
+}
+
+export interface ResultadoExclusaoProjeto {
+  ok: boolean;
+  erro: string | null;
+}
+
+/**
+ * Apaga um projeto e as sugestões dele (a camada de dados faz isso numa
+ * transação — ver `apagarProjeto` em src/servidor/projetos.ts). Irreversível
+ * e sem desfazer, por isso exige o nome do projeto digitado de volta
+ * (`nomeConfirmado`), conferido aqui com `confirmacaoDeNomeValida` antes de
+ * chegar ao banco — defesa em profundidade: o cliente já desabilita o botão
+ * até o nome bater, mas a action é uma superfície de rede por conta própria.
+ * `exigirSessaoDoDono()` mora nas duas pontas (aqui via `verificarAcesso` e
+ * de novo dentro de `apagarProjeto`), mesmo raciocínio já registrado em
+ * `aprovarSugestao`/`recusarSugestao` (src/servidor/sugestoes.ts): a regra
+ * "só o dono decide" não pode depender de um único chamador lembrar de
+ * checar.
+ */
+export async function apagarProjetoAction(
+  projetoId: string,
+  nomeProjeto: string,
+  nomeConfirmado: string,
+): Promise<ResultadoExclusaoProjeto> {
+  const negado = await verificarAcesso();
+  if (negado) return { ok: false, erro: negado };
+
+  if (typeof projetoId !== "string" || projetoId.length === 0) {
+    return { ok: false, erro: "Projeto inválido." };
+  }
+  // A checagem contra `nomeProjeto` (que veio do cliente) continua aqui só
+  // para devolver a mensagem antes de ir ao banco. Ela **não** é o portão — o
+  // portão está em `apagarProjeto`, que confere contra o nome gravado. Ver o
+  // comentário lá para por que comparar dois argumentos do chamador não vale
+  // como confirmação.
+  if (!confirmacaoDeNomeValida(nomeConfirmado, nomeProjeto)) {
+    return { ok: false, erro: "O nome digitado não confere com o nome do projeto." };
+  }
+
+  try {
+    await apagarProjeto(projetoId, nomeConfirmado);
+  } catch (erro) {
+    return { ok: false, erro: mensagemDeErro(erro, "Não foi possível apagar o projeto.") };
+  }
+
+  // Sem `projetoId` aqui de propósito: `revalidarTelasDeProjeto` também
+  // revalidaria `/projeto/${projetoId}`, uma tela que não existe mais depois
+  // deste apagamento.
+  revalidatePath("/");
+  revalidatePath("/configuracao");
+  return { ok: true, erro: null };
 }
 
 export interface ResultadoCadencia {

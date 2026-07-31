@@ -82,7 +82,27 @@ export default function CardProjeto({
           {card.statusLabel}
         </div>
       </div>
-      <div style={{ fontSize: "var(--fs-sm)", color: "var(--txt2)", textWrap: "pretty" }}>{card.resumo}</div>
+      {/* O resumo é cortado em quatro linhas. Ele vem da rodada e o prompt pede
+          no máximo três frases — mas três frases longas viram um muro que
+          estica o card e desalinha a coluna inteira, e aí a tela deixa de
+          responder "em qual projeto algo precisa de mim?" em cinco segundos.
+          É o princípio das duas velocidades: aqui é a porta, o texto inteiro
+          está na tela do projeto, a um clique. `title` mantém o resto
+          alcançável sem sair daqui. */}
+      <div
+        title={card.resumo}
+        style={{
+          fontSize: "var(--fs-sm)",
+          color: "var(--txt2)",
+          textWrap: "pretty",
+          display: "-webkit-box",
+          WebkitLineClamp: 4,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}
+      >
+        {card.resumo}
+      </div>
       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
         {card.strip.map((s, i) => (
           <div

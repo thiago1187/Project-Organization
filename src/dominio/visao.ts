@@ -30,6 +30,7 @@ import type {
 import { type Faixa, faixaDoProjeto, FAIXA_META, FAIXA_LABEL_LONGO, ORDEM_FAIXAS } from "./cadencia";
 import { papelDoAgente } from "./papeis";
 import { tarefasEmAberto } from "./tarefas";
+import type { ContagemExclusaoProjeto } from "./exclusaoProjeto";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Rótulos e cores fixos (equivalentes aos objetos LABEL/COR/PESO do export).
@@ -680,6 +681,8 @@ export interface ConfigLinhaVM {
   corTexto: string;
   ultimaRodadaLabel: string;
   faixaAtual: Faixa;
+  /** O que some junto se este projeto for apagado — para a confirmação de exclusão. */
+  contagemExclusao: ContagemExclusaoProjeto;
 }
 
 /**
@@ -693,7 +696,21 @@ export function rotuloRepositorio(repositorio: string | null): string {
   return repositorio ?? "sem repositório";
 }
 
-export function linhasConfig(projetos: Projeto[], relatorios: Relatorio[]): ConfigLinhaVM[] {
+/**
+ * `sugestoes`, `contextos` e `tarefas` só existem para calcular
+ * `contagemExclusao` — quantas linhas somem se o dono apagar aquele projeto
+ * pela tela de Configuração (ver `ApagarProjeto`, src/componentes). Contar
+ * aqui, a partir das listas já carregadas pela página, evita uma consulta
+ * `COUNT` a mais por projeto: a mesma lista inteira que outras telas
+ * carregam também serve para isto, e a escala é pessoal (dezenas de linhas).
+ */
+export function linhasConfig(
+  projetos: Projeto[],
+  relatorios: Relatorio[],
+  sugestoes: Sugestao[],
+  contextos: Contexto[],
+  tarefas: Tarefa[],
+): ConfigLinhaVM[] {
   return projetos.map((p) => {
     const faixa = faixaDoProjeto(p);
     const ultimo = ultimoRelatorio(p.id, relatorios);
@@ -704,6 +721,12 @@ export function linhasConfig(projetos: Projeto[], relatorios: Relatorio[]): Conf
       corTexto: faixa === "pausado" ? "var(--mut2)" : "var(--txt)",
       ultimaRodadaLabel: ultimo ? formatarUltimaRodada(ultimo.executado_em) : "sem rodada",
       faixaAtual: faixa,
+      contagemExclusao: {
+        relatorios: relatorios.filter((r) => r.projeto_id === p.id).length,
+        sugestoes: sugestoes.filter((s) => s.projeto_id === p.id).length,
+        contextos: contextos.filter((c) => c.projeto_id === p.id).length,
+        tarefas: tarefas.filter((t) => t.projeto_id === p.id).length,
+      },
     };
   });
 }

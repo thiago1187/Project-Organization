@@ -51,6 +51,13 @@ export const PAPEIS: Record<string, Papel> = {
   "dev-backend": { mono: "BE", papel: "backend", tipo: "escrita" },
   "dev-frontend": { mono: "FE", papel: "interface", tipo: "escrita" },
   "devops-deploy": { mono: "DO", papel: "deploy", tipo: "leitura" },
+  // Não é um subagente: é a própria rodada tendo feito a leitura à mão porque
+  // o subagente não existia no ambiente dela. O prompt manda registrar assim
+  // (docs/routine-noturna.md, passo 2.2) exatamente para não mentir sobre quem
+  // olhou o projeto — e sem esta linha o painel exibia "?? · agente", que
+  // esconde o que o prompt fez questão de expor: o ambiente da routine está
+  // sem os agentes instalados.
+  "rodada": { mono: "RN", papel: "a própria rodada, sem subagente", tipo: "leitura" },
   "engenheiro-dados": { mono: "DB", papel: "banco e migrações", tipo: "escrita" },
   "engenheiro-ia": { mono: "IA", papel: "camada de ia", tipo: "escrita" },
   "escriba-docs": { mono: "DC", papel: "documentação", tipo: "escrita" },

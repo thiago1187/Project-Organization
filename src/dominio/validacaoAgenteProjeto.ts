@@ -12,6 +12,26 @@
 // contexto.agente_destino/tipo, `instrucao` é corpo de texto, não rótulo —
 // por isso não há checagem de caractere de controle nela (quebra de linha é
 // esperada), só teto de tamanho.
+//
+// Reaproveitado também pelo padrão global de agente (`agente_padrao`, ver
+// src/servidor/acoes-agente-padrao.ts): a instrução ali tem exatamente a
+// mesma forma (instrucao + teto_sugestoes), então validar duas vezes a mesma
+// coisa em dois arquivos seria a mesma regra divergindo com o tempo — este
+// arquivo continua com nome "AgenteProjeto" porque nasceu daqui, não porque
+// o padrão global seja um caso especial.
+//
+// `semInvisiveis` (endurecimento de src/dominio/repositorioGithub.ts, commit
+// "fix(seguranca): a sanitização do GitHub estava calibrada para o
+// acidente") entra aqui pelo mesmo motivo: `instrucao` é texto que o dono
+// cola numa caixa de texto e que, mais tarde, um agente lê e age em cima —
+// caractere Unicode invisível nela derruba a mesma defesa ("o dono revisa
+// antes de salvar") que motivou o endurecimento no fluxo de importação do
+// GitHub. Diferente daquele campo, `instrucao` não é escrita dentro do bloco
+// `contexto-do-painel` do CLAUDE.md alvo (vai direto para a chamada do
+// subagente, ver comentário acima) — por isso só a neutralização de
+// invisível entra aqui, não a de delimitador de estrutura Markdown, que
+// protege especificamente aquele bloco.
+import { semInvisiveis } from "./textoSemInvisiveis";
 
 const AGENTE_TAMANHO_MAXIMO = 64;
 const INSTRUCAO_TAMANHO_MAXIMO = 4000;
@@ -65,7 +85,9 @@ export function validarInstrucaoAgente(input: unknown): ResultadoValidacao<Dados
   let instrucaoValor: string | null = null;
   if (instrucao !== undefined && instrucao !== null) {
     if (typeof instrucao !== "string") return { ok: false, erro: "instrucao precisa ser texto." };
-    const aparada = instrucao.trim();
+    // `semInvisiveis` antes do trim final: remover o invisível pode deixar
+    // espaço solto na borda que o trim original não via.
+    const aparada = semInvisiveis(instrucao).trim();
     if (aparada.length > 0) {
       if (aparada.length > INSTRUCAO_TAMANHO_MAXIMO) {
         return { ok: false, erro: `instrucao não pode passar de ${INSTRUCAO_TAMANHO_MAXIMO} caracteres.` };

@@ -1,6 +1,7 @@
 import "server-only";
 import { sql } from "./db";
 import { ErroDados, traduzirErroDeBanco } from "./erros";
+import { confirmacaoDeNomeValida } from "@/dominio/exclusaoProjeto";
 import { exigirSessaoDoDono } from "./acesso";
 import type { Frequencia, Projeto } from "@/dominio/tipos";
 import type { PatchCadencia } from "@/dominio/cadencia";
@@ -156,6 +157,62 @@ export async function atualizarDadosProjeto(
     return linhaParaProjeto(linhas[0]);
   } catch (erro) {
     throw traduzirErroDeBanco(erro, "atualizarDadosProjeto");
+  }
+}
+
+/**
+ * Apaga um projeto e, junto com ele, as sugestões dele — numa única
+ * transação. `sugestao` tem `ON DELETE RESTRICT` para `projeto_id`
+ * (db/migrations/001_schema_inicial.sql: ela é a evidência do portão de
+ * aprovação, e o RESTRICT existe para nunca ser atingido em uso normal). Não
+ * relaxamos essa constraint: em vez disso, apagamos `sugestao` explicitamente
+ * antes de apagar `projeto`, mesmo caminho que `db/seed.sql` já usa para
+ * limpar o dado de demonstração. `relatorio`, `contexto`, `stack`,
+ * `servico`, `tarefa` e `projeto_agente` têm `ON DELETE CASCADE` e somem
+ * sozinhos.
+ *
+ * A confirmação — quantas linhas somem, e o nome do projeto digitado de
+ * volta — é responsabilidade da tela e da Server Action
+ * (`apagarProjetoAction`, src/servidor/acoes-projeto.ts); esta função só
+ * garante que quem chama é o dono e que a exclusão é atômica. Lança
+ * `ErroDados` se o projeto já não existir mais (apagado em outra aba, por
+ * exemplo).
+ */
+export async function apagarProjeto(id: string, nomeConfirmado: string): Promise<void> {
+  await exigirSessaoDoDono();
+
+  // A confirmação é conferida contra o nome que está **no banco**, não contra
+  // um nome que o chamador mandou junto.
+  //
+  // Antes, a action recebia `nomeProjeto` e `nomeConfirmado` do cliente e
+  // comparava um com o outro. Os dois vinham da mesma origem, então bastava
+  // mandá-los iguais — quaisquer dois — para o portão abrir. A sessão do dono
+  // ainda era exigida, então não era escalada de privilégio; era pior no que
+  // esta tela existe para fazer: a confirmação era decorativa. Um cliente
+  // desatualizado, um duplo envio ou um bug de estado apagavam o projeto sem
+  // que ninguém tivesse digitado o nome certo.
+  //
+  // Confirmação que o chamador consegue satisfazer sozinho não é confirmação.
+  const projeto = await obterProjetoPorId(id);
+  if (!projeto) {
+    throw new ErroDados("Este projeto não existe mais — pode já ter sido apagado em outra aba.");
+  }
+  if (!confirmacaoDeNomeValida(nomeConfirmado, projeto.nome)) {
+    throw new ErroDados("O nome digitado não confere com o nome do projeto.");
+  }
+
+  try {
+    const clienteSql = sql();
+    const resultados = await clienteSql.transaction([
+      clienteSql`DELETE FROM sugestao WHERE projeto_id = ${id}`,
+      clienteSql`DELETE FROM projeto WHERE id = ${id} RETURNING id`,
+    ]);
+    const apagados = resultados[1] as unknown as { id: string }[];
+    if (apagados.length === 0) {
+      throw new ErroDados("Este projeto não existe mais — pode já ter sido apagado em outra aba.");
+    }
+  } catch (erro) {
+    throw traduzirErroDeBanco(erro, "apagarProjeto");
   }
 }
 

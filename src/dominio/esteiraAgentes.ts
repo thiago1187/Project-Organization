@@ -8,16 +8,27 @@
 // aqui: ela é derivada de `sugestao` (aprovadas), que já tem `SugestaoVM` em
 // visao.ts — a esteira só reaproveita esse tipo, não duplica a derivação.
 
-import type { ProjetoAgente } from "./tipos";
+import type { AgentePadrao, ProjetoAgente } from "./tipos";
 import { chipDoAgente, type ChipVM } from "./visao";
 import { papelDoAgente } from "./papeis";
 import { AGENTES_CONHECIDOS } from "./agentesConhecidos";
+import { mapaAgentesPadrao } from "./agentePadrao";
 
 export interface AgenteEsteiraVM extends ChipVM {
   agente: string;
   ordem: number;
+  /** Override deste projeto — `null` quando o card nunca foi editado aqui. */
   instrucao: string | null;
   tetoSugestoes: number | null;
+  /**
+   * O padrão global deste agente (`agente_padrao`), só para a UI mostrar
+   * "usando o padrão do agente" quando `instrucao`/`tetoSugestoes` acima
+   * estão vazios — nunca combinado com eles aqui. O valor que de fato vale
+   * (override senão padrão) é `resolverConfiguracaoAgente`
+   * (src/dominio/agentePadrao.ts), usado em GET /api/projects, não neste VM.
+   */
+  instrucaoPadrao: string | null;
+  tetoPadrao: number | null;
 }
 
 export interface EsteiraVM {
@@ -27,17 +38,22 @@ export interface EsteiraVM {
   inativos: AgenteEsteiraVM[];
 }
 
-function linhaParaVM(l: {
-  agente: string;
-  ordem: number;
-  instrucao: string | null;
-  teto_sugestoes: number | null;
-}): AgenteEsteiraVM {
+function linhaParaVM(
+  l: {
+    agente: string;
+    ordem: number;
+    instrucao: string | null;
+    teto_sugestoes: number | null;
+  },
+  padrao: AgentePadrao | undefined,
+): AgenteEsteiraVM {
   return {
     agente: l.agente,
     ordem: l.ordem,
     instrucao: l.instrucao,
     tetoSugestoes: l.teto_sugestoes,
+    instrucaoPadrao: padrao?.instrucao ?? null,
+    tetoPadrao: padrao?.teto_sugestoes ?? null,
     ...chipDoAgente(l.agente),
   };
 }
@@ -70,8 +86,15 @@ export function agenteEhDeLeitura(nome: string): boolean {
   return papelDoAgente(nome).tipo === "leitura";
 }
 
-export function montarEsteira(linhas: ProjetoAgente[]): EsteiraVM {
-  const ativos = agentesAtivosOrdenados(linhas).map(linhaParaVM);
+/**
+ * `padroes` é opcional (default `[]`) para não quebrar quem já chama
+ * `montarEsteira` sem padrão nenhum — a migration 012 pode ainda não estar
+ * aplicada, e sem linha nenhuma o resultado é idêntico a hoje (todo
+ * `instrucaoPadrao`/`tetoPadrao` fica `null`).
+ */
+export function montarEsteira(linhas: ProjetoAgente[], padroes: readonly AgentePadrao[] = []): EsteiraVM {
+  const mapaPadroes = mapaAgentesPadrao(padroes);
+  const ativos = agentesAtivosOrdenados(linhas).map((l) => linhaParaVM(l, mapaPadroes.get(l.agente)));
 
   // Só agente de leitura pode ser oferecido. A rodada noturna não escreve em
   // lugar nenhum, e quem for habilitado aqui é acionado por ela às 3h, sem
@@ -83,11 +106,11 @@ export function montarEsteira(linhas: ProjetoAgente[]): EsteiraVM {
   // de tela. Filtro só na UI é filtro nenhum.
   const desligadosComLinha = linhas
     .filter((l) => !l.habilitado && agenteEhDeLeitura(l.agente))
-    .map(linhaParaVM);
+    .map((l) => linhaParaVM(l, mapaPadroes.get(l.agente)));
   const nomesComLinha = new Set(linhas.map((l) => l.agente));
-  const semLinha = AGENTES_CONHECIDOS.filter(
-    (a) => !nomesComLinha.has(a) && agenteEhDeLeitura(a),
-  ).map((agente) => linhaParaVM({ agente, ordem: 0, instrucao: null, teto_sugestoes: null }));
+  const semLinha = AGENTES_CONHECIDOS.filter((a) => !nomesComLinha.has(a) && agenteEhDeLeitura(a)).map((agente) =>
+    linhaParaVM({ agente, ordem: 0, instrucao: null, teto_sugestoes: null }, mapaPadroes.get(agente)),
+  );
 
   const inativos = [...desligadosComLinha, ...semLinha].sort((a, b) => a.agente.localeCompare(b.agente));
 

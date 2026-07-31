@@ -5,6 +5,7 @@ import { ORDEM_FAIXAS, FAIXA_LABEL_CURTO, type Faixa } from "@/dominio/cadencia"
 import type { ConfigLinhaVM } from "@/dominio/visao";
 import { definirCadenciaAction } from "@/servidor/acoes-projeto";
 import FormEdicaoProjeto from "./FormEdicaoProjeto";
+import ApagarProjeto from "./ApagarProjeto";
 import { classeBotao, estiloBotao } from "./estiloBotao";
 
 // Portado do export, linhas 269-279, agora persistindo de verdade: escolher
@@ -16,6 +17,7 @@ export default function LinhaConfiguracao({ linha }: { linha: ConfigLinhaVM }) {
   const [erro, setErro] = useState<string | null>(null);
   const [pendente, iniciarTransicao] = useTransition();
   const [editando, setEditando] = useState(false);
+  const [apagando, setApagando] = useState(false);
   const pausado = faixa === "pausado";
 
   function escolherFaixa(alvo: Faixa) {
@@ -45,7 +47,14 @@ export default function LinhaConfiguracao({ linha }: { linha: ConfigLinhaVM }) {
         flexWrap: "wrap",
       }}
     >
-      {editando ? (
+      {apagando ? (
+        <ApagarProjeto
+          id={linha.id}
+          nome={linha.nome}
+          contagem={linha.contagemExclusao}
+          aoFechar={() => setApagando(false)}
+        />
+      ) : editando ? (
         <FormEdicaoProjeto
           id={linha.id}
           nomeAtual={linha.nome}
@@ -78,10 +87,18 @@ export default function LinhaConfiguracao({ linha }: { linha: ConfigLinhaVM }) {
           >
             editar
           </button>
+          <button
+            type="button"
+            onClick={() => setApagando(true)}
+            className={classeBotao("texto")}
+            style={{ ...estiloBotao("texto"), color: "var(--fal)" }}
+          >
+            apagar
+          </button>
         </>
       )}
 
-      {!editando && (
+      {!editando && !apagando && (
         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
           {ORDEM_FAIXAS.map((opcao) => {
             const on = opcao === faixa;

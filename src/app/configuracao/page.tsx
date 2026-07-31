@@ -1,14 +1,27 @@
 import { linhasConfig } from "@/dominio/visao";
 import { listarProjetos } from "@/servidor/projetos";
 import { listarRelatorios } from "@/servidor/relatorios";
+import { listarSugestoes } from "@/servidor/sugestoes";
+import { listarContextos } from "@/servidor/contextos";
+import { listarTarefas } from "@/servidor/tarefas";
 import LinhaConfiguracao from "@/componentes/LinhaConfiguracao";
 import FormNovoProjeto from "@/componentes/FormNovoProjeto";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConfiguracaoPage() {
-  const [projetos, relatorios] = await Promise.all([listarProjetos(), listarRelatorios()]);
-  const linhas = linhasConfig(projetos, relatorios);
+  // As quatro listas inteiras (não só as do projeto) porque `linhasConfig`
+  // já recebia `relatorios` assim — mesmo padrão de carga da tela inteira, e
+  // é o que dá a `contagemExclusao` (quantas linhas somem se o dono apagar
+  // um projeto) sem uma consulta extra por linha.
+  const [projetos, relatorios, sugestoes, contextos, tarefas] = await Promise.all([
+    listarProjetos(),
+    listarRelatorios(),
+    listarSugestoes(),
+    listarContextos(),
+    listarTarefas(),
+  ]);
+  const linhas = linhasConfig(projetos, relatorios, sugestoes, contextos, tarefas);
 
   return (
     <div style={{ padding: "32px 36px 72px", maxWidth: 940 }}>

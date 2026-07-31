@@ -172,17 +172,22 @@ vazio: pode ser aplicado a um banco que já tenha os dados reais do dono, sem
 misturar os dois — mas o cenário recomendado continua sendo um banco só para
 avaliação, separado do de produção.
 
-Para limpar o dado de demonstração sem reaplicar o seed:
+Para limpar o dado de demonstração sem reaplicar o seed, use
+`db/limpar-demo.sql` (cole no SQL Editor do Neon e rode) — ou, direto pela
+tela, o botão "apagar" de cada projeto na Configuração, que mostra antes
+quantas linhas somem e pede o nome do projeto digitado de volta.
+
+`db/limpar-demo.sql` é o mesmo par de `DELETE`s do seed:
 
 ```sql
 DELETE FROM sugestao WHERE projeto_id IN (SELECT id FROM projeto WHERE repositorio LIKE 'demo-seed/%');
 DELETE FROM projeto WHERE repositorio LIKE 'demo-seed/%';
 ```
 
-(A segunda linha apaga `relatorio`, `contexto`, `stack` e `servico` das mesmas
-linhas via `ON DELETE CASCADE`; `sugestao` precisa da primeira linha porque sua
-referência a `projeto` é `ON DELETE RESTRICT`, de propósito — ver comentário na
-migration.)
+(A segunda linha apaga `relatorio`, `contexto`, `stack`, `servico`, `tarefa`
+e `projeto_agente` das mesmas linhas via `ON DELETE CASCADE`; `sugestao`
+precisa da primeira linha porque sua referência a `projeto` é
+`ON DELETE RESTRICT`, de propósito — ver comentário na migration.)
 
 ## Convenção para as próximas migrations
 
@@ -309,4 +314,30 @@ Reverter (apaga o histórico de tentativas falhas; não afeta senha nem sessão)
 
 ```bash
 psql "$DATABASE_URL_UNPOOLED" -f db/migrations/011_tentativa_entrada.down.sql
+```
+
+## 012 — `agente_padrao`: padrão global de instrução/teto por agente
+
+**Escrita, ainda NÃO aplicada.** O dono pediu para configurar instrução e
+teto de sugestões uma vez por agente, em vez de repetir a mesma configuração
+em cada projeto onde ele é ligado. `projeto_agente` (005) continua existindo
+e continua vencendo quando preenchido — a resolução é "sobrescreve, nunca
+soma" (`src/dominio/agentePadrao.ts` > `resolverConfiguracaoAgente`).
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/012_agente_padrao.sql
+```
+
+Até aplicada, `listarAgentesPadrao`/`obterAgentePadrao`
+(`src/servidor/agentesPadrao.ts`) devolvem vazio/`null` no `42P01` — mesma
+degradação aditiva de `projeto_agente` (005): a esteira e `GET /api/projects`
+funcionam exatamente como hoje, sem padrão nenhum aplicado, até o dono
+decidir aplicar. `salvarAgentePadrao` (a escrita, só da sessão do dono) falha
+com uma mensagem explicando que a migration ainda não foi aplicada.
+
+Reverter (apaga qualquer padrão global já escrito; `projeto_agente` não é
+afetada):
+
+```bash
+psql "$DATABASE_URL_UNPOOLED" -f db/migrations/012_agente_padrao.down.sql
 ```

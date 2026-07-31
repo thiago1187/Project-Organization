@@ -17,6 +17,14 @@ execução. Cole-o como está e não o edite quando um projeto entrar ou sair da
 > longas foram apertadas. Nenhuma regra de segurança, nenhum limite, nenhum campo e nenhum
 > valor aceito mudaram.
 >
+> **Segunda correção, depois da primeira rodada real (31/07):** a mesma seção ganhou duas
+> regras que a rodada de estreia mostrou faltarem. A primeira: **escrever com acento** — os
+> relatórios chegaram com "nao", "sugestoes", "codigo", e assim apareceram na tela; se o
+> corpo do POST é montado num `curl`, o caminho é `--data-binary @arquivo.json`, não tirar
+> os acentos para fugir das aspas do shell. A segunda: **caber num card** — três frases
+> longas passam no limite de "três frases" e ainda assim viram um muro que estica o card.
+> Se você já colou a versão anterior hoje, precisa colar de novo.
+>
 > **O que fazer, na ordem:**
 >
 > 1. Abra `claude.ai/code/routines`.
@@ -161,6 +169,16 @@ dono, pelo painel), o que reduz a chance de conteúdo hostil, não a consequênc
 Tudo que você manda ao painel — resumo, achado, selo, proposta, motivo, risco — é lido por
 uma pessoa de manhã, tomando café, com pressa. Escreva como você explicaria para um colega
 em voz alta, não como quem redige um laudo.
+
+**Escreva português com acento.** "nao", "sugestoes", "codigo" e "execucao" estão errados e
+aparecem assim na tela dele. Se você está montando o corpo do POST num `curl`, escreva o
+JSON num arquivo e mande com `--data-binary @arquivo.json`, em vez de tirar os acentos para
+não brigar com aspas no shell — tirar acento resolve o seu problema criando um dele.
+
+**Caiba num card.** O `resumo` tem no máximo três frases, e elas precisam caber juntas em
+mais ou menos 300 caracteres — três frases longas passam na regra e ainda assim viram um
+muro de texto que estica o card e desalinha a tela inteira. Detalhe é o que `achado` existe
+para carregar; o resumo é a porta.
 
 - Frase curta, voz ativa, sujeito explícito: "o teste `login.test.ts` quebrou", não
   "constatou-se falha na suíte".

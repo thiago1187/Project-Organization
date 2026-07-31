@@ -9,6 +9,7 @@ import { listarAgentesDoProjeto } from "@/servidor/agentesProjeto";
 import { listarTarefasDoProjeto } from "@/servidor/tarefas";
 import { listarServicoDoProjeto, listarStackDoProjeto } from "@/servidor/inventario";
 import { montarEsteira } from "@/dominio/esteiraAgentes";
+import { listarAgentesPadrao } from "@/servidor/agentesPadrao";
 import { montarMapaAgentes } from "@/dominio/mapaAgentes";
 import { sugerirAgentes } from "@/dominio/sugestorAgentes";
 import DescricaoProjeto from "@/componentes/DescricaoProjeto";
@@ -36,24 +37,38 @@ export default async function DetalheProjetoPage({
   const projeto = await obterProjetoPorId(id);
   if (!projeto) notFound();
 
-  const [relatorios, sugestoes, contextos, agentesProjeto, stack, servico, tarefas, todosProjetos] =
-    await Promise.all([
-      listarRelatoriosDoProjeto(id),
-      listarSugestoesDoProjeto(id),
-      listarContextosDoProjeto(id),
-      listarAgentesDoProjeto(id),
-      listarStackDoProjeto(id),
-      listarServicoDoProjeto(id),
-      listarTarefasDoProjeto(id),
-      listarProjetos(),
-    ]);
+  const [
+    relatorios,
+    sugestoes,
+    contextos,
+    agentesProjeto,
+    stack,
+    servico,
+    tarefas,
+    todosProjetos,
+    agentesPadrao,
+  ] = await Promise.all([
+    listarRelatoriosDoProjeto(id),
+    listarSugestoesDoProjeto(id),
+    listarContextosDoProjeto(id),
+    listarAgentesDoProjeto(id),
+    listarStackDoProjeto(id),
+    listarServicoDoProjeto(id),
+    listarTarefasDoProjeto(id),
+    listarProjetos(),
+    listarAgentesPadrao(),
+  ]);
 
   const atual = detalheProjeto(id, [projeto], relatorios, sugestoes, contextos);
   if (!atual) notFound();
 
   const fila = filaSugestoes(id, sugestoes);
   const agora = ondeEstamos(tarefas, fila.aprovadas);
-  const esteira = montarEsteira(agentesProjeto);
+  // Os padrões entram aqui só para a esteira poder dizer "valendo agora: o
+  // padrão do agente" quando o campo do projeto está vazio. Sem isso o dono
+  // configura o padrão na tela do agente, volta aqui, vê campo em branco e
+  // conclui que não pegou.
+  const esteira = montarEsteira(agentesProjeto, agentesPadrao);
   const mapaAgentes = montarMapaAgentes(esteira.ativos, relatorios[0] ?? null);
   const sugeridos = sugerirAgentes({ agentesProjeto, stack, servico, relatorios, sugestoes });
 

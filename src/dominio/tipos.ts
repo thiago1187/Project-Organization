@@ -139,6 +139,21 @@ export interface ProjetoAgente {
   atualizado_em: string; // timestamptz (ISO)
 }
 
+/**
+ * `agente_padrao` (db/migrations/012_agente_padrao.sql, ainda NÃO aplicada) —
+ * o padrão global de instrução/teto de um agente, o mesmo em todo projeto
+ * onde ele for ligado, a menos que `ProjetoAgente.instrucao`/`teto_sugestoes`
+ * sobrescreva (nunca soma — ver src/dominio/agentePadrao.ts). Chave primária
+ * é o próprio nome do agente: é global por natureza, não há `projeto_id`.
+ */
+export interface AgentePadrao {
+  agente: string;
+  instrucao: string | null;
+  teto_sugestoes: number | null; // NULL = sem padrão — o campo do projeto (ou nada) decide
+  criado_em: string; // timestamptz (ISO)
+  atualizado_em: string; // timestamptz (ISO)
+}
+
 /** stack.categoria — CHECK stack_categoria_valida (db/migrations/002_inventario.sql). */
 export type CategoriaStack = "linguagem" | "framework" | "runtime";
 

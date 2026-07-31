@@ -22,6 +22,26 @@ describe("validarInstrucaoAgente", () => {
     const resultado = validarInstrucaoAgente({ instrucao: "a".repeat(4001) });
     expect(resultado.ok).toBe(false);
   });
+
+  it("remove caractere Unicode invisível da instrucao (regra 6 — dado que cega a revisão do dono)", () => {
+    // U+200B (zero-width space) montado por code point para não colar o
+    // caractere literal na fonte deste teste — mesma cautela do comentário em
+    // src/dominio/textoSemInvisiveis.ts.
+    const invisivel = String.fromCharCode(0x200b);
+    const resultado = validarInstrucaoAgente({ instrucao: `olhe${invisivel} o acoplamento` });
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) {
+      expect(resultado.dados.instrucao).toBe("olhe o acoplamento");
+      expect(resultado.dados.instrucao?.includes(invisivel)).toBe(false);
+    }
+  });
+
+  it("instrucao feita só de caractere invisível vira null, não string vazia", () => {
+    const invisivel = String.fromCharCode(0x200b);
+    const resultado = validarInstrucaoAgente({ instrucao: invisivel });
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) expect(resultado.dados.instrucao).toBeNull();
+  });
 });
 
 describe("validarOrdemAgentes", () => {

@@ -33,15 +33,37 @@ export default function DescricaoProjeto({
     }
   }
 
+  const vazio = valor.trim().length === 0;
+
   return (
     <div style={{ marginTop: 14 }}>
+      {/* Enquanto está vazio, o campo se anuncia: borda tracejada e um rótulo
+          acima. "Editar no lugar" (CLAUDE.md, "maleável") economiza um clique
+          para quem já sabe que o campo existe — mas some para quem não sabe,
+          e este é o campo que alimenta a rodada noturna e o prompt gerado.
+          Campo invisível que ninguém preenche é pior que formulário.
+
+          Preenchido, ele volta a ser texto limpo: aí o conteúdo é a coisa
+          importante, não a caixa em volta dele. */}
+      {vazio && (
+        <div
+          style={{
+            fontSize: "var(--fs-xs)",
+            fontWeight: "var(--fw-semibold)",
+            color: "var(--mut2)",
+            marginBottom: 4,
+          }}
+        >
+          o que é este projeto
+        </div>
+      )}
       <textarea
         value={valor}
         onChange={(e) => setValor(e.target.value)}
         onBlur={salvar}
         maxLength={TAMANHO_MAXIMO}
-        rows={2}
-        placeholder="diga o que é este projeto — isto vai para os agentes"
+        rows={vazio ? 2 : 3}
+        placeholder="Clique aqui e escreva o que é este projeto. Isto vai junto para os agentes toda noite, e para o prompt que você gera."
         style={{
           width: "100%",
           boxSizing: "border-box",
@@ -49,13 +71,24 @@ export default function DescricaoProjeto({
           fontFamily: "inherit",
           fontSize: "var(--fs-sm)",
           color: "var(--txt2)",
-          background: "transparent",
-          border: "1px solid transparent",
+          background: vazio ? "var(--painel)" : "transparent",
+          border: vazio ? "1px dashed var(--borda-forte)" : "1px solid transparent",
           borderRadius: 6,
           padding: "6px 8px",
           marginLeft: -8,
+          cursor: "text",
         }}
-        onFocus={(e) => (e.currentTarget.style.border = "1px solid var(--borda)")}
+        onFocus={(e) => {
+          e.currentTarget.style.border = "1px solid var(--borda-forte)";
+          e.currentTarget.style.background = "var(--painel)";
+        }}
+        onBlurCapture={(e) => {
+          const semTexto = e.currentTarget.value.trim().length === 0;
+          e.currentTarget.style.border = semTexto
+            ? "1px dashed var(--borda-forte)"
+            : "1px solid transparent";
+          e.currentTarget.style.background = semTexto ? "var(--painel)" : "transparent";
+        }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
         {salvando && (
