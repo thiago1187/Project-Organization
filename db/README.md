@@ -224,7 +224,7 @@ banco aceitaria, e ninguém entende por quê.
 
 ## 008 — `projeto.descricao`
 
-**Escrita, ainda NÃO aplicada.** O que o projeto é, em prosa do dono — voz do
+**Aplicada em 2026-07-30.** O que o projeto é, em prosa do dono — voz do
 dono, não derivada de rodada nenhuma. `text` nullable, teto de 2000
 caracteres. Ver o comentário no topo da migration e
 `docs/plano-gerenciador-de-projeto.md` § 3.1 para o raciocínio completo,
@@ -247,7 +247,7 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/008_projeto_descricao.down.sql
 
 ## 009 — `tarefa`
 
-**Escrita, ainda NÃO aplicada.** A worklist do dono por projeto — "o que
+**Aplicada em 2026-07-30.** A worklist do dono por projeto — "o que
 estamos fazendo nele". Deliberadamente separada de `sugestao`, sem FK entre
 as duas: `sugestao` é evidência do portão de aprovação (`ON DELETE
 RESTRICT`, trigger de transição); `tarefa` é material do dono, que apaga e
@@ -272,7 +272,7 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/009_tarefa.down.sql
 
 ## 010 — `contexto.origem` passa a aceitar `'mcp'`
 
-**Escrita, ainda NÃO aplicada.** Antes desta migration, o `CHECK` de
+**Aplicada em 2026-07-30.** Antes desta migration, o `CHECK` de
 `contexto.origem` só aceitava `'painel'` — e o servidor MCP já grava contexto
 com a origem `'mcp'` (`docs/mcp.md`, `anexar_contexto`). Até esta migration
 ser aplicada, uma escrita de contexto pelo MCP **falha no banco** com erro de
@@ -292,7 +292,7 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/010_contexto_origem_mcp.down.sql
 
 ## 011 — trava de tentativas no `/entrar` (`tentativa_entrada`)
 
-**Escrita, ainda NÃO aplicada.** Ver `docs/decisoes/003-trava-de-entrada-global.md`
+**Aplicada em 2026-07-30.** Ver `docs/decisoes/003-trava-de-entrada-global.md`
 para o raciocínio completo (por que global, e não por IP; por que no banco, e
 não em memória).
 

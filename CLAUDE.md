@@ -57,10 +57,11 @@ A direção agora é: **intuitivo, maleável e futurista, sem perder eficiência
 
 ## Telas
 
-1. **Visão geral** — projetos agrupados por frequência de visita dos agentes (toda madrugada / dias alternados / uma vez por semana). Arrastar um card entre grupos muda a frequência daquele projeto.
+1. **Visão geral** — **painel de atenção** no topo, atravessando os grupos: só os projetos com falha ou algo esperando decisão, cada linha um link direto. Abaixo dele, os projetos agrupados por frequência de visita (toda madrugada / dias alternados / uma vez por semana), onde arrastar um card entre grupos muda a frequência. Os dois convivem de propósito: o agrupamento responde "como eu organizo", o painel responde "o que eu olho primeiro" — e frequência de visita é configuração, não urgência.
 2. **Detalhe do projeto** — faixa de resumo no topo com a ação principal ("decidir N sugestões"), a **fila de sugestões** com aprovar/recusar, **onde estamos** (descrição e tarefas, editáveis no lugar), histórico das rodadas, a **esteira de agentes** com o sugestor, o **contexto do projeto** e o inventário. As seções de baixa frequência ficam recolhidas e abrem sozinhas quando têm motivo.
 3. **Configuração** — CRUD de projetos: cadastrar, editar, ativar e pausar.
-4. **Documento de andamento** (`/projeto/:id/documento`) — o mesmo período em duas vozes: técnica (para o dono e a equipe) e andamento (para sócio ou cliente, zero jargão). Sai em PDF pela impressão do navegador.
+4. **Agentes** (`/agentes` e `/agentes/:nome`) — a tripulação, separada entre os de diagnóstico (rodam de madrugada) e os de escrita (só com o dono presente). A ficha de cada um mostra onde ele atua, o que já encontrou e o que propôs, com a **taxa de aprovação** em destaque — reputação derivada das decisões reais do dono, não de auto-avaliação. Ver `docs/decisoes/004-taxa-de-aprovacao-do-agente.md` para por que ela nunca aparece sozinha.
+5. **Documento de andamento** (`/projeto/:id/documento`) — o mesmo período em duas vozes: técnica (para o dono e a equipe) e andamento (para sócio ou cliente, zero jargão). Sai em PDF pela impressão do navegador.
 
 A tela de detalhe segue o princípio das **duas velocidades**: o resumo é a porta, o detalhe abre a partir dele, os dois na mesma tela. O teste é `docs/visao.md`: cinco segundos para saber se algo precisa do dono.
 

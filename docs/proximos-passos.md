@@ -11,6 +11,14 @@ implementados e verificados no código, não só planejados — o texto de cada 
 foi mantido como registro do porquê, com uma nota do que mudou desde a
 escrita original.
 
+**Revisado de novo em 2026-07-30 (terceira passada do escriba, fim da
+jornada):** os itens 8 (GitHub no cadastro) e 9 (redesenho visual) fecharam.
+Todos os itens da fila original estão ✅ FEITO, exceto Configuração (item 9),
+ainda no visual do export, e o que está descrito acima em "O que ainda
+falta" do item 4 (`.docx`, publicar no Notion). Uma dívida nova entrou em
+"Pendências menores": a descrição importada do GitHub não é marcada como tal
+no campo onde é salva.
+
 ---
 
 ## O fluxo alvo
@@ -155,16 +163,27 @@ arbitrário; não prometer até verificar.
 Busca semântica com embeddings segue descartada — `ILIKE` no Postgres resolve
 o volume atual sem pipeline novo.
 
-### 8. GitHub no cadastro — em aberto
+### 8. GitHub no cadastro — ✅ FEITO
 
-Colar `dono/repo` e trazer nome, descrição, README, linguagens, último commit,
-PRs abertos. Alimenta o cadastro e pode auto-preencher o inventário.
+Colar `dono/repo` ou a URL do GitHub traz nome, descrição, linguagens, último
+commit, PRs abertos e um resumo do README, para pré-preencher o formulário de
+cadastro. Nada é salvo sem o dono clicar — a busca só preenche campos, quem
+decide gravar é o formulário de sempre. Ver `src/dominio/repositorioGithub.ts`
+(normalização, testável sem rede), `src/servidor/github.ts` (o `fetch`) e
+`src/servidor/acoes-github.ts` (a Server Action).
 
-Público não precisa de token, mas são 60 requisições por hora por IP — e na
-Vercel o IP é compartilhado. Para uso real, PAT fine-grained só de leitura.
-Não construído ainda.
+Sem `GITHUB_TOKEN`: 60 requisições por hora, compartilhadas por IP na Vercel —
+pode já estar zerado quando o dono for usar. Com o token (fine-grained,
+só leitura, lido apenas no servidor): 5.000/hora. A variável é **opcional**:
+sua ausência não trava a importação, só reduz o teto.
 
-### 9. Redesenho visual — parcialmente feito
+A resposta do GitHub é texto de terceiro, tratado como entrada não confiável
+(regra 6 do `CLAUDE.md`) — ver a entrada de 2026-07-30 no `CHANGELOG.md` sobre
+os dois vetores que a revisão de segurança achou e a correção aplicada.
+**Dívida que sobrou disso** na seção "Pendências menores", abaixo: a
+descrição importada não fica marcada como tal no campo onde é salva.
+
+### 9. Redesenho visual — em andamento
 
 O `CLAUDE.md` já libera: intuitivo, maleável, futurista, sem perder
 eficiência.
@@ -176,24 +195,43 @@ recolhíveis por padrão, atalhos de teclado (`[`/`]` para navegar entre
 projetos, `f`/`a`/`x` para agir na fila de sugestões). O documento de andamento
 (item 4) já nasceu com o desenho novo, não com o do export.
 
-**Visão geral e Configuração — ainda no visual herdado do export.** Não
-priorizado ainda; o argumento original de "desenhar por último, sobre uma
-tela que já reage" segue valendo para essas duas.
+**Visão geral — ✅ FEITO.** Painel de atenção no topo: os projetos que pedem
+decisão agora, atravessando as três faixas de frequência, em vez de depender
+de rolar até achar o card certo (`itensAtencao` em `src/dominio/visao.ts`).
+
+**Tipografia — ✅ FEITO.** `Inter` (via `next/font`) no lugar de `Instrument
+Serif`, herança do export; mono reservado a dado técnico; piso rígido de
+12px; cinco níveis de botão (`src/componentes/estiloBotao.ts`); controle de
+densidade (compacto/normal/confortável) salvo em `localStorage`
+(`src/componentes/ControleDensidade.tsx`).
+
+**Mapa dos agentes — ✅ FEITO, tela nova.** `/agentes` e `/agentes/:nome`:
+cada agente como ficha — onde atua, o que achou, o que propôs, e a **taxa de
+aprovação** das próprias sugestões, com o raciocínio de por que esse número
+registrado em `docs/decisoes/004-taxa-de-aprovacao-do-agente.md`.
+
+**Configuração — ainda no visual herdado do export.** Não priorizado ainda; o
+argumento original de "desenhar por último, sobre uma tela que já reage"
+segue valendo para essa.
 
 ---
 
 ## Pendências menores
 
-- **`estiloCampo.ts` zera o `outline` do foco.** O objeto de estilo
-  compartilhado dos campos de formulário (`src/componentes/estiloCampo.ts`)
-  define `outline: "none"`. Existe uma regra global de foco visível em
-  `globals.css` (`:focus-visible { outline: 2px solid var(--atn) }`), mas
-  estilo inline vence CSS de classe sem `!important` — então todo campo que
-  usa `estiloCampo` perde o anel de foco que o resto do painel tem. Afeta
-  navegação por teclado nos formulários de projeto. Corrigir removendo o
-  `outline: "none"` (ou substituindo por algo que não conflite com
-  `:focus-visible`).
-- **Migrations `008`, `009`, `010` e `011` escritas e ainda não aplicadas.**
+- **Procedência da descrição importada do GitHub não é marcada.** A revisão
+  de segurança recomendou sinalizar que uma descrição veio de fora, e isso
+  não foi feito: `projeto.descricao` guarda no mesmo campo tanto a prosa que
+  o dono escreve quanto a descrição trazida do GitHub, sem diferença visível
+  entre as duas. Corrigir exige uma coluna nova (migration) e o dono decide
+  se quer isso — não é urgente na mesma medida dos dois vetores de injeção já
+  corrigidos (ver `CHANGELOG.md`, 2026-07-30), porque aqui a atenuante é
+  real: diferente do contexto que o MCP escreve direto, a descrição importada
+  passa pelos olhos do dono no formulário antes de ser salva — ele vê o texto
+  (já sanitizado) e decide gravar ou não. Marcar a procedência reduziria mais
+  ainda a chance de ele confundir "isso eu escrevi" com "isso veio de fora",
+  não é a última linha de defesa.
+- ~~Migrations `008` a `011` escritas e não aplicadas~~ — o dono aplicou as quatro
+  em 2026-07-30, junto com a `007`. O schema no ar bate com `db/migrations/`.
   Aguardando aprovação do dono para aplicar (trava de schema, ver
   `CLAUDE.md`). Até lá: `projeto.descricao` sempre `null`, `tarefa` sempre
   vazia, escrita de contexto com `origem = 'mcp'` falha no banco, e `/entrar`
@@ -209,12 +247,24 @@ tela que já reage" segue valendo para essas duas.
 
 ### Corrigido desde a escrita original (removido da lista de pendências)
 
+- ~~`estiloCampo.ts` zerava o `outline` do foco~~ — corrigido. Estilo inline
+  vencia a regra global `:focus-visible` de `globals.css` em todo campo de
+  formulário; quem navegava por teclado perdia o anel de foco. Removido o
+  `outline: "none"`; o comentário no topo de `src/componentes/estiloCampo.ts`
+  registra o porquê para não voltar por descuido.
 - ~~Limite de tentativas no `/entrar`~~ — escrito (migration `011`), aguardando
   aplicação; ver pendência acima.
 - ~~Selo de status errado ("PR aberto" sem PR nenhum)~~ — corrigido.
 - ~~Relógio do cabeçalho é texto fixo~~ — corrigido; `src/componentes/Relogio.tsx`
   mostra a hora real, calculada só depois de montar (evita divergência de
   hidratação entre servidor e cliente).
+- ~~Saudação sempre "Bom dia"~~ — corrigido; `src/componentes/Saudacao.tsx`
+  muda com a hora (bom dia / boa tarde / boa noite), mesma técnica do
+  relógio (calcula só depois de montar, para não divergir na hidratação).
+- ~~"Hoje" travado em 29 de julho de 2026~~ — corrigido; a data usada para
+  decidir se um relatório é "de hoje" (`hojeNoFusoDoDono` em
+  `src/dominio/visao.ts`) vinha escrita à mão desde a conversão para
+  Next.js. Agora vem do relógio, no fuso `America/Sao_Paulo`.
 - ~~Migrations `002` e `003` escritas e não aplicadas~~ — as duas foram
   aplicadas em 2026-07-30.
 - ~~`devops-deploy` classificado como agente de escrita em `papeis.ts`~~ —

@@ -10,6 +10,36 @@ ele é mantido a cada mudança.
 
 ## 2026-07-30
 
+- Adicionado: importar projeto do GitHub no cadastro — colar "dono/repo" ou a
+  URL traz nome, descrição, linguagens, último commit, PRs abertos e um
+  resumo do README para pré-preencher o formulário; nada é salvo sem o dono
+  clicar. `GITHUB_TOKEN` é opcional (60 requisições/hora sem ele, 5.000
+  com) e a ausência dele não trava nada.
+- Corrigido: dois vetores de injeção que a revisão de segurança achou na
+  importação do GitHub — uma descrição de repositório de terceiro podia (a)
+  fechar o bloco `contexto-do-painel` do `CLAUDE.md` do repositório alvo e
+  fazer o resto de si valer como instrução, ou (b) carregar texto invisível
+  (caracteres de tag Unicode) que não aparecia na tela, então o dono revisava
+  e salvava sem ver nada de errado. Corrigido neutralizando os delimitadores
+  de estrutura e removendo toda a categoria Unicode `Cf` (formatação
+  invisível), não só os caracteres de controle óbvios.
+- Adicionado: painel de atenção no topo da visão geral — os projetos que
+  pedem decisão agora, juntando as três faixas de frequência num só lugar,
+  em vez de depender de rolar até achar o card certo.
+- Redesenhada: tipografia do app — `Inter` no lugar de `Instrument Serif`
+  (herança do export), fonte monoespaçada reservada a dado técnico, piso
+  rígido de 12px, cinco níveis de botão e um controle de densidade
+  (compacto/normal/confortável) que fica salvo no navegador.
+- Adicionado: mapa dos agentes (`/agentes` e `/agentes/:nome`) — cada agente
+  como uma ficha: onde atua, o que já achou, o que já propôs e a taxa de
+  aprovação das próprias sugestões.
+- Corrigido: a saudação do cabeçalho era o texto fixo "Bom dia", herdado do
+  export — aparecia de madrugada e de noite. Agora muda com a hora.
+- Corrigido: a data usada para saber se um relatório é "de hoje" estava
+  travada em 29 de julho de 2026, escrita à mão na conversão para Next.js e
+  nunca trocada. Agora vem do relógio, no fuso do dono.
+- Adicionado: seção de tom no prompt da rodada noturna e nas 16 definições de
+  agente — frase curta, voz ativa, fala com "você", sem jargão de laudo.
 - Adicionado: documento de andamento (`/projeto/[id]/documento`) — relatório
   gerado sob demanda em duas vozes (técnica e de andamento), com escolha de
   período, exportável em PDF pela impressão do navegador.
