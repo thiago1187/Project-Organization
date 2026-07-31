@@ -9,10 +9,12 @@ import { listarAgentesDoProjeto } from "@/servidor/agentesProjeto";
 import { listarTarefasDoProjeto } from "@/servidor/tarefas";
 import { listarServicoDoProjeto, listarStackDoProjeto } from "@/servidor/inventario";
 import { montarEsteira } from "@/dominio/esteiraAgentes";
+import { montarMapaAgentes } from "@/dominio/mapaAgentes";
 import { sugerirAgentes } from "@/dominio/sugestorAgentes";
 import DescricaoProjeto from "@/componentes/DescricaoProjeto";
 import OndeEstamos from "@/componentes/OndeEstamos";
 import FilaSugestoes from "@/componentes/FilaSugestoes";
+import MapaAgentes from "@/componentes/MapaAgentes";
 import EsteiraAgentes from "@/componentes/EsteiraAgentes";
 import EditorContexto from "@/componentes/EditorContexto";
 import HistoricoRodadas from "@/componentes/HistoricoRodadas";
@@ -52,6 +54,7 @@ export default async function DetalheProjetoPage({
   const fila = filaSugestoes(id, sugestoes);
   const agora = ondeEstamos(tarefas, fila.aprovadas);
   const esteira = montarEsteira(agentesProjeto);
+  const mapaAgentes = montarMapaAgentes(esteira.ativos, relatorios[0] ?? null);
   const sugeridos = sugerirAgentes({ agentesProjeto, stack, servico, relatorios, sugestoes });
 
   const rodadasDetalhe = atual.rodadas
@@ -188,6 +191,7 @@ export default async function DetalheProjetoPage({
           <div id="historico-rodadas" style={{ marginBottom: 30 }}>
             <HistoricoRodadas resumo={atual.rodadas} detalhe={rodadasDetalhe} />
           </div>
+          <MapaAgentes mapa={mapaAgentes} nomeProjeto={atual.nome} />
           <EsteiraAgentes
             projetoId={atual.id}
             ativos={esteira.ativos}

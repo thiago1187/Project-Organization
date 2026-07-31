@@ -11,6 +11,7 @@ import { sairAction } from "@/servidor/acoes-sessao";
 export default function Cabecalho() {
   const pathname = usePathname();
   const emHome = pathname === "/";
+  const emAgentes = pathname === "/agentes" || pathname.startsWith("/agentes/");
   const emConfig = pathname === "/configuracao";
 
   return (
@@ -60,6 +61,20 @@ export default function Cabecalho() {
           }}
         >
           Projetos
+        </Link>
+        <Link
+          href="/agentes"
+          className="h-fundo"
+          style={{
+            padding: "8px 12px",
+            borderRadius: "var(--btn-radius)",
+            cursor: "pointer",
+            fontSize: "var(--fs-sm)",
+            fontWeight: emAgentes ? "var(--fw-semibold)" : "var(--fw-regular)",
+            color: emAgentes ? "var(--txt)" : "var(--mut2)",
+          }}
+        >
+          Agentes
         </Link>
         <Link
           href="/configuracao"
