@@ -1,0 +1,56 @@
+# Verificação automática de pull request.
+#
+# Por que existe, e por que aqui pesa mais que no projeto comum: a rodada
+# noturna abre PR às três da manhã, e sem isto o dono acorda com um diff sem
+# nenhum sinal de que ele sequer compila. Hoje o primeiro lugar onde um build
+# quebrado aparece é o deploy da Vercel — ou seja, depois do merge. O histórico
+# do painel já tem uma rodada registrada com status `falha` por build vermelho,
+# que é exatamente o caso que esta checagem pega antes.
+#
+# Só lê o repositório. Não precisa de segredo nenhum, não toca em deploy, não
+# publica nada — nenhuma superfície nova.
+
+name: CI
+
+on:
+  pull_request:
+  # Também na branch principal: trabalho supervisionado vai direto para `main`
+  # (ver CLAUDE.md > Convenções de trabalho), então sem isto o commit que mais
+  # acontece seria justamente o que ninguém verifica.
+  push:
+    branches: [main]
+
+# Um PR que recebe três pushes seguidos não precisa de três execuções da mesma
+# checagem; a única que importa é a do último commit.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` e não `npm install`: instala exatamente o que está no
+      # package-lock.json. É o que faz a verificação ser sobre o diff, e não
+      # sobre uma versão que flutuou entre a máquina do dono e a do runner.
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      # O build é o passo mais lento e vem por último de propósito: typecheck e
+      # teste falham mais rápido e apontam melhor. Quando o build é o único que
+      # quebra, quase sempre é Server Component ou rota, e é bom saber que os
+      # outros dois já passaram.
+      - run: npm run build

@@ -13,6 +13,10 @@
 // outro lugar — se algo com cara de credencial estivesse em contexto ou
 // relatório, ele vazaria ali, fora do controle deste app.
 
+// O prompt gerado é a **segunda** saída destes campos para dentro de um
+// documento que um agente lê — a primeira é GET /api/projects. `semCredencial`
+// redige credencial; não neutraliza delimitador. Ver textoParaAgente.ts.
+import { textoParaAgente } from "./textoParaAgente";
 import { semCredencial, urlSemSegredo } from "./pareceCredencial";
 import type { Contexto, Relatorio, Tarefa } from "./tipos";
 import type { SugestaoVM } from "./visao";
@@ -49,7 +53,7 @@ function linha(rotulo: string, valor: string): string {
 /** Seção nova (plano § 6.3): o enquadramento que faz o resto ser lido direito. */
 function secaoDescricao(descricao: string | null | undefined): string {
   if (!descricao) return "O dono ainda não escreveu uma descrição deste projeto no painel.";
-  return semCredencial(descricao);
+  return textoParaAgente(semCredencial(descricao));
 }
 
 function secaoContexto(contextos: Contexto[]): string {
@@ -60,7 +64,7 @@ function secaoContexto(contextos: Contexto[]): string {
     .map((c) => {
       const cabecalho = `Para ${c.agente_destino} — ${c.tipo}`;
       if (c.conteudo) {
-        return `${cabecalho}:\n${semCredencial(c.conteudo)}`;
+        return `${cabecalho}:\n${textoParaAgente(semCredencial(c.conteudo))}`;
       }
       if (c.arquivo_url) {
         return `${cabecalho}: ver arquivo em ${urlSemSegredo(c.arquivo_url)}`;
@@ -112,7 +116,7 @@ function itemSugestao(s: SugestaoVM, indice: number): string {
 
 /** Tarefa marcada tem o mesmo formato de item numerado que sugestão, com o selo de origem. */
 function itemTarefa(t: Tarefa, indice: number): string {
-  return `${indice + 1}. ${semCredencial(t.titulo)} (tarefa do dono, não sugestão de agente)`;
+  return `${indice + 1}. ${textoParaAgente(semCredencial(t.titulo))} (tarefa do dono, não sugestão de agente)`;
 }
 
 /**
@@ -149,7 +153,9 @@ function secaoRecusadas(recusadas: SugestaoVM[]): string {
 function secaoTarefasNaoMarcadas(emAberto: Tarefa[], selecionadasIds: Set<string>): string {
   const naoMarcadas = emAberto.filter((t) => !selecionadasIds.has(t.id));
   if (naoMarcadas.length === 0) return "";
-  const lista = naoMarcadas.map((t) => `- [${t.estado}] ${semCredencial(t.titulo)}`).join("\n");
+  const lista = naoMarcadas
+    .map((t) => `- [${t.estado}] ${textoParaAgente(semCredencial(t.titulo))}`)
+    .join("\n");
   return [
     "",
     "## Já está na mesa (não marcado para esta sessão)",

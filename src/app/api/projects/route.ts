@@ -9,6 +9,7 @@ import { listarAgentesPadrao } from "@/servidor/agentesPadrao";
 import { mapaAgentesPadrao, resolverConfiguracaoAgente } from "@/dominio/agentePadrao";
 import { agentesAtivosOrdenados } from "@/dominio/esteiraAgentes";
 import { tarefasEmAberto } from "@/dominio/tarefas";
+import { textoParaAgente } from "@/dominio/textoParaAgente";
 import { respostaErro } from "@/servidor/respostaApi";
 import type { AgentePadrao, Contexto, ProjetoAgente, Sugestao, Tarefa } from "@/dominio/tipos";
 
@@ -68,11 +69,20 @@ interface ContextoParaRoutine {
   arquivo_url: string | null;
 }
 
+// `conteudo` passa por `textoParaAgente` porque a routine escreve este valor
+// dentro do bloco `contexto-do-painel` do CLAUDE.md do repositório alvo, e um
+// texto contendo o marcador de fim fecharia o bloco e viraria instrução de
+// topo — lida por todo agente da rodada seguinte. Ver o cabeçalho de
+// src/dominio/textoParaAgente.ts.
+//
+// Este é o campo mais exposto dos três: `anexar_contexto` (MCP) grava aqui
+// conteúdo que o Claude Code pode ter copiado de um README ou de uma página,
+// sem passar pelos olhos do dono.
 function contextoParaRoutine(c: Contexto): ContextoParaRoutine {
   return {
     agente_destino: c.agente_destino,
     tipo: c.tipo,
-    conteudo: c.conteudo,
+    conteudo: textoParaAgente(c.conteudo),
     arquivo_url: c.arquivo_url,
   };
 }
@@ -139,7 +149,7 @@ interface TarefaParaRoutine {
 }
 
 function tarefaParaRoutine(t: Tarefa): TarefaParaRoutine {
-  return { titulo: t.titulo, estado: t.estado };
+  return { titulo: textoParaAgente(t.titulo), estado: t.estado };
 }
 
 export async function GET() {
@@ -175,7 +185,9 @@ export async function GET() {
         nome: p.nome,
         repositorio: p.repositorio,
         frequencia: p.frequencia,
-        descricao: p.descricao,
+        // Mesmo motivo de `conteudo` e `titulo`: a routine escreve isto no
+        // CLAUDE.md do repositório alvo.
+        descricao: textoParaAgente(p.descricao),
         contexto: contextoDoProjeto.map(contextoParaRoutine),
         sugestoes_aprovadas: sugestoesDoProjeto
           .filter((s) => s.estado === "aprovada")

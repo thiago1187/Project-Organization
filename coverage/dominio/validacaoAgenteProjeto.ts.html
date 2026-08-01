@@ -1,0 +1,472 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for dominio/validacaoAgenteProjeto.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">dominio</a> validacaoAgenteProjeto.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">86% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>43/50</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">82.97% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>39/47</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>6/6</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">93.18% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>41/44</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Validação de entrada para as Server Actions da esteira de agentes
+// (src/servidor/acoes-agentes.ts) — alternar, reordenar, salvar instrução e
+// teto. Espelha os CHECKs de db/migrations/005_agentes_por_projeto.sql. Sem
+// import de banco: lógica pura, testável sem conexão — mesmo padrão de
+// validacaoContexto.ts.
+//
+// Fronteira do plano (docs/plano-agentes-por-projeto.md § 3.3): instrução é o
+// que o agente deve fazer aqui — vai para a chamada do subagente, nunca para
+// o CLAUDE.md. Ainda assim é entrada não confiável (regra 6 do CLAUDE.md,
+// mesmo raciocínio de contexto.conteudo): teto de tamanho, e nenhuma
+// interpolação em comando de sistema ou query. Diferente de
+// contexto.agente_destino/tipo, `instrucao` é corpo de texto, não rótulo —
+// por isso não há checagem de caractere de controle nela (quebra de linha é
+// esperada), só teto de tamanho.
+//
+// Reaproveitado também pelo padrão global de agente (`agente_padrao`, ver
+// src/servidor/acoes-agente-padrao.ts): a instrução ali tem exatamente a
+// mesma forma (instrucao + teto_sugestoes), então validar duas vezes a mesma
+// coisa em dois arquivos seria a mesma regra divergindo com o tempo — este
+// arquivo continua com nome "AgenteProjeto" porque nasceu daqui, não porque
+// o padrão global seja um caso especial.
+//
+// `semInvisiveis` (endurecimento de src/dominio/repositorioGithub.ts, commit
+// "fix(seguranca): a sanitização do GitHub estava calibrada para o
+// acidente") entra aqui pelo mesmo motivo: `instrucao` é texto que o dono
+// cola numa caixa de texto e que, mais tarde, um agente lê e age em cima —
+// caractere Unicode invisível nela derruba a mesma defesa ("o dono revisa
+// antes de salvar") que motivou o endurecimento no fluxo de importação do
+// GitHub. Diferente daquele campo, `instrucao` não é escrita dentro do bloco
+// `contexto-do-painel` do CLAUDE.md alvo (vai direto para a chamada do
+// subagente, ver comentário acima) — por isso só a neutralização de
+// invisível entra aqui, não a de delimitador de estrutura Markdown, que
+// protege especificamente aquele bloco.
+import { semInvisiveis } from "./textoSemInvisiveis";
+&nbsp;
+const AGENTE_TAMANHO_MAXIMO = 64;
+const INSTRUCAO_TAMANHO_MAXIMO = 4000;
+const TETO_SUGESTOES_MINIMO = 0;
+const TETO_SUGESTOES_MAXIMO = 3;
+&nbsp;
+// Equivalente ao CHECK `!~ '[[:cntrl:]]'` do Postgres — mesmo raciocínio de
+// validacaoContexto.ts: qualquer caractere de controle C0 (inclui \n e \t) ou DEL.
+const CODIGO_CONTROLE_MAXIMO = 0x1f; // ultimo codigo C0 (US, 31)
+const CODIGO_DEL = 0x7f;
+&nbsp;
+function contemCaractereDeControle(valor: string): boolean {
+  for (let i = 0; i &lt; valor.length; i++) {
+    const codigo = valor.charCodeAt(i);
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (codigo &lt;= CODIGO_CONTROLE_MAXIMO || codigo === CODIGO_DEL) <span class="cstat-no" title="statement not covered" >return true;</span>
+  }
+  return false;
+}
+&nbsp;
+export type ResultadoValidacao&lt;T&gt; = { ok: true; dados: T } | { ok: false; erro: string };
+&nbsp;
+function textoNaoVazio(v: unknown): v is string {
+  return typeof v === "string" &amp;&amp; v.trim().length &gt; 0;
+}
+&nbsp;
+/** Valida o nome de um agente vindo de uma Server Action — mesmos limites de `projeto_agente.agente`. */
+export function validarNomeAgente(input: unknown): ResultadoValidacao&lt;string&gt; {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!textoNaoVazio(input)) <span class="cstat-no" title="statement not covered" >return { ok: false, erro: "agente é obrigatório." };</span>
+  const agente = input.trim();
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (agente.length &gt; AGENTE_TAMANHO_MAXIMO) {
+<span class="cstat-no" title="statement not covered" >    return { ok: false, erro: `agente não pode passar de ${AGENTE_TAMANHO_MAXIMO} caracteres.` };</span>
+  }
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (contemCaractereDeControle(agente)) {
+<span class="cstat-no" title="statement not covered" >    return { ok: false, erro: "agente não pode conter quebra de linha nem caractere de controle." };</span>
+  }
+  return { ok: true, dados: agente };
+}
+&nbsp;
+export interface DadosAgenteProjetoValidados {
+  instrucao: string | null;
+  teto_sugestoes: number | null;
+}
+&nbsp;
+/** Valida o corpo do formulário "editar instrução" de um card da esteira (instrucao + teto_sugestoes). */
+export function validarInstrucaoAgente(input: unknown): ResultadoValidacao&lt;DadosAgenteProjetoValidados&gt; {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof input !== "object" || input === null || Array.isArray(input)) {
+<span class="cstat-no" title="statement not covered" >    return { ok: false, erro: "Corpo da requisição precisa ser um objeto JSON." };</span>
+  }
+  const { instrucao, teto_sugestoes } = input as Record&lt;string, unknown&gt;;
+&nbsp;
+  let instrucaoValor: string | null = null;
+  if (instrucao !== undefined &amp;&amp; instrucao !== null) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof instrucao !== "string") <span class="cstat-no" title="statement not covered" >return { ok: false, erro: "instrucao precisa ser texto." };</span>
+    // `semInvisiveis` antes do trim final: remover o invisível pode deixar
+    // espaço solto na borda que o trim original não via.
+    const aparada = semInvisiveis(instrucao).trim();
+    if (aparada.length &gt; 0) {
+      if (aparada.length &gt; INSTRUCAO_TAMANHO_MAXIMO) {
+        return { ok: false, erro: `instrucao não pode passar de ${INSTRUCAO_TAMANHO_MAXIMO} caracteres.` };
+      }
+      instrucaoValor = aparada;
+    }
+  }
+&nbsp;
+  let tetoValor: number | null = null;
+  if (teto_sugestoes !== undefined &amp;&amp; teto_sugestoes !== null &amp;&amp; teto_sugestoes !== "") {
+    const numero = typeof teto_sugestoes === "number" ? teto_sugestoes : <span class="branch-1 cbranch-no" title="branch not covered" >Number(teto_sugestoes);</span>
+    if (!Number.isInteger(numero) || numero &lt; TETO_SUGESTOES_MINIMO || numero &gt; TETO_SUGESTOES_MAXIMO) {
+      return {
+        ok: false,
+        erro: `teto_sugestoes precisa ser um número inteiro entre ${TETO_SUGESTOES_MINIMO} e ${TETO_SUGESTOES_MAXIMO}.`,
+      };
+    }
+    tetoValor = numero;
+  }
+&nbsp;
+  return { ok: true, dados: { instrucao: instrucaoValor, teto_sugestoes: tetoValor } };
+}
+&nbsp;
+/** Valida a lista completa de agentes ativos que o cliente manda ao reordenar a esteira. */
+export function validarOrdemAgentes(input: unknown): ResultadoValidacao&lt;string[]&gt; {
+  if (!Array.isArray(input) || input.some((a) =&gt; typeof a !== "string")) {
+    return { ok: false, erro: "Ordem inválida." };
+  }
+  // Bem acima dos 16 agentes conhecidos hoje — defesa contra payload absurdo,
+  // não um limite de produto (ver AGENTES_CONHECIDOS em agentesConhecidos.ts).
+  if (input.length &gt; 64) {
+    return { ok: false, erro: "Lista de agentes grande demais." };
+  }
+  for (const agente of input) {
+    const validado = validarNomeAgente(agente);
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validado.ok) <span class="cstat-no" title="statement not covered" >return validado;</span>
+  }
+  return { ok: true, dados: input as string[] };
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-08-01T21:53:02.787Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    
