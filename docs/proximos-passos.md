@@ -230,8 +230,9 @@ segue valendo para essa.
   (já sanitizado) e decide gravar ou não. Marcar a procedência reduziria mais
   ainda a chance de ele confundir "isso eu escrevi" com "isso veio de fora",
   não é a última linha de defesa.
-- ~~Migrations `008` a `011` escritas e não aplicadas~~ — o dono aplicou as quatro
-  em 2026-07-30, junto com a `007`. O schema no ar bate com `db/migrations/`.
+- ~~Migrations `008` a `012` escritas e não aplicadas~~ — o dono aplicou todas
+  (`007` a `011` em 2026-07-30, `012` em 2026-08-01). O schema no ar bate com
+  `db/migrations/`.
   Aguardando aprovação do dono para aplicar (trava de schema, ver
   `CLAUDE.md`). Até lá: `projeto.descricao` sempre `null`, `tarefa` sempre
   vazia, escrita de contexto com `origem = 'mcp'` falha no banco, e `/entrar`

@@ -318,7 +318,7 @@ psql "$DATABASE_URL_UNPOOLED" -f db/migrations/011_tentativa_entrada.down.sql
 
 ## 012 — `agente_padrao`: padrão global de instrução/teto por agente
 
-**Escrita, ainda NÃO aplicada.** O dono pediu para configurar instrução e
+**Aplicada em 2026-08-01.** O dono pediu para configurar instrução e
 teto de sugestões uma vez por agente, em vez de repetir a mesma configuração
 em cada projeto onde ele é ligado. `projeto_agente` (005) continua existindo
 e continua vencendo quando preenchido — a resolução é "sobrescreve, nunca
