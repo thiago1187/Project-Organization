@@ -23,6 +23,7 @@
 // contexto multiplicados por seis itens são um despejo que o modelo não vai
 // ler inteiro de qualquer forma.
 
+import { textoParaAgente } from "./textoParaAgente";
 import { semCredencial, urlSemSegredo } from "./pareceCredencial";
 import type {
   Contexto,
@@ -510,11 +511,23 @@ export interface ContextoMcp {
   atualizado_em: string;
 }
 
+// A terceira saída de contexto para dentro de um agente — e a que ficou de
+// fora quando o módulo compartilhado nasceu "para as duas".
+//
+// `semCredencial` não cobre isto: ele troca o texto **inteiro** pelo marcador
+// quando o texto parece uma credencial, e devolve igual em qualquer outro
+// caso. Não remove invisível nenhum. Então um conteúdo com tag characters
+// (U+E0000, que codifica ASCII e não renderiza) aparece inócuo na tela do
+// painel, o dono aprova sem ver nada de errado, e chega inteiro na próxima
+// sessão de Claude Code que chamar `ver_contexto`.
 export function contextosParaMcp(contextos: Contexto[]): ContextoMcp[] {
   return contextos.map((c) => ({
-    agente_destino: semCredencial(c.agente_destino),
-    tipo: semCredencial(c.tipo),
-    conteudo: c.conteudo === null ? null : truncar(semCredencial(c.conteudo), CORTE_CONTEUDO_CONTEXTO),
+    agente_destino: textoParaAgente(semCredencial(c.agente_destino)),
+    tipo: textoParaAgente(semCredencial(c.tipo)),
+    conteudo:
+      c.conteudo === null
+        ? null
+        : truncar(textoParaAgente(semCredencial(c.conteudo)), CORTE_CONTEUDO_CONTEXTO),
     arquivo: c.arquivo_url === null ? null : urlSemSegredo(c.arquivo_url),
     atualizado_em: c.atualizado_em,
   }));

@@ -78,10 +78,20 @@ interface ContextoParaRoutine {
 // Este é o campo mais exposto dos três: `anexar_contexto` (MCP) grava aqui
 // conteúdo que o Claude Code pode ter copiado de um README ou de uma página,
 // sem passar pelos olhos do dono.
+// `agente_destino` e `tipo` também passam, e ficaram de fora na primeira
+// correção por engano meu: eles viram o cabeçalho `### Para <agente> — <tipo>`
+// do mesmo bloco. `validarContexto` só barra caractere de controle, então um
+// `tipo` valendo "<!-- contexto-do-painel:fim -->" tem 30 caracteres
+// imprimíveis, cabe no limite de 64 e passa inteiro — e fecha o bloco a partir
+// do cabeçalho, o que joga tudo abaixo dele para fora do preâmbulo.
+//
+// Limpar aqui não mexe na chave de identidade do contexto: `upsertContexto`
+// grava e `contextoExistente` casa por (projeto_id, agente_destino, tipo)
+// usando o valor **guardado**, e a limpeza é só na saída.
 function contextoParaRoutine(c: Contexto): ContextoParaRoutine {
   return {
-    agente_destino: c.agente_destino,
-    tipo: c.tipo,
+    agente_destino: textoParaAgente(c.agente_destino),
+    tipo: textoParaAgente(c.tipo),
     conteudo: textoParaAgente(c.conteudo),
     arquivo_url: c.arquivo_url,
   };

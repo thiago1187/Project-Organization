@@ -42,11 +42,32 @@ export function patchParaFaixa(alvo: Faixa): PatchCadencia {
   return { ativo: true, frequencia: FREQUENCIA_DA_FAIXA[alvo] };
 }
 
+// As notas descrevem o que a rodada **faz**, e antes descreviam uma rodada que
+// não existe: "segunda, quarta e sexta" e "só a checagem de segurança e
+// testes". Nenhuma das duas era verdade.
+//
+// A regra real está em docs/routine-noturna.md, passo 1: a rodada não olha o
+// calendário, olha a **idade do último relatório** — 40 horas para alternada,
+// 6 dias para semanal. E roda a esteira **inteira** nas três faixas; a
+// frequência muda quando ela visita, nunca o que ela faz quando visita.
+//
+// Isso importa porque o dono lê essas frases na primeira tela e decide a
+// cadência de um projeto a partir delas. Acreditar que semanal recebe uma
+// checagem mais leve é escolher semanal por um motivo que não existe.
+//
+// Quem editar estas frases: confira o passo 1 daquele documento antes, senão
+// troca uma frase errada por outra.
 export const FAIXA_META: Record<Faixa, { titulo: string; nota: string }> = {
-  diaria: { titulo: "Toda madrugada", nota: "rodada completa todas as noites" },
-  alternada: { titulo: "Dias alternados", nota: "segunda, quarta e sexta" },
-  semanal: { titulo: "Uma vez por semana", nota: "só a checagem de segurança e testes" },
-  pausado: { titulo: "Pausado", nota: "agentes não visitam nem atualizam a etapa" },
+  diaria: { titulo: "Toda madrugada", nota: "a esteira inteira, toda noite" },
+  alternada: {
+    titulo: "Dias alternados",
+    nota: "a esteira inteira, quando a última rodada passa de 40 horas",
+  },
+  semanal: {
+    titulo: "Uma vez por semana",
+    nota: "a esteira inteira, quando a última rodada passa de 6 dias",
+  },
+  pausado: { titulo: "Pausado", nota: "a rodada não visita este projeto" },
 };
 
 /** Rótulo usado no crachá de status da tela de detalhe ("toda madrugada"). */

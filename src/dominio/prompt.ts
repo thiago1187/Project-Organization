@@ -62,7 +62,10 @@ function secaoContexto(contextos: Contexto[]): string {
   }
   return contextos
     .map((c) => {
-      const cabecalho = `Para ${c.agente_destino} — ${c.tipo}`;
+      // O cabeçalho não passava nem por `semCredencial`. Os dois campos
+      // fecham o bloco tão bem quanto o conteúdo — ver a nota em
+      // src/app/api/projects/route.ts, `contextoParaRoutine`.
+      const cabecalho = `Para ${textoParaAgente(semCredencial(c.agente_destino))} — ${textoParaAgente(semCredencial(c.tipo))}`;
       if (c.conteudo) {
         return `${cabecalho}:\n${textoParaAgente(semCredencial(c.conteudo))}`;
       }
