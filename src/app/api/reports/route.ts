@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AcessoNegado, exigirAcesso } from "@/servidor/acesso";
-import { criarRelatorio, listarRelatorios } from "@/servidor/relatorios";
+import { criarRelatorio, ultimoRelatorioPorProjeto } from "@/servidor/relatorios";
 import { obterProjetoPorId } from "@/servidor/projetos";
 import { ErroDados } from "@/servidor/erros";
 import { validarRelatorio } from "@/dominio/validacaoRelatorio";
@@ -32,7 +32,15 @@ export async function GET() {
     throw erro;
   }
 
-  const relatorios = await listarRelatorios();
+  // Uma linha por projeto, não o histórico inteiro.
+  //
+  // O único consumidor desta rota é a rodada noturna, e o passo 0.2 do prompt
+  // dela diz o que ela faz com a resposta: "guarde, por projeto, o relatório
+  // mais recente". Mandar o resto era pagar tokens toda madrugada por dado
+  // que ela descarta na linha seguinte — e a conta cresce uma noite por dia,
+  // para sempre. As telas não passam por aqui; elas chamam a camada de dados
+  // direto.
+  const relatorios = await ultimoRelatorioPorProjeto();
   return NextResponse.json({ relatorios }, { status: 200 });
 }
 

@@ -15,13 +15,16 @@ vi.mock("@/servidor/acesso", async (importarOriginal) => {
   const real = await importarOriginal<typeof import("@/servidor/acesso")>();
   return { ...real, exigirAcesso: vi.fn() };
 });
-vi.mock("@/servidor/relatorios", () => ({ criarRelatorio: vi.fn(), listarRelatorios: vi.fn() }));
+vi.mock("@/servidor/relatorios", () => ({
+  criarRelatorio: vi.fn(),
+  ultimoRelatorioPorProjeto: vi.fn(),
+}));
 vi.mock("@/servidor/projetos", () => ({ obterProjetoPorId: vi.fn() }));
 
 import { AcessoNegado, exigirAcesso } from "@/servidor/acesso";
-import { criarRelatorio } from "@/servidor/relatorios";
+import { criarRelatorio, ultimoRelatorioPorProjeto } from "@/servidor/relatorios";
 import { obterProjetoPorId } from "@/servidor/projetos";
-import { POST } from "./route";
+import { GET, POST } from "./route";
 
 const PROJETO = "11111111-1111-1111-1111-111111111111";
 
@@ -99,5 +102,28 @@ describe("POST /api/reports", () => {
 
     expect(resposta.status).toBeGreaterThanOrEqual(400);
     expect(criarRelatorio).not.toHaveBeenCalled();
+  });
+
+  // ── GET, que a rodada lê no passo 0 ──────────────────────────────────────
+
+  it("GET devolve uma linha por projeto, não o histórico inteiro", async () => {
+    // A rodada usa só "o relatório mais recente de cada projeto" (passo 0.2 do
+    // prompt). Mandar o histórico completo era pagar tokens toda madrugada por
+    // dado descartado na linha seguinte, e a conta cresce uma noite por dia.
+    vi.mocked(ultimoRelatorioPorProjeto).mockResolvedValue([] as never);
+
+    const resposta = await GET();
+
+    expect(resposta.status).toBe(200);
+    expect(ultimoRelatorioPorProjeto).toHaveBeenCalledTimes(1);
+  });
+
+  it("GET recusa sem acesso, antes de consultar", async () => {
+    vi.mocked(exigirAcesso).mockRejectedValue(new AcessoNegado());
+
+    const resposta = await GET();
+
+    expect(resposta.status).toBe(401);
+    expect(ultimoRelatorioPorProjeto).not.toHaveBeenCalled();
   });
 });

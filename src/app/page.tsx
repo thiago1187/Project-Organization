@@ -1,6 +1,6 @@
 import { cardsProjetos, itensAtencao, totaisHome } from "@/dominio/visao";
 import { listarProjetos } from "@/servidor/projetos";
-import { listarRelatorios } from "@/servidor/relatorios";
+import { ultimoRelatorioPorProjeto } from "@/servidor/relatorios";
 import QuadroCadencias from "@/componentes/QuadroCadencias";
 import PainelAtencao from "@/componentes/PainelAtencao";
 import Saudacao from "@/componentes/Saudacao";
@@ -12,7 +12,10 @@ import Saudacao from "@/componentes/Saudacao";
 export const dynamic = "force-dynamic";
 
 export default async function VisaoGeralPage() {
-  const [projetos, relatorios] = await Promise.all([listarProjetos(), listarRelatorios()]);
+  // Uma linha por projeto: `cardsProjetos` e `totaisHome` só olham o último
+  // relatório de cada um, e carregar a tabela inteira para descartar o resto
+  // era desperdício que cresce uma linha por noite.
+  const [projetos, relatorios] = await Promise.all([listarProjetos(), ultimoRelatorioPorProjeto()]);
   const cards = cardsProjetos(projetos, relatorios);
   const totais = totaisHome(projetos, relatorios);
   const atencao = itensAtencao(cards);

@@ -225,7 +225,8 @@ proposta.
    nunca `feita`). Sugestão nenhuma é para executar — servem só para você não repropor o
    que já está na fila, já foi aprovado ou já foi negado (ver "O buraco de duplicata" nas
    notas de desenho); tarefa também não é para executar, pelo mesmo motivo.
-2. GET $PAINEL_URL/api/reports — histórico. Guarde, por projeto, o relatório mais recente
+2. GET $PAINEL_URL/api/reports — o relatório mais recente de cada projeto, uma linha por
+   projeto. Guarde, por projeto, o relatório mais recente
    (maior executado_em).
 
 Se (1) falhar, a rodada não tem o que fazer: pare e diga o que aconteceu, com o código de
