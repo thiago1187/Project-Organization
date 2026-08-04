@@ -51,17 +51,41 @@ export async function listarRelatorios(): Promise<Relatorio[]> {
 }
 
 /**
- * Histórico de um projeto só, mais recente primeiro — o que a tela de
- * detalhe usa. Usa o mesmo padrão de acesso (projeto_id, executado_em DESC)
- * do índice `relatorio_projeto_executado_idx`.
+ * Teto para quem precisa mesmo de todas as rodadas. Alto o bastante para não
+ * cortar na prática (uma rodada por noite dá ~27 anos) e baixo o bastante para
+ * uma consulta com defeito não trazer a tabela inteira.
  */
-export async function listarRelatoriosDoProjeto(projetoId: string): Promise<Relatorio[]> {
+export const SEM_LIMITE = 10_000;
+
+/**
+ * Histórico de um projeto, mais recente primeiro. Mesmo padrão de acesso
+ * (projeto_id, executado_em DESC) do índice `relatorio_projeto_executado_idx`.
+ *
+ * `limite` é **obrigatório** por decisão, e não tem valor padrão.
+ *
+ * Isto não tinha teto: a tela do projeto montava o detalhe de toda rodada já
+ * gravada, a cada abertura, e o custo cresce uma linha por noite para sempre.
+ * O reflexo seria pôr um `LIMIT` fixo aqui — e seria um bug pior que o
+ * original, porque o documento de andamento filtra por período em cima desta
+ * lista: um teto silencioso faria "últimos 30 dias" perder rodadas sem avisar,
+ * e esse documento vai para sócio e cliente.
+ *
+ * Sem valor padrão, o próximo chamador é obrigado a pensar em quantas precisa,
+ * em vez de herdar um número que não serve para ele. Use `SEM_LIMITE` quando a
+ * resposta for de fato "todas", e o parâmetro passa a documentar a escolha em
+ * vez de escondê-la.
+ */
+export async function listarRelatoriosDoProjeto(
+  projetoId: string,
+  limite: number,
+): Promise<Relatorio[]> {
   try {
     const linhas = (await sql()`
       SELECT id, projeto_id, executado_em, status, resumo, testes_passaram, achados_por_agente
       FROM relatorio
       WHERE projeto_id = ${projetoId}
       ORDER BY executado_em DESC
+      LIMIT ${limite}
     `) as unknown as LinhaRelatorio[];
     return linhas.map(linhaParaRelatorio);
   } catch (erro) {

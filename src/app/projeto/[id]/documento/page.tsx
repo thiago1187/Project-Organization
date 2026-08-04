@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { obterProjetoPorId } from "@/servidor/projetos";
-import { listarRelatoriosDoProjeto } from "@/servidor/relatorios";
+import { listarRelatoriosDoProjeto, SEM_LIMITE } from "@/servidor/relatorios";
 import { listarSugestoesDoProjeto } from "@/servidor/sugestoes";
 import { listarTarefasDoProjeto } from "@/servidor/tarefas";
 import {
@@ -58,7 +58,10 @@ export default async function DocumentoAndamentoPage({
   const voz = vozValida(sp.voz);
 
   const [relatorios, sugestoes, tarefas] = await Promise.all([
-    listarRelatoriosDoProjeto(id),
+    // Todas: o corte aqui é por período, feito em documentoAndamento.ts. Um
+    // teto de quantidade faria "últimos 30 dias" perder rodada em silêncio, e
+    // este documento vai para sócio e cliente.
+    listarRelatoriosDoProjeto(id, SEM_LIMITE),
     listarSugestoesDoProjeto(id),
     listarTarefasDoProjeto(id),
   ]);

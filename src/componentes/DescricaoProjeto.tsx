@@ -63,7 +63,7 @@ export default function DescricaoProjeto({
         onBlur={salvar}
         maxLength={TAMANHO_MAXIMO}
         rows={vazio ? 2 : 3}
-        placeholder="Clique aqui e escreva o que é este projeto. Isto vai junto para os agentes toda noite, e para o prompt que você gera."
+        placeholder="Clique aqui e escreva o que é este projeto. Isto vai junto para os agentes quando a rodada visitar, e para o prompt que você gera."
         style={{
           width: "100%",
           boxSizing: "border-box",

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { FilaSugestoesVM } from "@/dominio/visao";
-import type { Contexto, Relatorio } from "@/dominio/tipos";
+import type { Contexto, Relatorio, Tarefa } from "@/dominio/tipos";
 import { gerarTextoPrompt } from "@/dominio/prompt";
 import CartaoSugestao from "./CartaoSugestao";
 import GeradorPrompt from "./GeradorPrompt";
@@ -27,6 +27,8 @@ export default function FilaSugestoes({
   fila,
   contextos,
   ultimoRelatorio,
+  descricao,
+  tarefasEmAberto,
 }: {
   projetoId: string;
   projetoNome: string;
@@ -34,6 +36,19 @@ export default function FilaSugestoes({
   fila: FilaSugestoesVM;
   contextos: Contexto[];
   ultimoRelatorio: Relatorio | null;
+  /**
+   * `descricao` e `tarefasEmAberto` alimentam o prompt gerado, e faltavam.
+   *
+   * `gerarTextoPrompt` declara os dois como opcionais, então o TypeScript
+   * nunca reclamou de não recebê-los — o prompt saía dizendo "o dono ainda não
+   * escreveu uma descrição deste projeto" mesmo com a descrição preenchida na
+   * tela logo acima. `docs/proximos-passos.md` afirmava que levava.
+   *
+   * Não são opcionais aqui de propósito: obrigatórios, o próximo chamador não
+   * consegue esquecer.
+   */
+  descricao: string | null;
+  tarefasEmAberto: Tarefa[];
 }) {
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
 
@@ -58,6 +73,8 @@ export default function FilaSugestoes({
       repositorio,
       contextos,
       ultimoRelatorio,
+      descricao,
+      tarefasEmAberto,
       selecionadas: marcadasParaPrompt,
       recusadas: fila.recusadas,
     });

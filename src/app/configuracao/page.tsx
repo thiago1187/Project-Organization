@@ -45,9 +45,10 @@ export default async function ConfiguracaoPage() {
           textWrap: "pretty",
         }}
       >
-        A cadência aqui é a mesma do quadro na home — arraste lá ou escolha aqui. Isso controla o que este painel
-        espera de cada projeto; a execução acontece na Routine do Claude Code Desktop, fora do app. Projeto pausado
-        não recebe visita dos agentes nem atualiza o documento de etapa.
+        A cadência aqui é a mesma do quadro na home — arraste lá ou escolha aqui. Ela decide com que frequência a
+        rodada noturna visita o projeto: toda noite, quando a última passa de 40 horas, ou quando passa de 6 dias. O
+        que ela faz na visita é sempre o mesmo, a esteira inteira. A rodada diagnostica e propõe; ela não altera
+        código. Projeto pausado não recebe visita nenhuma.
       </div>
 
       <FormNovoProjeto />

@@ -9,6 +9,7 @@ import { listarAgentesDoProjeto } from "@/servidor/agentesProjeto";
 import { listarTarefasDoProjeto } from "@/servidor/tarefas";
 import { listarServicoDoProjeto, listarStackDoProjeto } from "@/servidor/inventario";
 import { montarEsteira } from "@/dominio/esteiraAgentes";
+import { tarefasEmAberto } from "@/dominio/tarefas";
 import { listarAgentesPadrao } from "@/servidor/agentesPadrao";
 import { montarMapaAgentes } from "@/dominio/mapaAgentes";
 import { sugerirAgentes } from "@/dominio/sugestorAgentes";
@@ -48,7 +49,9 @@ export default async function DetalheProjetoPage({
     todosProjetos,
     agentesPadrao,
   ] = await Promise.all([
-    listarRelatoriosDoProjeto(id),
+    // 30 noites de histórico. A tira de rodadas não mostra mais que isso, e
+    // quem quiser o período inteiro tem o documento de andamento.
+    listarRelatoriosDoProjeto(id, 30),
     listarSugestoesDoProjeto(id),
     listarContextosDoProjeto(id),
     listarAgentesDoProjeto(id),
@@ -200,6 +203,8 @@ export default async function DetalheProjetoPage({
               fila={fila}
               contextos={contextos}
               ultimoRelatorio={relatorios[0] ?? null}
+              descricao={atual.descricao}
+              tarefasEmAberto={tarefasEmAberto(tarefas)}
             />
           </div>
           <OndeEstamos projetoId={atual.id} ondeEstamos={agora} />

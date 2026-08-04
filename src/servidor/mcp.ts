@@ -27,6 +27,7 @@ import {
   resolverProjeto,
   rodadasParaMcp,
   sugestoesParaMcp,
+  LIMITE_RODADAS_MAXIMO,
 } from "@/dominio/mcp";
 
 // Servidor MCP do painel — item 7 de docs/proximos-passos.md. Aqui está só o
@@ -174,7 +175,9 @@ async function verRodadas(args: Argumentos): Promise<CallToolResult> {
   const alvo = await comProjeto(args);
   if (!alvo.ok) return alvo.resposta;
 
-  const relatorios = await listarRelatoriosDoProjeto(alvo.projeto.id);
+  // `ver_rodadas` já corta em 5 por padrão e 20 no máximo; buscar mais que o
+  // teto da própria ferramenta é trabalho jogado fora.
+  const relatorios = await listarRelatoriosDoProjeto(alvo.projeto.id, LIMITE_RODADAS_MAXIMO);
   const limite = limiteDeRodadas(args.limite);
   return resultado({
     projeto: alvo.nome,
