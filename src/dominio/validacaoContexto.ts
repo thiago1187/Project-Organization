@@ -27,6 +27,9 @@ const CONTROLE_REGEX = /[\u0000-\u001F\u007F]/;
 // Mesma restrição do CHECK contexto_arquivo_url_formato — só https, para não
 // abrir "file:///" nem endereço de metadados de instância (SSRF) a partir do
 // ambiente que busca isto para montar o CLAUDE.md.
+/** Espelha o CHECK de db/migrations/003_tetos_tamanho.sql. */
+const ARQUIVO_URL_TAMANHO_MAXIMO = 2000;
+
 const ARQUIVO_URL_REGEX = /^https:\/\//;
 
 export interface DadosContextoValidados {
@@ -86,6 +89,18 @@ export function validarContexto(input: unknown): ResultadoValidacao<DadosContext
     if (aparado.length > 0) {
       if (!ARQUIVO_URL_REGEX.test(aparado)) {
         return { ok: false, erro: "arquivo_url precisa começar com https://." };
+      }
+      // A regex só ancorava o começo, então tudo depois de "https://" passava
+      // — inclusive quebra de linha e o marcador de fim do bloco
+      // `contexto-do-painel`. A saída é limpa por `urlSemSegredo` (ver
+      // src/app/api/projects/route.ts), mas recusar na entrada é melhor: URL
+      // com quebra de linha no meio não é URL, e guardar uma no banco só
+      // adia a pergunta "de onde veio isto".
+      if (/[\u0000-\u001f\u007f]/.test(aparado)) {
+        return { ok: false, erro: "arquivo_url não pode ter quebra de linha nem caractere de controle." };
+      }
+      if (aparado.length > ARQUIVO_URL_TAMANHO_MAXIMO) {
+        return { ok: false, erro: `arquivo_url passa de ${ARQUIVO_URL_TAMANHO_MAXIMO} caracteres.` };
       }
       arquivoUrlValor = aparado;
     }

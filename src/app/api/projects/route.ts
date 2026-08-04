@@ -10,6 +10,7 @@ import { mapaAgentesPadrao, resolverConfiguracaoAgente } from "@/dominio/agenteP
 import { agentesAtivosOrdenados } from "@/dominio/esteiraAgentes";
 import { tarefasEmAberto } from "@/dominio/tarefas";
 import { textoParaAgente } from "@/dominio/textoParaAgente";
+import { urlSemSegredo } from "@/dominio/pareceCredencial";
 import { respostaErro } from "@/servidor/respostaApi";
 import type { AgentePadrao, Contexto, ProjetoAgente, Sugestao, Tarefa } from "@/dominio/tipos";
 
@@ -93,7 +94,17 @@ function contextoParaRoutine(c: Contexto): ContextoParaRoutine {
     agente_destino: textoParaAgente(c.agente_destino),
     tipo: textoParaAgente(c.tipo),
     conteudo: textoParaAgente(c.conteudo),
-    arquivo_url: c.arquivo_url,
+    // A quarta porta do bloco, e a que ficou aberta: os três campos acima
+    // passam pela limpeza e este saía cru. `urlSemSegredo` resolve melhor que
+    // `textoParaAgente` aqui, e é o que o gerador de prompt já usava — ele
+    // parseia com `new URL`, e o parser da própria especificação engole
+    // quebra de linha e percent-encoda `<` e `>`. O marcador vira
+    // "%3C!--...--%3E", que não fecha comentário nenhum.
+    //
+    // `textoParaAgente` seria pior: a tabela dele troca "contexto-do-painel"
+    // por hífen não-quebrável, e uma URL legítima que contenha essa string no
+    // caminho chegaria quebrada ao agente.
+    arquivo_url: c.arquivo_url === null ? null : urlSemSegredo(c.arquivo_url),
   };
 }
 

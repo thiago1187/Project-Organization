@@ -62,21 +62,27 @@ const STATUS_PESO: Record<StatusRelatorio, number> = { falha: 0, atencao: 1, ok:
 // ─────────────────────────────────────────────────────────────────────────
 // Datas.
 //
-// Os timestamps vêm em ISO com offset "-03:00", e o parser abaixo lê os
-// dígitos direto da string em vez de passar por Date/getHours(): o objetivo é
-// mostrar exatamente a hora gravada, não convertê-la para o fuso do processo
-// que renderiza — a Vercel roda em UTC, e "03:12" viraria "06:12".
+// **Uma regra:** o timestamp viaja em UTC e é convertido para
+// America/Sao_Paulo na hora de formatar, sempre com `timeZone` explícito.
+// Nunca `getHours()`, que usaria o fuso do processo — a Vercel roda em UTC.
 //
-// "Hoje" era `{ dia: 29, mes: 7 }`, escrito à mão na conversão do export e
-// nunca trocado. Enquanto ficou parado ali, toda rodada de qualquer outro dia
-// aparecia com a data colada na hora, e a de 29 de julho aparecia como se
-// tivesse acontecido hoje — para sempre.
+// Este cabeçalho dizia o contrário: que os timestamps chegavam com offset
+// "-03:00" e por isso o parser podia ler os dígitos crus da string. Era falso
+// — toda camada de dados normaliza com `toISOString()`, que devolve Z. O
+// parser lia UTC achando que lia São Paulo, e a tela ficou três horas
+// adiantada o dia inteiro, com o dia errado entre 21h e a meia-noite. Vale
+// registrar: o comentário descrevia exatamente a garantia que o código não
+// dava, e foi ele que sustentou o erro por semanas.
 //
-// Agora vem do relógio, resolvido em America/Sao_Paulo, que é o fuso dos
-// timestamps gravados e o do dono. Isto roda só em Server Component com
-// `force-dynamic`, então não há render no cliente para divergir — diferente da
-// saudação e do relógio do cabeçalho, que precisam ser calculados no navegador
-// justamente por aparecerem em componente que hidrata (ver Saudacao.tsx).
+// "Hoje" também já esteve travado em `{ dia: 29, mes: 7 }`, escrito à mão na
+// conversão do export. Enquanto ficou ali, a rodada de 29 de julho aparecia
+// como se fosse de hoje, para sempre.
+//
+// Como `timeZone` é explícito, o resultado é o mesmo no servidor e no
+// navegador — então isto serve também a componente `use client`
+// (CartaoContexto.tsx) sem divergência de hidratação. A saudação e o relógio
+// do cabeçalho continuam calculados no navegador por outro motivo: eles
+// dependem de "agora", não de um timestamp gravado (ver Saudacao.tsx).
 // ─────────────────────────────────────────────────────────────────────────
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
@@ -102,14 +108,57 @@ export function hojeNoFusoDoDono(agora: Date = new Date()): { dia: number; mes: 
   return { dia: Number(dia), mes: Number(mes) };
 }
 
+/**
+ * Quebra um timestamp ISO nas partes que a tela mostra, **convertidas** para o
+ * fuso do dono.
+ *
+ * Isto lia os dígitos crus da string, com um comentário dizendo que os
+ * timestamps chegavam com offset "-03:00". A premissa era falsa: toda camada
+ * de dados normaliza com `new Date(x).toISOString()`, que sempre devolve UTC
+ * com Z (src/servidor/relatorios.ts:25, e o mesmo em sugestoes, contextos,
+ * tarefas, projetos, agentesProjeto, agentesPadrao e inventario). O parser lia
+ * UTC achando que lia São Paulo e produzia exatamente o erro que o comentário
+ * existia para evitar: **três horas adiantado**, o dia inteiro, e o dia errado
+ * entre 21h e a meia-noite.
+ *
+ * Foi visto no dado real: a rodada roda às 3h42 e a tela mostrava 06:42.
+ *
+ * A correção é converter, e não deixar de converter. Continua **sem**
+ * `getHours()`, que usaria o fuso do processo — a Vercel roda em UTC. O
+ * `timeZone` explícito faz o resultado ser o mesmo no servidor e no navegador,
+ * o que também resolve a divergência de hidratação em componente `use client`
+ * (CartaoContexto.tsx): não é "o fuso de quem renderiza", é sempre este.
+ *
+ * O dado guardado e o que sai em `GET /api/projects` continuam em UTC. Isso é
+ * de propósito: mudar o transporte quebraria o contrato que a rodada lê e o
+ * filtro de período de documentoAndamento.ts:70, que compara ISO como string
+ * e só funciona porque tudo termina em Z.
+ */
 function partesISO(iso: string) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
-  if (!m) throw new Error(`timestamp inválido: ${iso}`);
-  return { ano: Number(m[1]), mes: Number(m[2]), dia: Number(m[3]), hora: m[4], minuto: m[5] };
+  const data = new Date(iso);
+  if (Number.isNaN(data.getTime())) throw new Error(`timestamp inválido: ${iso}`);
+
+  // en-CA com hourCycle h23 devolve "2026-08-03, 03:42" — o formato mais
+  // barato de fatiar, e sem o "24:00" que h24 produziria à meia-noite.
+  const texto = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO_DO_DONO,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(data);
+
+  const [dataParte, horaParte] = texto.split(", ");
+  const [ano, mes, dia] = dataParte.split("-");
+  const [hora, minuto] = horaParte.split(":");
+
+  return { ano: Number(ano), mes: Number(mes), dia: Number(dia), hora, minuto };
 }
 
-/** Exportado para src/dominio/mapaAgentes.ts reaproveitar — mesmo parser de
- * timestamp, mesma regra de "mostra a hora gravada, não converte fuso". */
+/** Hora no fuso do dono. Exportado para src/dominio/mapaAgentes.ts reaproveitar
+ * o mesmo parser — um lugar só converte. */
 export function formatarHora(iso: string): string {
   const p = partesISO(iso);
   return `${p.hora}:${p.minuto}`;

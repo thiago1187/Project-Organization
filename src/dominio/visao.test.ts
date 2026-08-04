@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   chipDoAgente,
+  formatarDataCurta,
+  formatarHora,
   detalheProjeto,
   hojeNoFusoDoDono,
   ondeEstamos,
@@ -191,5 +193,34 @@ describe("hojeNoFusoDoDono", () => {
 
   it("atravessa a virada de mês", () => {
     expect(hojeNoFusoDoDono(new Date("2026-08-01T05:00:00Z"))).toEqual({ dia: 1, mes: 8 });
+  });
+
+  // ── Fuso ─────────────────────────────────────────────────────────────────
+  //
+  // A tela ficou três horas adiantada por semanas porque um comentário
+  // afirmava que os timestamps chegavam com offset -03:00 e o parser confiou
+  // nele. Chegam em UTC. Estes casos existem para que a próxima pessoa que
+  // "simplificar" o parser descubra na hora.
+
+  it("converte de UTC para o fuso do dono — 3h42 não é 6h42", () => {
+    // O caso real: a rodada roda às 3h42 e o card mostrava 06:42.
+    expect(formatarHora("2026-08-03T06:42:02.337Z")).toBe("03:42");
+  });
+
+  it("a data acompanha a conversão, não só a hora", () => {
+    // 02:00Z do dia 4 ainda é dia 3 em São Paulo. Era aqui que o dia pulava.
+    expect(formatarDataCurta("2026-08-04T02:00:00.000Z")).toBe("3 ago");
+  });
+
+  it("meia-noite em São Paulo sai como 00:xx, não 24:xx", () => {
+    expect(formatarHora("2026-08-04T03:10:00.000Z")).toBe("00:10");
+  });
+
+  it("atravessa a virada de mês no fuso certo", () => {
+    expect(formatarDataCurta("2026-09-01T02:30:00.000Z")).toBe("31 ago");
+  });
+
+  it("timestamp inválido falha alto, em vez de mostrar NaN na tela", () => {
+    expect(() => formatarHora("não é data")).toThrow();
   });
 });
