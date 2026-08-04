@@ -27,6 +27,7 @@
 // simular movimento (docs/proximos-passos.md item 4: "documento que finge
 // movimento é pior que documento curto").
 
+import { formatarDataHoraCompleta } from "./visao";
 import { semCredencial } from "./pareceCredencial";
 import type { Relatorio, Sugestao, Tarefa } from "./tipos";
 
@@ -101,15 +102,21 @@ export interface DocumentoAndamento {
 }
 
 /**
- * Exportado para o servidor formatar `geradoEmLabel` (a página que monta
- * `DadosDocumentoAndamento` não deveria reimplementar o parser de ISO).
+ * Exportado para o servidor formatar `geradoEmLabel`.
+ *
+ * Isto tinha um parser próprio, que lia os dígitos crus do ISO. Os timestamps
+ * chegam em UTC, então o documento saía **três horas adiantado** — e qualquer
+ * coisa depois das 21h local saía com o dia seguinte. A mesma rodada aparecia
+ * às 03:42 na tela do projeto e às 06:42 no PDF que vai para sócio e cliente.
+ *
+ * O parser da tela já tinha sido corrigido; esta cópia ficou viva. Agora
+ * delega, e "um lugar só converte" volta a ser verdade.
+ *
+ * **Não** mexa no transporte por causa disto: `tocouPeriodo` compara ISO como
+ * string e depende de tudo terminar em Z. A conversão é só na formatação.
  */
 export function formatarDataHora(iso: string): string {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
-  if (!m) return iso;
-  const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-  const [, ano, mes, dia, hora, minuto] = m;
-  return `${Number(dia)} ${MESES[Number(mes) - 1]} ${ano}, ${hora}:${minuto}`;
+  return formatarDataHoraCompleta(iso);
 }
 
 const formatarData = formatarDataHora;

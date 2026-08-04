@@ -164,6 +164,23 @@ export function formatarHora(iso: string): string {
   return `${p.hora}:${p.minuto}`;
 }
 
+/**
+ * "3 ago 2026, 03:42" — data completa com hora, no fuso do dono.
+ *
+ * Existe para `documentoAndamento.ts` parar de ter o próprio parser. Aquele
+ * arquivo tinha uma cópia lendo os dígitos crus da string, e por isso o
+ * documento que vai para sócio e cliente saía três horas adiantado depois que
+ * a tela já tinha sido corrigida — a mesma rodada aparecia às 03:42 no painel
+ * e às 06:42 no PDF.
+ *
+ * O cabeçalho deste bloco diz "um lugar só converte". Era mentira enquanto
+ * houvesse dois parsers.
+ */
+export function formatarDataHoraCompleta(iso: string): string {
+  const p = partesISO(iso);
+  return `${p.dia} ${MESES[p.mes - 1]} ${p.ano}, ${p.hora}:${p.minuto}`;
+}
+
 /** Exportado para src/dominio/agentes.ts reaproveitar (mesma formatação de data
  * usada em toda a tela de detalhe, agora também na ficha de agente). */
 export function formatarDataCurta(iso: string): string {
@@ -335,11 +352,20 @@ export interface TotaisHomeVM {
  * vive em `itensAtencao` (abaixo), que vira o painel de atenção no topo da
  * tela em vez de estatística estática.
  */
-export function totaisHome(projetos: Projeto[], relatorios: Relatorio[]): TotaisHomeVM {
+export function totaisHome(
+  projetos: Projeto[],
+  relatorios: Relatorio[],
+  sugestoes: Sugestao[],
+): TotaisHomeVM {
   const ativos = projetos.filter((p) => p.ativo);
   const status = ativos.map((p) => ultimoRelatorio(p.id, relatorios)?.status ?? null);
   const falhas = status.filter((s) => s === "falha").length;
-  const pedemDecisao = status.filter((s) => s === "atencao").length;
+  // "Pede decisão" conta sugestão pendente de verdade, e não o `status` do
+  // último relatório. Mesma correção de `itensAtencao` — ver o comentário
+  // longo lá. Aqui importa também porque este subtítulo fica uma linha acima
+  // do painel: se um contasse status e o outro contasse pendentes, a tela se
+  // contradiria em dois lugares visíveis ao mesmo tempo.
+  const pedemDecisao = ativos.filter((p) => pendentesDoProjeto(p.id, sugestoes) > 0).length;
   const resumoNoite =
     `${ativos.length} ${ativos.length === 1 ? "projeto" : "projetos"} em acompanhamento · ` +
     (falhas ? `${falhas} com falha` : "nada travado") +
@@ -356,33 +382,67 @@ export interface ItemAtencaoVM {
   cadenciaLabelLongo: string;
 }
 
+/** Quantas sugestões deste projeto estão esperando decisão agora. */
+function pendentesDoProjeto(projetoId: string, sugestoes: Sugestao[]): number {
+  return sugestoes.filter((s) => s.projeto_id === projetoId && s.estado === "pendente").length;
+}
+
 /**
  * Projetos que pedem decisão do dono agora, **através de todas as faixas de
  * cadência** — a resposta direta a "em qual dos meus projetos algo precisa
  * de mim", que a grade por frequência sozinha não responde (um projeto em
- * chamas na faixa "uma vez por semana" ficaria no rodapé da tela). Isto não
- * substitui o agrupamento por faixa — ele continua sendo como o dono muda a
- * cadência — só deixa de ser a única leitura possível da tela.
+ * chamas na faixa "uma vez por semana" ficaria no rodapé da tela).
  *
- * Pausado nunca aparece: a rodada não visita mais um projeto pausado, então
- * o status ali é de quando ele ainda rodava — reaparecer na lista de
- * urgência seria alarme falso sobre algo que não está mais em andamento.
+ * ## O que ele lia antes, e por que estava errado
  *
- * Ordem: falha antes de "precisa de você" (mesmo peso de `agruparPorFaixa`),
- * mais recente primeiro dentro de cada um — `cards` já chega nessa ordem
- * porque vem de `cardsProjetos`, que preserva a ordem de `listarProjetos`.
+ * Lia `status === "atencao"`, que é o campo gravado pela rodada no relatório
+ * daquela noite. O prompt define esse campo como um instantâneo: "há sugestão
+ * **nova** na fila", no momento em que a rodada terminou. Não é "há sugestão
+ * esperando".
+ *
+ * A tela errava nos dois sentidos, e o segundo é o pior:
+ *
+ * - **Cobrava decisão já tomada.** O dono recusava as duas sugestões da noite,
+ *   voltava para a home, e ela continuava dizendo "1 projeto pede você agora"
+ *   — até a rodada seguinte gravar outro relatório, o que em `semanal` leva
+ *   seis dias. Acontecia toda manhã em que ele fazia o trabalho dele.
+ * - **Escondia decisão esperando.** Três sugestões pendentes da noite 1; noite
+ *   2 roda limpa e grava `status: "ok"`; o projeto some do painel com as três
+ *   ainda na fila. O painel existe justamente para ele não precisar procurar,
+ *   e era ali que silenciava.
+ *
+ * Agora conta sugestão pendente de verdade. `falha` continua entrando por
+ * status, e está certo: "o build quebrou" é fato da rodada, não algo que o
+ * dono decide.
+ *
+ * Pausado nunca aparece: a rodada não visita mais um projeto pausado, então o
+ * que houver ali é de quando ele ainda rodava.
+ *
+ * Ordem: falha primeiro; depois, mais pendentes primeiro. A ordem antiga
+ * dizia no comentário que era "mais recente primeiro", mas `listarProjetos` é
+ * `ORDER BY criado_em ASC` — projeto mais **antigo** primeiro, e por data de
+ * cadastro, não por recência de rodada. O comentário errava as duas coisas.
  */
-export function itensAtencao(cards: ProjetoCardVM[]): ItemAtencaoVM[] {
+export function itensAtencao(cards: ProjetoCardVM[], sugestoes: Sugestao[]): ItemAtencaoVM[] {
   return cards
-    .filter((c) => c.faixa !== "pausado" && (c.status === "falha" || c.status === "atencao"))
-    .sort((a, b) => pesoStatus(a.status) - pesoStatus(b.status))
-    .map((c) => ({
-      id: c.id,
-      nome: c.nome,
-      statusLabel: c.statusLabel,
-      cor: c.cor,
-      resumo: c.resumo,
-      cadenciaLabelLongo: c.cadenciaLabelLongo,
+    .map((c) => ({ card: c, pendentes: pendentesDoProjeto(c.id, sugestoes) }))
+    .filter(({ card, pendentes }) => card.faixa !== "pausado" && (card.status === "falha" || pendentes > 0))
+    .sort((a, b) => {
+      const porStatus = pesoStatus(a.card.status) - pesoStatus(b.card.status);
+      return porStatus !== 0 ? porStatus : b.pendentes - a.pendentes;
+    })
+    .map(({ card, pendentes }) => ({
+      id: card.id,
+      nome: card.nome,
+      statusLabel: card.statusLabel,
+      cor: card.cor,
+      // O motivo de o projeto estar nesta lista, em vez da prosa da rodada —
+      // que conta o que a noite achou e não diz quantas decisões esperam.
+      resumo:
+        pendentes > 0
+          ? `${pendentes} ${pendentes === 1 ? "sugestão esperando decisão" : "sugestões esperando decisão"}`
+          : card.resumo,
+      cadenciaLabelLongo: card.cadenciaLabelLongo,
     }));
 }
 

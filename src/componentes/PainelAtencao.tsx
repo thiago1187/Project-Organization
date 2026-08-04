@@ -182,7 +182,7 @@ export default function PainelAtencao({
             color: "var(--mut3)",
           }}
         >
-          +{resto} {resto === 1 ? "mais" : "mais"} na grade abaixo
+          +{resto} na grade abaixo
         </div>
       )}
     </div>

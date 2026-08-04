@@ -1,6 +1,7 @@
 import { cardsProjetos, itensAtencao, totaisHome } from "@/dominio/visao";
 import { listarProjetos } from "@/servidor/projetos";
 import { ultimoRelatorioPorProjeto } from "@/servidor/relatorios";
+import { listarSugestoes } from "@/servidor/sugestoes";
 import QuadroCadencias from "@/componentes/QuadroCadencias";
 import PainelAtencao from "@/componentes/PainelAtencao";
 import Saudacao from "@/componentes/Saudacao";
@@ -15,10 +16,18 @@ export default async function VisaoGeralPage() {
   // Uma linha por projeto: `cardsProjetos` e `totaisHome` só olham o último
   // relatório de cada um, e carregar a tabela inteira para descartar o resto
   // era desperdício que cresce uma linha por noite.
-  const [projetos, relatorios] = await Promise.all([listarProjetos(), ultimoRelatorioPorProjeto()]);
+  const [projetos, relatorios, sugestoes] = await Promise.all([
+    listarProjetos(),
+    ultimoRelatorioPorProjeto(),
+    // A home precisa saber o que está pendente **agora**, e não o que estava
+    // pendente quando a rodada terminou. Antes ela nem carregava sugestões:
+    // era estruturalmente incapaz de responder a própria pergunta que o
+    // painel de atenção faz.
+    listarSugestoes(),
+  ]);
   const cards = cardsProjetos(projetos, relatorios);
-  const totais = totaisHome(projetos, relatorios);
-  const atencao = itensAtencao(cards);
+  const totais = totaisHome(projetos, relatorios, sugestoes);
+  const atencao = itensAtencao(cards, sugestoes);
 
   return (
     <div style={{ padding: "30px 36px 64px" }}>

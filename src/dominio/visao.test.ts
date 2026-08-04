@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  cardsProjetos,
   chipDoAgente,
+  itensAtencao,
   formatarDataCurta,
   formatarHora,
   detalheProjeto,
@@ -222,5 +224,82 @@ describe("hojeNoFusoDoDono", () => {
 
   it("timestamp inválido falha alto, em vez de mostrar NaN na tela", () => {
     expect(() => formatarHora("não é data")).toThrow();
+  });
+
+  // ── Painel de atenção ────────────────────────────────────────────────────
+  //
+  // Isto não tinha teste nenhum, e foi por isso que passou: ele lia
+  // `status === "atencao"`, que é o instantâneo gravado pela rodada ("há
+  // sugestão NOVA na fila", no momento em que ela terminou), e não "há
+  // sugestão esperando". Errava nos dois sentidos.
+
+  function cardDe(projetoId: string, status: "ok" | "atencao" | "falha") {
+    return cardsProjetos(
+      [projetoFixture({ id: projetoId })],
+      [relatorioFixture({ projeto_id: projetoId, status })],
+    );
+  }
+
+  function sugestaoPendente(projetoId: string, id: string) {
+    return sugestaoFixture({ id, projeto_id: projetoId, estado: "pendente" });
+  }
+
+  it("some quando o dono decide, sem esperar a próxima rodada", () => {
+    // Direção A: a rodada gravou "atencao" e o dono recusou tudo de manhã. A
+    // home continuava cobrando decisão até a rodada seguinte — em `semanal`,
+    // seis dias depois. Acontecia toda manhã em que ele trabalhava.
+    const cards = cardDe("p1", "atencao");
+    const jaDecididas = [sugestaoFixture({ id: "s1", projeto_id: "p1", estado: "recusada" })];
+
+    expect(itensAtencao(cards, jaDecididas)).toHaveLength(0);
+  });
+
+  it("aparece com sugestão pendente antiga, mesmo com a última rodada limpa", () => {
+    // Direção B, e é a pior: três pendentes da noite 1, noite 2 roda limpa e
+    // grava "ok", o projeto sumia do painel com as três ainda na fila. O
+    // painel existe para o dono não precisar procurar.
+    const cards = cardDe("p1", "ok");
+    const pendentes = [
+      sugestaoPendente("p1", "s1"),
+      sugestaoPendente("p1", "s2"),
+      sugestaoPendente("p1", "s3"),
+    ];
+
+    const itens = itensAtencao(cards, pendentes);
+
+    expect(itens).toHaveLength(1);
+    expect(itens[0].resumo).toBe("3 sugestões esperando decisão");
+  });
+
+  it("falha entra mesmo sem sugestão nenhuma — não é decisão do dono", () => {
+    expect(itensAtencao(cardDe("p1", "falha"), [])).toHaveLength(1);
+  });
+
+  it("projeto pausado nunca entra", () => {
+    const cards = cardsProjetos(
+      [projetoFixture({ id: "p1", ativo: false })],
+      [relatorioFixture({ projeto_id: "p1", status: "falha" })],
+    );
+
+    expect(itensAtencao(cards, [sugestaoPendente("p1", "s1")])).toHaveLength(0);
+  });
+
+  it("falha vem antes de quem só espera decisão", () => {
+    const cards = [
+      ...cardDe("p1", "ok"),
+      ...cardDe("p2", "falha"),
+    ];
+
+    const itens = itensAtencao(cards, [sugestaoPendente("p1", "s1")]);
+
+    expect(itens.map((i) => i.id)).toEqual(["p2", "p1"]);
+  });
+
+  it("o resumo diz quantas esperam, não a prosa da rodada", () => {
+    // `card.resumo` é o texto que a rodada escreveu sobre a noite. Ele conta o
+    // que ela achou, e nunca diz quantas decisões estão paradas.
+    const itens = itensAtencao(cardDe("p1", "atencao"), [sugestaoPendente("p1", "s1")]);
+
+    expect(itens[0].resumo).toBe("1 sugestão esperando decisão");
   });
 });
